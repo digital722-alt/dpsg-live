@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPSG - Nimbahera</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background: #f0f2f5; text-align: center; padding: 20px; }
+        .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; margin: auto; border-top: 5px solid #28a745; }
+        h2 { color: #333; cursor: pointer; }
+        .notice { background: #333; color: yellow; padding: 10px; border-radius: 5px; margin-bottom: 20px; font-weight: bold; font-size: 14px; }
+        input { width: 85%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; outline: none; }
+        button { background: #28a745; color: white; padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; width: 85%; font-weight: bold; }
+        button:active { background: #218838; }
+        .result-box { margin-top: 20px; display: none; background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #eee; text-align: left; }
+        .prize-text { font-size: 20px; color: #d9534f; font-weight: bold; background: #fff5f5; padding: 10px; border-radius: 5px; border: 1px dashed #d9534f; margin-top: 10px; text-align: center; }
+        .admin-section { background: #fff9c4; padding: 10px; margin-top: 15px; border: 1px solid #fbc02d; border-radius: 5px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div id="notice-bar" class="notice">डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप (निंबाहेड़ा) में आपका स्वागत है</div>
+
+    <div class="card">
+        <h2 onclick="adminTrigger()">DPSG निम्बाहेड़ा</h2>
+        <p style="color: #666; font-size: 14px;">अपनी मेंबरशिप आईडी दर्ज करें</p>
+        
+        <input type="text" id="membershipId" placeholder="यहाँ आईडी लिखें (उदा. 101)">
+        <button onclick="checkStatus()">कार्ड स्टेटस देखें</button>
+
+        <div id="result" class="result-box">
+            </div>
+    </div>
+
+    <script>
+        let clickCount = 0;
+        // आपकी Apps Script URL
+        const apiURL = "https://script.google.com/macros/s/AKfycbw9E41O2Posk5FZx7x0Q9AfiP4wrqyh9-hq7NmBwnUH-MwmoFcQO8iW6CsjC806FhH4/exec";
+
+        function adminTrigger() {
+            clickCount++;
+            if (clickCount === 3) {
+                let pass = prompt("एडमिन पासवर्ड डालें:");
+                if (pass === "Chanchal@6375") {
+                    sessionStorage.setItem("adminPass", pass);
+                    alert("✅ एडमिन मोड चालू! अब आप पूरा डेटा देख सकते हैं।");
+                } else {
+                    alert("❌ गलत पासवर्ड!");
+                }
+                clickCount = 0;
+            }
+        }
+
+        async function checkStatus() {
+            let id = document.getElementById("membershipId").value.trim();
+            let pass = sessionStorage.getItem("adminPass") || "";
+            let resBox = document.getElementById("result");
+            
+            if (!id) { alert("कृपया आईडी डालें"); return; }
+
+            resBox.style.display = "block";
+            resBox.innerHTML = "<p style='text-align
