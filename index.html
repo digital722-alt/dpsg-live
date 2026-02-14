@@ -1,261 +1,279 @@
-import React, { useState, useEffect } from 'react';
-import { createRoot } from 'react-dom/client';
-import confetti from 'canvas-confetti';
-
-const App = () => {
-    const [status, setStatus] = useState("loading");
-    const [card, setCard] = useState(null);
-    const [passInput, setPassInput] = useState("");
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [searchId, setSearchId] = useState("");
-    const [currentTime, setCurrentTime] = useState(new Date());
-
-    const MASTER_PASS = "Chanchal@6375";
-
-    // 39 Columns Header List
-    const colHeaders = [
-        "Serial_No", "Membership_ID", "Card_Name", "Card_Type", "Prize_Inam", 
-        "Village_Gaon", "Sale_Date", "Security_Code", "Customer_Name", "Phone_Number", 
-        "Date_of_Birth", "Aadhar_Last_4", "Status", "QR_Link", "Issue_Date", 
-        "Activation_Date", "Expiry_Date", "Days_Left", "Total Points", "Used Photos", 
-        "Used Prints", "Points Left", "Live Balance", "Total_Sold", "Today Sale", 
-        "Stock Left", "Today's Income", "Total Income", "VIP Sale", "Gold Sale", 
-        "Silver Sale", "तारीख", "बिके कार्ड", "आज की कमाई (1)", "बाकी कार्ड", 
-        "आज की कमाई (2)", "Draw Date", "Inam Status", "Notice"
-    ];
-
-    // Master Data (Update this with your full CSV content)
-    const dpsgDatabase = {
-        "0001": ["0001", "DPSG-26-113-0001", "डिजिटल बचत कार्ड", "₹500 VIP Card (6 महीने)", "LED TV (32 Inch)", "निंबाहेड़ा", "14-02-26", "JORA-77-001", "संदीप सिंह बना", "6376858028", "15-08-1990", "4528", "एक्टिव", "#REF!", "14-02-26", "2026-02-14", "14-08-26", "180", "380", "15", "5", "360", "500", "1", "1", "999", "500", "500", "1", "0", "0", "14-02-26", "1", "500", "999", "500", "2026-02-14", "Delivered", "खुशखबरी! डिजिटल बचत कार्ड की बुकिंग जोरों पर है। अपना कार्ड सुरक्षित रखें।"],
-    };
-
-    useEffect(() => {
-        // Clock Timer
-        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-        
-        // Load Member Logic
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
-        setTimeout(() => {
-            if (id) {
-                const s = id.padStart(4, '0');
-                const row = dpsgDatabase[s] || autoFill(s);
-                setCard(row);
-                setStatus("view");
-                if (checkCelebration(row[36])) { launchPatake(); }
-            } else { setStatus("search"); }
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, []);
-
-    const autoFill = (s) => {
-        let r = new Array(39).fill("");
-        r[0] = s; r[1] = `DPSG-26-ID-${s}`;
-        r[3] = parseInt(s) <= 50 ? "₹500 VIP Card" : "Standard Card";
-        r[38] = "नई अपडेट का इंतज़ार करें...";
-        return r;
-    };
-
-    const launchPatake = () => {
-        const end = Date.now() + (7 * 1000);
-        const colors = ['#bf953f', '#ffffff', '#3b82f6'];
-        (function frame() {
-            confetti({ particleCount: 4, angle: 60, spread: 60, origin: { x: 0 }, colors });
-            confetti({ particleCount: 4, angle: 120, spread: 60, origin: { x: 1 }, colors });
-            if (Date.now() < end) requestAnimationFrame(frame);
-        }());
-    };
-
-    const clean = (v) => (v && v.toString().trim() !== "" && v !== "#REF!" && v !== "Pending") ? v : "Jankaari updat ki jaa rhi h...";
-    const checkCelebration = (d) => { if (!d || d.includes("जल्द") || d.trim() === "") return false; return new Date() >= new Date(d); };
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPSG डिजिटल पोर्टल | ज़ोरावर सिंह</title>
+    <!-- आवश्यक लाइब्रेरीज़ -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    const handlePrint = () => {
-        window.print();
-    };
+    <style>
+        body { font-family: 'Noto Sans Devanagari', sans-serif; background-color: #010413; color: white; overflow-x: hidden; }
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .gold-glow { background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .points-box { background: linear-gradient(180deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.02) 100%); border: 1px solid rgba(59, 130, 246, 0.3); }
+        .receipt-container { background: white; color: black; border-radius: 2rem; padding: 2rem; }
+        
+        @media print {
+            body { background: white !important; color: black !important; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; width: 100% !important; margin: 0 !important; padding: 10px !important; border: 1px solid #ddd !important; }
+            .receipt-container { width: 100% !important; box-shadow: none !important; border: 1px solid #eee !important; color: black !important; }
+        }
+        
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #eab308; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-    const mask = (val, type) => {
-        const s = clean(val);
-        if (s.includes("updat")) return s;
-        if (type === "phone") return "********" + val.toString().slice(-2);
-        if (type === "aadhar") return "XXXX-XXXX-XX" + val.toString().slice(-2);
-        return s;
-    };
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-    if (status === "loading") return (
-        <div className="h-screen flex items-center justify-center bg-[#010413]">
-            <div className="w-16 h-16 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-    );
+        const App = () => {
+            const [status, setStatus] = useState("loading");
+            const [data, setData] = useState(null);
+            const [passInput, setPassInput] = useState("");
+            const [isAdmin, setIsAdmin] = useState(false);
+            const [searchId, setSearchId] = useState("");
+            const [currentTime, setCurrentTime] = useState(new Date());
 
-    return (
-        <div className="min-h-screen bg-[#010413] text-white font-sans p-4 flex flex-col items-center">
-            {/* 1. TOP BAR - DATE & TIME */}
-            <div className="w-full max-w-md flex justify-between items-center mb-6 no-print text-[10px] font-black uppercase tracking-widest text-gray-500 border-b border-white/5 pb-2">
-                <span>{currentTime.toLocaleDateString('hi-IN', { day:'2-digit', month:'short', year:'numeric' })}</span>
-                <span className="text-blue-400">{currentTime.toLocaleTimeString('en-US', { hour12:true, hour:'2-digit', minute:'2-digit', second:'2-digit' })}</span>
-            </div>
+            const MASTER_PASS = "Chanchal@6375";
 
-            <div className="max-w-md w-full z-10">
-                {/* 2. LOGO & SLOGAN */}
-                <div className="text-center mb-8 no-print">
-                    <h1 className="text-4xl font-black italic uppercase leading-none tracking-tighter">
-                        <span className="block text-white">डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप</span>
-                        <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 via-yellow-200 to-yellow-600 text-2xl mt-1">NIMBAHERA</span>
-                    </h1>
-                    <div className="mt-4 px-4 py-3 bg-blue-600/5 border border-blue-500/20 rounded-2xl">
-                        <p className="text-[11px] font-bold text-blue-300 italic">"समस्या आपकी, समाधान हमारा - उचित मूल्य, बेहतरीन सेवा !"</p>
+            // 39 कॉलम के नाम
+            const colNames = [
+                "Serial_No", "Membership_ID", "Card_Name", "Card_Type", "Prize_Inam", 
+                "Village_Gaon", "Sale_Date", "Security_Code", "Customer_Name", "Phone_Number", 
+                "Date_of_Birth", "Aadhar_Last_4", "Status", "QR_Link", "Issue_Date", 
+                "Activation_Date", "Expiry_Date", "Days_Left", "Total Points", "Used Photos", 
+                "Used Prints", "Points Left", "Live Balance", "Total_Sold", "Today Sale", 
+                "Stock Left", "Today's Income", "Total Income", "VIP Sale", "Gold Sale", 
+                "Silver Sale", "तारीख", "बिके कार्ड", "आज की कमाई (1)", "बाकी कार्ड", 
+                "आज की कमाई (2)", "Draw Date", "Inam Status", "Notice"
+            ];
+
+            // डेटाबेस (इसमें आपकी CSV का डेटा है)
+            const dpsgData = {
+                "0001": ["0001", "DPSG-26-113-0001", "डिजिटल बचत कार्ड", "₹500 VIP Card (6 महीने)", "LED TV (32 Inch)", "निंबाहेड़ा", "14-02-26", "JORA-77-001", "संदीप सिंह बना", "6376858028", "15-08-1990", "4528", "एक्टिव", "#REF!", "14-02-26", "2026-02-14", "14-08-26", "180", "380", "15", "5", "360", "500", "1", "1", "999", "500", "500", "1", "0", "0", "14-02-26", "1", "500", "999", "500", "2026-02-14", "Delivered", "खुशखबरी! डिजिटल बचत कार्ड की बुकिंग जोरों पर है। अपना कार्ड सुरक्षित रखें।"],
+            };
+
+            useEffect(() => {
+                // घड़ी का टाइमर
+                const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+                
+                const params = new URLSearchParams(window.location.search);
+                const id = params.get('id');
+                
+                setTimeout(() => {
+                    if (id) {
+                        const s = id.padStart(4, '0');
+                        const row = dpsgData[s] || genRow(s);
+                        setData(row);
+                        setStatus("view");
+                        if (checkDraw(row[36])) { triggerFireworks(); }
+                    } else { setStatus("search"); }
+                }, 800);
+
+                return () => clearInterval(timer);
+            }, []);
+
+            const genRow = (s) => {
+                let r = new Array(39).fill("");
+                r[0] = s; r[1] = `DPSG-26-ID-${s}`;
+                r[3] = parseInt(s) <= 50 ? "₹500 VIP Card" : "Standard Card";
+                r[38] = "नई अपडेट जल्द ही यहाँ दिखाई देगी...";
+                return r;
+            };
+
+            const triggerFireworks = () => {
+                const end = Date.now() + (5 * 1000);
+                (function frame() {
+                    confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#bf953f', '#ffffff', '#3b82f6'] });
+                    confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#bf953f', '#ffffff', '#3b82f6'] });
+                    if (Date.now() < end) requestAnimationFrame(frame);
+                }());
+            };
+
+            const getV = (v) => (v && v.toString().trim() !== "" && v !== "#REF!" && v !== "Pending") ? v : "Jankaari updat ki jaa rhi h...";
+            const checkDraw = (dateStr) => {
+                if (!dateStr || dateStr.includes("जल्द") || dateStr.trim() === "") return false;
+                return new Date() >= new Date(dateStr);
+            };
+
+            const mask = (val, type) => {
+                const s = getV(val);
+                if (s.includes("updat")) return s;
+                if (type === "phone") return "********" + val.toString().slice(-2);
+                if (type === "aadhar") return "XXXX-XXXX-XX" + val.toString().slice(-2);
+                return s;
+            };
+
+            if (status === "loading") return <div className="h-screen flex items-center justify-center bg-[#010413]"><div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>;
+
+            return (
+                <div className="min-h-screen flex flex-col items-center p-4 relative">
+                    {/* लाइव समय - ऊपर */}
+                    <div className="w-full max-w-md no-print flex justify-between items-center mb-6 text-[10px] font-black uppercase tracking-widest text-gray-500 border-b border-white/5 pb-2">
+                        <span>{currentTime.toLocaleDateString('hi-IN', { day:'2-digit', month:'short', year:'numeric' })}</span>
+                        <span className="text-blue-500">{currentTime.toLocaleTimeString('en-US', { hour12:true, hour:'2-digit', minute:'2-digit', second:'2-digit' })}</span>
                     </div>
-                </div>
 
-                {status === "search" ? (
-                    <div className="bg-white/5 backdrop-blur-3xl rounded-[3rem] p-10 text-center shadow-2xl border border-white/10 no-print">
-                        <i className="fa-solid fa-qrcode text-5xl text-blue-500/30 mb-6"></i>
-                        <h2 className="text-xl font-black uppercase mb-8 tracking-widest">कार्ड आईडी दर्ज करें</h2>
-                        <input type="number" placeholder="0001" className="w-full bg-black/40 border border-white/10 rounded-2xl py-5 text-center text-4xl font-black mb-8 outline-none focus:border-yellow-500" onChange={(e)=>setSearchId(e.target.value)} />
-                        <button onClick={()=>{window.location.href=`?id=${searchId}`}} className="w-full bg-blue-600 py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all">रिकॉर्ड खोजें</button>
-                    </div>
-                ) : (
-                    <div className="space-y-6">
-                        
-                        {/* 3. NOTICE BOARD */}
-                        <div className="bg-yellow-500/10 border border-yellow-500/30 p-5 rounded-[2.5rem] no-print">
-                            <div className="flex items-center space-x-2 mb-2">
-                                <i className="fa-solid fa-bullhorn text-yellow-500 text-xs animate-pulse"></i>
-                                <span className="text-[9px] font-black text-yellow-500 uppercase tracking-widest">Notice Board</span>
+                    <div className="max-w-md w-full z-10">
+                        {/* ब्रांडिंग और सलोगन */}
+                        <div className="text-center mb-8 no-print">
+                            <h1 className="text-4xl font-black italic uppercase leading-none tracking-tighter">
+                                <span className="block text-white">डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप</span>
+                                <span className="block gold-glow uppercase tracking-tighter text-2xl mt-1">NIMBAHERA</span>
+                            </h1>
+                            <div className="mt-4 px-4 py-3 bg-blue-600/5 border border-blue-500/20 rounded-2xl shadow-xl">
+                                <p className="text-[11px] font-bold text-blue-300 italic tracking-tight">"समस्या आपकी, समाधान हमारा - उचित मूल्य, बेहतरीन सेवा !"</p>
                             </div>
-                            <p className="text-[11px] font-bold text-gray-200 italic leading-relaxed">"{clean(card[38])}"</p>
                         </div>
 
-                        {/* 4. MAIN RECEIPT CARD (Printable Area) */}
-                        <div id="receipt-card" className="bg-white text-black rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden print:shadow-none print:border print:rounded-none">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 rounded-full -mr-16 -mt-16 no-print"></div>
-                            
-                            {/* Header inside receipt */}
-                            <div className="text-center border-b-2 border-dashed border-gray-200 pb-4 mb-6">
-                                <h3 className="font-black text-xl tracking-tighter">DPSG DIGITAL RECEIPT</h3>
-                                <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest">Nimbahera, Rajasthan</p>
+                        {status === "search" ? (
+                            <div className="glass rounded-[3rem] p-10 text-center animate-in zoom-in duration-500 shadow-2xl no-print">
+                                <h2 className="text-xl font-black uppercase mb-8 tracking-widest text-white">ID दर्ज करें</h2>
+                                <input type="number" placeholder="0001" className="w-full bg-black/40 border border-white/10 rounded-2xl py-5 text-center text-4xl font-black mb-8 outline-none focus:border-yellow-500 text-white" onChange={(e)=>setSearchId(e.target.value)} />
+                                <button onClick={()=>{window.location.href=`?id=${searchId}`}} className="w-full bg-blue-600 py-4 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all text-white">रिकॉर्ड देखें</button>
                             </div>
-
+                        ) : (
                             <div className="space-y-6">
-                                <div className="flex justify-between items-start">
-                                    <div className="space-y-1">
-                                        <p className="text-[8px] text-gray-400 font-black uppercase">Membership ID</p>
-                                        <p className="text-2xl font-black tracking-tighter text-blue-600">{clean(card[1])}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-[8px] text-gray-400 font-black uppercase">Card Type</p>
-                                        <p className="text-[10px] font-black bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full">{clean(card[3])}</p>
-                                    </div>
-                                </div>
                                 
-                                <div className="grid grid-cols-2 gap-6 py-4 border-y border-gray-100">
-                                    <div>
-                                        <p className="text-[8px] text-gray-400 font-black uppercase mb-1">Customer Name</p>
-                                        <p className="text-sm font-black uppercase italic">{clean(card[8])}</p>
+                                {/* नोटिस बोर्ड */}
+                                <div className="bg-yellow-500/10 border border-yellow-500/30 p-5 rounded-[2.5rem] no-print">
+                                    <div className="flex items-center space-x-2 mb-2 text-yellow-500">
+                                        <i className="fa-solid fa-bullhorn text-xs animate-pulse"></i>
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Notice Board</span>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-[8px] text-gray-400 font-black uppercase mb-1">Village/Gaon</p>
-                                        <p className="text-sm font-black uppercase italic">{clean(card[5])}</p>
-                                    </div>
+                                    <p className="text-[11px] font-bold text-gray-200 italic leading-relaxed italic">"{getV(data[38])}"</p>
                                 </div>
 
-                                {/* SALE DATE & STATUS (Col 7 & 38) */}
-                                <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-2xl">
-                                    <div>
-                                        <p className="text-[7px] text-gray-400 font-black uppercase mb-1 tracking-widest">बिक्री तिथि (7)</p>
-                                        <p className="text-[11px] font-black text-gray-800">{clean(card[6])}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-[7px] text-gray-400 font-black uppercase mb-1 tracking-widest">इनाम स्थिति (38)</p>
-                                        <p className="text-[11px] font-black text-blue-600 uppercase">{clean(card[37])}</p>
-                                    </div>
-                                </div>
-
-                                {/* Points Dashboard */}
-                                <div className="bg-blue-600 text-white p-5 rounded-3xl shadow-xl shadow-blue-500/20 text-center">
-                                    <p className="text-[9px] font-black uppercase tracking-widest mb-1 opacity-70">Total Points Left</p>
-                                    <h4 className="text-5xl font-black">{clean(card[21])}</h4>
-                                    <div className="flex justify-between mt-4 px-4 text-[8px] font-bold border-t border-white/20 pt-3">
-                                        <span>TOTAL: {clean(card[18])}</span>
-                                        <span>USED: {(parseInt(card[19]) || 0) + (parseInt(card[20]) || 0)}</span>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4 text-[9px] font-bold text-gray-500 pt-2">
-                                    <p>Activated: <span className="text-black">{clean(card[15])}</span></p>
-                                    <p className="text-right">Expiry: <span className="text-red-500">{clean(card[16])}</span></p>
-                                </div>
-
-                                <div className="flex justify-between items-center text-[8px] text-gray-400 border-t border-gray-100 pt-4 italic">
-                                    <span>Phone: {mask(card[9], "phone")}</span>
-                                    <span>Aadhar: {mask(card[11], "aadhar")}</span>
-                                </div>
-                            </div>
-
-                            <div className="mt-8 text-center no-print">
-                                <button onClick={handlePrint} className="bg-gray-100 text-black px-6 py-2 rounded-full text-[10px] font-black uppercase flex items-center justify-center mx-auto space-x-2 hover:bg-gray-200 transition-all">
-                                    <i className="fa-solid fa-print"></i>
-                                    <span>Print Receipt</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* 5. CELEBRATION PRIZE BOX */}
-                        {checkDrawDate(card[36]) ? (
-                            <div className="bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-[3rem] p-10 text-center shadow-2xl border-4 border-yellow-300 relative no-print scale-105">
-                                <i className="fa-solid fa-trophy text-7xl text-white mb-6 drop-shadow-lg"></i>
-                                <p className="text-[10px] text-white/80 font-black uppercase mb-1 tracking-widest">🎉 Bumper Prize Winner 🎉</p>
-                                <h2 className="text-4xl font-black text-white uppercase tracking-tighter drop-shadow-xl leading-none">{clean(card[4])}</h2>
-                            </div>
-                        ) : (
-                            <div className="bg-white/5 border border-dashed border-white/10 rounded-[2.5rem] p-8 text-center no-print">
-                                <i className="fa-solid fa-lock text-gray-700 mb-3 text-2xl"></i>
-                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest italic">Luck Draw Result Locked<br/>Wait for Draw Date</p>
-                            </div>
-                        )}
-
-                        {/* 6. ADMIN VAULT */}
-                        {!isAdmin ? (
-                            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 text-center space-y-4 no-print">
-                                <p className="text-[9px] text-gray-500 font-black uppercase tracking-[0.3em]">Master Admin Access</p>
-                                <input type="password" placeholder="PASSWORD" className="w-full bg-black/60 border border-white/10 rounded-xl py-4 text-center text-white outline-none focus:border-yellow-500 text-2xl font-bold tracking-widest" onChange={(e)=>setPassInput(e.target.value)} />
-                                <button onClick={()=>{if(passInput===MASTER_PASS) setIsAdmin(true); else alert("Hukum, Pin Galat Hai!");}} className="w-full bg-white text-black font-black py-4 rounded-xl text-[10px] uppercase tracking-widest shadow-xl">Unlock Dashboard</button>
-                            </div>
-                        ) : (
-                            <div className="bg-[#020617] rounded-[3.5rem] p-8 space-y-4 shadow-2xl border border-yellow-500/20 max-h-[600px] overflow-y-auto no-print">
-                                <div className="flex justify-between items-center border-b border-yellow-500/30 pb-4 mb-4 sticky top-0 bg-[#020617] z-20">
-                                    <h3 className="text-[11px] font-black text-yellow-500 uppercase tracking-widest">Admin 39-Column View</h3>
-                                    <button onClick={()=>setIsAdmin(false)} className="text-[9px] text-red-500 font-bold uppercase underline">Close</button>
-                                </div>
-                                <div className="space-y-3">
-                                    {colHeaders.map((name, idx) => (
-                                        <div key={idx} className="flex justify-between items-center text-[10px] py-1.5 border-b border-white/5">
-                                            <span className="text-gray-500 font-black">{idx + 1}. {name}</span>
-                                            <span className="text-right font-black text-white">{clean(card[idx])}</span>
+                                {/* मुख्य रसीद (Printable Receipt) */}
+                                <div className="receipt-container shadow-2xl relative overflow-hidden">
+                                    <div className="flex justify-between items-center mb-6 border-b-2 border-dashed border-gray-100 pb-4">
+                                        <div className="space-y-1">
+                                            <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest">Membership ID</p>
+                                            <p className="text-2xl font-black tracking-tighter text-blue-600">{getV(data[1])}</p>
                                         </div>
-                                    ))}
+                                        <span className="bg-yellow-50 px-3 py-1.5 rounded-full text-[8px] font-black text-yellow-700 uppercase italic border border-yellow-100">{getV(data[3])}</span>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        {/* पॉइंट्स - बड़ा और साफ़ */}
+                                        <div className="bg-blue-600 rounded-3xl p-5 text-center text-white shadow-xl shadow-blue-500/20">
+                                            <p className="text-[8px] font-black uppercase tracking-widest mb-1 opacity-70">Total Points Left</p>
+                                            <h4 className="text-5xl font-black">{getV(data[21])}</h4>
+                                            <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-white/10 text-[8px] font-bold">
+                                                <span>ALLOCATED: {getV(data[18])}</span>
+                                                <span className="border-l border-white/10">USED: {(parseInt(data[19]) || 0) + (parseInt(data[20]) || 0)}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* नए कॉलम: 7 और 38 */}
+                                        <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                            <div>
+                                                <p className="text-[7px] text-gray-400 font-black uppercase mb-1">बिक्री तिथि (Col 7)</p>
+                                                <p className="text-[10px] font-black text-gray-800 uppercase italic">{getV(data[6])}</p>
+                                            </div>
+                                            <div className="text-right border-l border-gray-200 pl-4">
+                                                <p className="text-[7px] text-gray-400 font-black uppercase mb-1">इनाम स्थिति (Col 38)</p>
+                                                <p className="text-[10px] font-black text-blue-600 uppercase italic">{getV(data[37])}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* सदस्य विवरण */}
+                                        <div className="grid grid-cols-2 gap-4 text-gray-800">
+                                            <div>
+                                                <p className="text-[8px] text-gray-400 font-black uppercase mb-1">Member Name (Col 9)</p>
+                                                <p className="text-sm font-black uppercase italic leading-tight">{getV(data[8])}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-[8px] text-gray-400 font-black uppercase mb-1">Village (Col 6)</p>
+                                                <p className="text-sm font-black uppercase italic truncate">{getV(data[5])}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* सर्विस की तारीखें */}
+                                        <div className="grid grid-cols-3 gap-2 bg-gray-100 p-3 rounded-2xl text-[8px] text-center font-bold text-gray-600 uppercase">
+                                            <div>Activated: <span className="block text-black">{getV(data[15])}</span></div>
+                                            <div className="border-x border-gray-300">Expiry: <span className="block text-red-600">{getV(data[16])}</span></div>
+                                            <div>Days Left: <span className="block text-black">{getV(data[17])}</span></div>
+                                        </div>
+
+                                        {/* प्राइवेट जानकारी - मास्क */}
+                                        <div className="flex justify-between items-center text-[8px] text-gray-400 border-t border-gray-100 pt-4 italic no-print">
+                                            <span>Phone: {mask(data[9], "phone")}</span>
+                                            <span>Aadhar: {mask(data[11], "aadhar")}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* प्रिंट बटन */}
+                                    <div className="mt-8 text-center no-print border-t border-gray-100 pt-6">
+                                        <button onClick={()=>window.print()} className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-2.5 rounded-full text-[10px] font-black uppercase flex items-center justify-center mx-auto space-x-2 transition-all active:scale-95">
+                                            <i className="fa-solid fa-print"></i>
+                                            <span>Print Digital Bill</span>
+                                        </button>
+                                    </div>
                                 </div>
+
+                                {/* इनाम सेक्शन */}
+                                {checkDraw(data[36]) ? (
+                                    <div className="bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-[3.5rem] p-10 text-center shadow-2xl no-print relative border-4 border-yellow-200">
+                                        <i className="fa-solid fa-trophy text-7xl text-white mb-6 drop-shadow-lg"></i>
+                                        <p className="text-[10px] text-white/70 font-black uppercase mb-1 tracking-widest animate-pulse italic">Mubarak Ho! Aapka Inam</p>
+                                        <h2 className="text-4xl font-black text-white uppercase tracking-tighter drop-shadow-xl">{getV(data[4])}</h2>
+                                    </div>
+                                ) : (
+                                    <div className="glass rounded-[2.5rem] p-8 text-center border border-dashed border-white/10 opacity-70 no-print">
+                                        <i className="fa-solid fa-lock text-gray-600 mb-3 text-2xl"></i>
+                                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-loose italic">Draw Result Ka Intezar Karein<br/>Patake Phutne Wale Hain</p>
+                                    </div>
+                                )}
+
+                                {/* एडमिन मास्टर व्यू */}
+                                {!isAdmin ? (
+                                    <div className="glass rounded-[2rem] p-8 text-center space-y-6 shadow-xl border-blue-500/10 no-print">
+                                        <p className="text-[9px] text-gray-500 font-black uppercase tracking-[0.3em]">Master Admin Authorization</p>
+                                        <div className="space-y-4">
+                                            <input type="password" placeholder="PASSWORD" className="w-full bg-black/60 border border-white/10 rounded-xl py-4 text-center text-white outline-none focus:border-yellow-500 text-3xl font-bold tracking-[0.4em]" onChange={(e)=>setPassInput(e.target.value)} />
+                                            <button onClick={()=>{if(passInput===MASTER_PASS) setIsAdmin(true); else alert("Hukum Bana, Password Galat Hai!");}} className="w-full bg-white text-black font-black py-4 rounded-xl text-[10px] uppercase tracking-widest shadow-2xl active:scale-95 transition-all">Unlock 39 Columns</button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="admin-view rounded-[3.5rem] p-8 space-y-4 animate-in slide-in-from-bottom-5 duration-500 max-h-[550px] overflow-y-auto shadow-2xl no-print">
+                                        <div className="flex justify-between items-center border-b border-yellow-500/30 pb-4 mb-4 sticky top-0 bg-[#010413] z-20">
+                                            <h3 className="text-[11px] font-black text-yellow-500 uppercase italic tracking-widest">Master Dashboard (39 Columns)</h3>
+                                            <button onClick={()=>setIsAdmin(false)} className="text-[9px] text-white bg-red-600/60 px-4 py-1.5 rounded-lg uppercase font-bold">Close</button>
+                                        </div>
+                                        <div className="space-y-4">
+                                            {colNames.map((name, idx) => (
+                                                <div key={idx} className="flex justify-between items-center text-[10px] py-1.5 border-b border-white/5 last:border-0">
+                                                    <span className="text-gray-500 uppercase font-black">{idx + 1}. {name}</span>
+                                                    <span className={`text-right font-black ${idx === 4 ? 'text-green-400' : idx === 9 ? 'text-blue-400' : 'text-white'}`}>
+                                                        {getV(data[idx])}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
-
+                        <p className="text-center text-[7px] text-gray-800 font-black uppercase mt-16 tracking-[0.5em] italic opacity-40 italic no-print">Digital Problem Solution | Nimbahera | J. Zorawar Singh</p>
                     </div>
-                    
-                    <p className="mt-20 text-[8px] text-gray-800 font-black uppercase tracking-[0.5em] italic opacity-40 no-print">DPSG | Nimbahera | J. Zorawar Singh</p>
                 </div>
             );
         };
 
-        const root = createRoot(document.getElementById('root'));
+        const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
-    <style>
-        @media print {
-            body { background: white !important; color: black !important; padding: 0 !important; margin: 0 !important; }
-            .no-print { display: none !important; }
-            #receipt-card { width: 100% !important; max-width: 100% !important; border: 1px solid #eee !important; padding: 20px !important; }
-            #root { width: 100% !important; }
-        }
-    </style>
 </body>
 </html>
