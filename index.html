@@ -3,60 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPSG - Nimbahera</title>
+    <title>DPSG डिजिटल बचत कार्ड | जोरावर बना</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Arial', sans-serif; background: #f0f2f5; text-align: center; padding: 20px; }
-        .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; margin: auto; border-top: 5px solid #28a745; }
-        h2 { color: #333; cursor: pointer; }
-        .notice { background: #333; color: yellow; padding: 10px; border-radius: 5px; margin-bottom: 20px; font-weight: bold; font-size: 14px; }
-        input { width: 85%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; outline: none; }
-        button { background: #28a745; color: white; padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; width: 85%; font-weight: bold; }
-        button:active { background: #218838; }
-        .result-box { margin-top: 20px; display: none; background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #eee; text-align: left; }
-        .prize-text { font-size: 20px; color: #d9534f; font-weight: bold; background: #fff5f5; padding: 10px; border-radius: 5px; border: 1px dashed #d9534f; margin-top: 10px; text-align: center; }
-        .admin-section { background: #fff9c4; padding: 10px; margin-top: 15px; border: 1px solid #fbc02d; border-radius: 5px; font-size: 14px; }
+        body { font-family: 'Noto Sans Devanagari', sans-serif; background-color: #020617; color: white; overflow-x: hidden; }
+        .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .gold-glow { background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 10px rgba(234, 179, 8, 0.3)); }
+        .neon-border { box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
     </style>
 </head>
 <body>
+    <div id="root"></div>
 
-    <div id="notice-bar" class="notice">डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप (निंबाहेड़ा) में आपका स्वागत है</div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-    <div class="card">
-        <h2 onclick="adminTrigger()">DPSG निम्बाहेड़ा</h2>
-        <p style="color: #666; font-size: 14px;">अपनी मेंबरशिप आईडी दर्ज करें</p>
-        
-        <input type="text" id="membershipId" placeholder="यहाँ आईडी लिखें (उदा. 101)">
-        <button onclick="checkStatus()">कार्ड स्टेटस देखें</button>
+        const App = () => {
+            const [card, setCard] = useState(null);
+            const [pin, setPin] = useState("");
+            const [isUnlocked, setIsUnlocked] = useState(false);
+            const [status, setStatus] = useState("loading");
+            const [searchId, setSearchId] = useState("");
 
-        <div id="result" class="result-box">
-            </div>
-    </div>
+            const ADMIN_PIN = "7860"; 
 
-    <script>
-        let clickCount = 0;
-        // आपकी Apps Script URL
-        const apiURL = "https://script.google.com/macros/s/AKfycbw9E41O2Posk5FZx7x0Q9AfiP4wrqyh9-hq7NmBwnUH-MwmoFcQO8iW6CsjC806FhH4/exec";
+            // डेटा प्रोसेसिंग: १००० कार्ड्स का लॉजिक (CSV के हिसाब से)
+            const generateData = (idNum) => {
+                const serial = idNum.padStart(4, '0');
+                const n = parseInt(serial);
+                // आपकी एक्सेल के हिसाब से ID फॉर्मूला: DPSG-26-(113 + (n-1)*13)-serial
+                const mid = 113 + (n - 1) * 13;
+                const mID = `DPSG-26-${mid}-${serial}`;
+                
+                // कार्ड टाइप का लॉजिक
+                let type = "Standard Card";
+                let exp = "1 माह";
+                if (n <= 50) { type = "₹500 VIP Card"; exp = "6 माह"; }
+                else if (n <= 500) { type = "₹100 Gold Card"; exp = "3 माह"; }
+                else { type = "₹50 Silver Card"; exp = "1 माह"; }
 
-        function adminTrigger() {
-            clickCount++;
-            if (clickCount === 3) {
-                let pass = prompt("एडमिन पासवर्ड डालें:");
-                if (pass === "Chanchal@6375") {
-                    sessionStorage.setItem("adminPass", pass);
-                    alert("✅ एडमिन मोड चालू! अब आप पूरा डेटा देख सकते हैं।");
+                return {
+                    id: serial,
+                    mID: mID,
+                    name: n === 1 ? "संदीप बना" : "VIP मेम्बर", // Excel में जो नाम होगा वो यहाँ आएगा
+                    village: n === 1 ? "निंबाहेड़ा" : "DPSG सुरक्षित",
+                    prize: "⏳ ड्रा का इंतज़ार करें",
+                    type: type,
+                    validity: exp
+                };
+            };
+
+            useEffect(() => {
+                const params = new URLSearchParams(window.location.search);
+                const idParam = params.get('id');
+                
+                setTimeout(() => {
+                    if (idParam) {
+                        const cleanId = idParam.padStart(4, '0');
+                        const numId = parseInt(cleanId);
+                        if (numId >= 1 && numId <= 1000) {
+                            setCard(generateData(cleanId));
+                            setStatus("found");
+                        } else { setStatus("search"); }
+                    } else { setStatus("search"); }
+                }, 1200);
+            }, []);
+
+            const handleSearch = () => {
+                const num = parseInt(searchId);
+                if (num >= 1 && num <= 1000) {
+                    setCard(generateData(searchId));
+                    setStatus("found");
                 } else {
-                    alert("❌ गलत पासवर्ड!");
+                    alert("क्षमा करें! यह आईडी रिकॉर्ड में नहीं है। (1-1000 तक डालें)");
                 }
-                clickCount = 0;
+            };
+
+            if (status === "loading") {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center space-y-4">
+                        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-blue-400">DPSG Master System</p>
+                    </div>
+                );
             }
-        }
 
-        async function checkStatus() {
-            let id = document.getElementById("membershipId").value.trim();
-            let pass = sessionStorage.getItem("adminPass") || "";
-            let resBox = document.getElementById("result");
-            
-            if (!id) { alert("कृपया आईडी डालें"); return; }
+            return (
+                <div className="min-h-screen flex items-center justify-center p-6 relative">
+                    {/* बैकग्राउंड ग्लो */}
+                    <div className="absolute top-0 right-0 w-80 h-80 bg-blue-600/10 rounded-full blur-[120px]"></div>
+                    <div className="absolute bottom-0 left-0 w-80 h-80 bg-yellow-500/5 rounded-full blur-[120px]"></div>
 
-            resBox.style.display = "block";
-            resBox.innerHTML = "<p style='text-align
+                    <div className="max-w-md w-full z-10">
+                        {/* हेडर */}
+                        <div className="text-center mb-10">
+                            <h1 className="text-5xl font-black italic uppercase leading-none tracking-tighter">
+                                <span className="block text-white">डिजिटल</span>
+                                <span className="block gold-glow">बचत कार्ड</span>
+                            </h1>
+                            <p className="text-[10px] text-gray-600 font-bold uppercase tracking-[0.4em] mt-4">NIMBAHERA | J. ZORAWAR BANA</p>
+                        </div>
+
+                        {status === "search" ? (
+                            <div className="glass-panel rounded-[3.5rem] p-10 text-center animate-in zoom-in duration-500 shadow-2xl">
+                                <i className="fa-solid fa-magnifying-glass text-3xl text-blue-400/40 mb-6"></i>
+                                <h2 className="text-xl font-black uppercase mb-2">कार्ड आईडी दर्ज करें</h2>
+                                <p className="text-[9px] text-gray-500 font-bold uppercase mb-8">विवरण खोजने के लिए (0001 - 1000)</p>
+                                <input 
+                                    type="number" 
+                                    placeholder="0001" 
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 text-center text-white text-3xl font-black outline-none focus:border-yellow-500/50 transition-all mb-6"
+                                    value={searchId}
+                                    onChange={(e) => setSearchId(e.target.value)}
+                                />
+                                <button onClick={handleSearch} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl uppercase tracking-widest text-[10px] shadow-xl active:scale-95 transition-all">
+                                    रिकॉर्ड खोजें
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="space-y-6 animate-in slide-in-from-bottom-8 duration-700">
+                                {/* प्रीमियम मेम्बर कार्ड */}
+                                <div className="glass-panel rounded-[3rem] p-8 relative overflow-hidden neon-border">
+                                    <div className="flex justify-between items-start mb-10">
+                                        <div className="flex items-center space-x-2">
+                                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(34,197,94,1)]"></div>
+                                            <span className="text-[10px] font-black text-green-400 uppercase italic">Verified Member</span>
+                                        </div>
+                                        <div className="bg-yellow-500/10 px-4 py-1 rounded-full border border-yellow-500/20">
+                                            <span className="text-[8px] font-black text-yellow-500 uppercase tracking-tighter italic">{card.type}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="space-y-8 mb-6">
+                                        <div>
+                                            <p className="text-[8px] text-gray-500 uppercase font-black tracking-widest mb-1">Membership ID</p>
+                                            <p className="text-2xl font-black tracking-tighter text-white drop-shadow-lg">{card.mID}</p>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                                            <div>
+                                                <p className="text-[8px] text-gray-500 uppercase font-black mb-1 tracking-widest">Member Name</p>
+                                                <p className="text-sm font-black text-blue-400 italic uppercase truncate">{card.name}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-[8px] text-gray-500 uppercase font-black mb-1 tracking-widest">Village</p>
+                                                <p className="text-sm font-black text-white uppercase truncate">{card.village}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <i className="fa-solid fa-fingerprint absolute bottom-6 right-8 text-white/5 text-4xl"></i>
+                                </div>
+
+                                {/* सिक्योरिटी और इनाम */}
+                                {!isUnlocked ? (
+                                    <div className="glass-panel rounded-[2.5rem] p-8 space-y-6">
+                                        <div className="text-center">
+                                            <i className="fa-solid fa-lock text-yellow-500/20 text-xl mb-3"></i>
+                                            <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.2em]">परिणाम अनलॉक करने के लिए पिन डालें</p>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <input 
+                                                type="password" 
+                                                inputMode="numeric"
+                                                placeholder="SECRET PIN" 
+                                                className="w-full bg-black/40 border border-white/10 rounded-2xl py-5 text-center text-white text-4xl tracking-[0.5em] font-black outline-none focus:border-blue-500 transition-all placeholder:text-[10px] placeholder:tracking-normal"
+                                                value={pin}
+                                                onChange={(e) => setPin(e.target.value)}
+                                            />
+                                            <button onClick={() => pin === ADMIN_PIN ? setIsUnlocked(true) : alert("पिन गलत है!")} className="w-full bg-white text-black font-black py-5 rounded-2xl uppercase tracking-[0.3em] text-[10px] shadow-2xl active:scale-95 transition-all">
+                                                इनाम अनलॉक करें <i className="fa-solid fa-sparkles ml-1"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="glass-panel rounded-[3.5rem] p-12 text-center animate-in zoom-in duration-500 shadow-[0_0_100px_rgba(234,179,8,0.1)] border-yellow-500/20">
+                                        <i className="fa-solid fa-trophy text-7xl text-yellow-500 mb-8 drop-shadow-[0_0_20px_rgba(234,179,8,0.6)] animate-bounce"></i>
+                                        <p className="text-[10px] text-yellow-400 font-black uppercase tracking-[0.3em] mb-2 italic">Congratulations!</p>
+                                        <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-tight drop-shadow-xl">
+                                            {card.prize}
+                                        </h2>
+                                        <div className="mt-10 pt-6 border-t border-white/10 flex justify-between items-center text-[10px]">
+                                            <span className="text-gray-500 font-black uppercase italic">Service Validity</span>
+                                            <span className="font-black text-green-400 uppercase tracking-tighter">{card.validity} की सेवा</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        <p className="text-center text-[8px] text-gray-800 font-black uppercase mt-12 tracking-[0.4em] italic opacity-50">
+                            Digital Problem Solution Group | NIMBAHERA | v5.1
+                        </p>
+                    </div>
+                </div>
+            );
+        };
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
