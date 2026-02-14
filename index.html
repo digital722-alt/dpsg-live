@@ -3,19 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPSG Digital Portal | Zorawar Singh</title>
+    <title>DPSG डिजिटल बचत पोर्टल | पॉइंट्स और सर्विस</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Noto Sans Devanagari', sans-serif; background-color: #010413; color: white; overflow-x: hidden; }
-        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .gold-glow { background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .admin-dashboard { background: #020617; border: 1px solid rgba(234, 179, 8, 0.3); }
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .points-card { background: linear-gradient(180deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.02) 100%); border: 1px solid rgba(59, 130, 246, 0.2); }
+        .prize-active { border: 2px solid #eab308; box-shadow: 0 0 30px rgba(234, 179, 8, 0.3); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+        .admin-view { background: #010413; border: 1px solid rgba(234, 179, 8, 0.3); }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #eab308; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -24,177 +29,238 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // ==========================================
-        // DPSG MASTER DATABASE (1 to 1000 Records)
-        // Mapping as per your CSV columns (1 to 39)
-        // ==========================================
-        const dpsgData = {
-            "0001": {
-                1: "0001", 2: "DPSG-26-113-0001", 3: "डिजिटल बचत कार्ड", 4: "₹500 VIP Card (6 महीने)",
-                5: "LED TV (32 Inch)", 6: "निंबाहेड़ा", 7: "14-02-26", 8: "JORA-77-001", 9: "संदीप बना",
-                10: "6376858028", 11: "15-08-1990", 12: "4528", 13: "⏳ पेंडिंग", 37: "2026-02-14", 39: "खुशखबरी! बुकिंग जारी है।"
-            },
-            "0002": {
-                1: "0002", 2: "DPSG-26-126-0002", 3: "डिजिटल बचत कार्ड", 4: "₹500 VIP Card (6 महीने)",
-                5: "", 6: "", 9: "", 10: "", 12: "", 37: "", 39: ""
-            }
-        };
-
         const App = () => {
             const [status, setStatus] = useState("loading");
-            const [card, setCard] = useState(null);
+            const [data, setData] = useState(null);
             const [pass, setPass] = useState("");
             const [isAdmin, setIsAdmin] = useState(false);
             const [searchId, setSearchId] = useState("");
 
             const MASTER_PASS = "Chanchal@6375";
 
+            // आपकी एक्सेल के ३९ कॉलम के नाम
+            const colNames = [
+                "Serial_No", "Membership_ID", "Card_Name", "Card_Type", "Prize_Inam", 
+                "Village_Gaon", "Sale_Date", "Security_Code", "Customer_Name", "Phone_Number", 
+                "Date_of_Birth", "Aadhar_Last_4", "Status", "QR_Link", "Issue_Date", 
+                "Activation_Date", "Expiry_Date", "Days_Left", "Total Points", "Used Photos", 
+                "Used Prints", "Points Left", "Live Balance", "Total_Sold", "Today Sale", 
+                "Stock Left", "Today's Income", "Total Income", "VIP Sale", "Gold Sale", 
+                "Silver Sale", "तारीख", "बिके कार्ड", "आज की कमाई (1)", "बाकी कार्ड", 
+                "आज की कमाई (2)", "Draw Date", "Inam Status", "Notice"
+            ];
+
+            // डेटाबेस (इसमें आपकी CSV का डेटा है)
+            const dpsgData = {
+                "0001": ["0001", "DPSG-26-113-0001", "डिजिटल बचत कार्ड", "₹500 VIP Card (6 महीने)", "LED TV (32 Inch)", "निंबाहेड़ा", "14-02-26", "JORA-77-001", "संदीप सिंह", "6376858028", "15-08-1990", "4528", "एक्टिव", "#REF!", "14-02-26", "2026-02-14", "14-08-26", "180", "380", "20", "10", "350", "500", "1", "1", "999", "500", "500", "1", "0", "0", "14-02-26", "1", "500", "999", "500", "2026-02-14", "Delivered", "खुशखबरी! लकी ड्रा बुकिंग जारी है।"],
+            };
+
             useEffect(() => {
                 const params = new URLSearchParams(window.location.search);
                 const id = params.get('id');
-                
                 setTimeout(() => {
                     if (id) {
-                        const serial = id.padStart(4, '0');
-                        // Get from DB or create a fallback empty record for indices
-                        const record = dpsgData[serial] || { 1: serial, 2: `DPSG-26-ID-${serial}` };
-                        setCard(record);
+                        const s = id.padStart(4, '0');
+                        const row = dpsgData[s] || genRow(s);
+                        setData(row);
                         setStatus("view");
+                        if (checkDraw(row[36])) { triggerCelebration(); }
                     } else { setStatus("search"); }
                 }, 800);
             }, []);
 
-            const getDisplay = (val) => {
-                if (!val || val.toString().trim() === "" || val === "Pending" || val === "#REF!") {
-                    return "Jankaari updat ki jaa rhi h...";
-                }
-                return val;
+            const genRow = (s) => {
+                let r = new Array(39).fill("");
+                r[0] = s; r[1] = `DPSG-26-ID-${s}`;
+                r[3] = parseInt(s) <= 50 ? "₹500 VIP Card" : "Standard Card";
+                r[38] = "जल्द ही नई अपडेट आएगी...";
+                return r;
             };
 
-            const maskValue = (val, type) => {
-                const str = getDisplay(val);
-                if (str.includes("updat")) return str;
+            const triggerCelebration = () => {
+                const end = Date.now() + (4 * 1000);
+                (function frame() {
+                    confetti({ particleCount: 4, angle: 60, spread: 60, origin: { x: 0 }, colors: ['#bf953f', '#ffffff', '#3b82f6'] });
+                    confetti({ particleCount: 4, angle: 120, spread: 60, origin: { x: 1 }, colors: ['#bf953f', '#ffffff', '#3b82f6'] });
+                    if (Date.now() < end) { requestAnimationFrame(frame); }
+                }());
+            };
+
+            const getV = (v) => (v && v.toString().trim() !== "" && v !== "#REF!" && v !== "Pending" && v !== "⏳ पेंडिंग") ? v : "Jankaari updat ki jaa rhi h...";
+            const checkDraw = (dateStr) => {
+                if (!dateStr || dateStr.includes("जल्द") || dateStr.trim() === "") return false;
+                return new Date() >= new Date(dateStr);
+            };
+
+            const mask = (val, type) => {
+                const s = getV(val);
+                if (s.includes("updat")) return s;
                 if (type === "phone") return "********" + val.toString().slice(-2);
                 if (type === "aadhar") return "XXXX-XXXX-XX" + val.toString().slice(-2);
-                return str;
+                return s;
             };
 
-            const isDrawPassed = (dateStr) => {
-                if (!dateStr || dateStr.includes("जल्द ही") || dateStr.trim() === "") return false;
-                const today = new Date();
-                const draw = new Date(dateStr);
-                return today >= draw;
-            };
-
-            if (status === "loading") return (
-                <div className="h-screen flex items-center justify-center">
-                    <div className="w-10 h-10 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
-                </div>
-            );
+            if (status === "loading") return <div className="h-screen flex items-center justify-center"><div className="w-10 h-10 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin"></div></div>;
 
             return (
-                <div className="min-h-screen flex items-center justify-center p-4">
-                    <div className="max-w-md w-full relative z-10">
+                <div className="min-h-screen flex flex-col items-center p-4">
+                    <div className="max-w-md w-full z-10">
                         
-                        <div className="text-center mb-8">
+                        {/* Header Branding */}
+                        <div className="text-center mt-6 mb-8">
                             <h1 className="text-4xl font-black italic uppercase leading-none tracking-tighter">
                                 <span className="block text-white">DPSG</span>
-                                <span className="block gold-glow">DIGITAL PORTAL</span>
+                                <span className="block gold-glow uppercase">DIGITAL PORTAL</span>
                             </h1>
-                            <p className="text-[10px] text-gray-600 font-bold uppercase tracking-[0.4em] mt-3">Nimbahera | J. Zorawar Singh</p>
+                            <p className="text-[10px] text-gray-600 font-bold uppercase tracking-[0.4em] mt-3 italic">NIMBAHERA | J. ZORAWAR SINGH</p>
                         </div>
 
                         {status === "search" ? (
-                            <div className="glass rounded-[3rem] p-10 text-center animate-in zoom-in duration-500">
-                                <h2 className="text-lg font-black uppercase mb-6">ID Darj Karein</h2>
-                                <input type="number" placeholder="0001" className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 text-center text-3xl font-black mb-6 outline-none" onChange={(e)=>setSearchId(e.target.value)} />
-                                <button onClick={()=>{window.location.href=`?id=${searchId}`}} className="w-full bg-blue-600 py-4 rounded-xl font-black uppercase text-xs tracking-widest">RECORD DEKHEIN</button>
+                            <div className="glass rounded-[3rem] p-10 text-center animate-in zoom-in duration-500 shadow-2xl">
+                                <h2 className="text-xl font-black uppercase mb-6 tracking-widest">ID Darj Karein</h2>
+                                <input type="number" placeholder="0001" className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 text-center text-4xl font-black mb-8 outline-none focus:border-yellow-500 transition-all" onChange={(e)=>setSearchId(e.target.value)} />
+                                <button onClick={()=>{window.location.href=`?id=${searchId}`}} className="w-full bg-blue-600 py-4 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all">VIEW STATUS</button>
                             </div>
                         ) : (
                             <div className="space-y-6 animate-in slide-in-from-bottom-10 duration-700">
                                 
-                                {/* Customer View Area */}
-                                <div className="glass rounded-[3rem] p-8 border border-white/5 relative overflow-hidden">
-                                    <div className="flex justify-between items-start mb-10">
+                                {/* 1. NOTICE BOARD (Col 39) */}
+                                <div className="bg-yellow-500/10 border border-yellow-500/20 p-5 rounded-[2.5rem] relative">
+                                    <div className="flex items-center space-x-2 mb-2">
+                                        <i className="fa-solid fa-bullhorn text-yellow-500 text-xs animate-pulse"></i>
+                                        <span className="text-[9px] font-black text-yellow-500 uppercase tracking-widest">Latest Update / Notice</span>
+                                    </div>
+                                    <p className="text-[11px] font-bold text-gray-200 italic leading-relaxed">"{getV(data[38])}"</p>
+                                </div>
+
+                                {/* 2. CUSTOMER POINTS & SERVICE STATUS (Main Focus) */}
+                                <div className="glass rounded-[3rem] p-8 border border-white/10 shadow-2xl relative overflow-hidden">
+                                    <div className="flex justify-between items-start mb-8">
                                         <div className="flex items-center space-x-2">
                                             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(34,197,94,1)]"></div>
-                                            <span className="text-[10px] font-black text-green-400 uppercase">Verified Member</span>
+                                            <span className="text-[10px] font-black text-green-400 uppercase italic">Digital Account</span>
                                         </div>
-                                        <span className="bg-white/5 px-4 py-1.5 rounded-full text-[8px] font-black text-yellow-500 uppercase">{getDisplay(card[4])}</span>
+                                        <span className="bg-white/5 px-3 py-1.5 rounded-full text-[8px] font-black text-yellow-500 uppercase italic border border-white/10">{getV(data[3])}</span>
                                     </div>
 
                                     <div className="space-y-6">
-                                        <div>
-                                            <p className="text-[8px] text-gray-500 uppercase font-black mb-1">Membership ID (Col 2)</p>
-                                            <p className="text-2xl font-black tracking-tighter text-white">{getDisplay(card[2])}</p>
-                                        </div>
-                                        
-                                        <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-4">
+                                        <div className="flex justify-between items-end">
                                             <div>
-                                                <p className="text-[8px] text-gray-500 uppercase font-black mb-1">Member Name (Col 9)</p>
-                                                <p className="text-sm font-bold text-blue-300 uppercase italic leading-tight">{getDisplay(card[9])}</p>
+                                                <p className="text-[8px] text-gray-500 uppercase font-black mb-1">Membership ID</p>
+                                                <p className="text-2xl font-black tracking-tighter text-white">{getV(data[1])}</p>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-[8px] text-gray-500 uppercase font-black mb-1">Village (Col 6)</p>
-                                                <p className="text-sm font-bold text-white uppercase italic">{getDisplay(card[6])}</p>
+                                                <p className="text-[8px] text-gray-500 uppercase font-black mb-1">Status</p>
+                                                <p className="text-xs font-bold text-green-400 uppercase italic">{getV(data[12])}</p>
                                             </div>
                                         </div>
 
-                                        <div className="bg-black/40 p-4 rounded-2xl flex justify-between items-center border border-white/5">
+                                        {/* POINTS DASHBOARD - ग्राहक का असली फायदा */}
+                                        <div className="points-card p-5 rounded-[2rem] space-y-4">
+                                            <div className="text-center pb-2 border-b border-white/5">
+                                                <p className="text-[9px] text-blue-400 font-black uppercase tracking-widest mb-1">Service Points Overview</p>
+                                                <div className="flex justify-center items-end space-x-2">
+                                                    <span className="text-4xl font-black text-white">{getV(data[21])}</span>
+                                                    <span className="text-[10px] text-gray-500 font-bold uppercase pb-1">Points Left</span>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4 text-center">
+                                                <div>
+                                                    <p className="text-[7px] text-gray-500 uppercase font-black mb-1">Total Allocated</p>
+                                                    <p className="text-sm font-black text-white">{getV(data[18])}</p>
+                                                </div>
+                                                <div className="border-l border-white/10">
+                                                    <p className="text-[7px] text-gray-500 uppercase font-black mb-1">Used (Photos/Prints)</p>
+                                                    <p className="text-sm font-black text-red-400">{parseInt(data[19] || 0) + parseInt(data[20] || 0)}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Dates & Validity */}
+                                        <div className="grid grid-cols-2 gap-4 border-y border-white/5 py-5">
+                                            <div>
+                                                <p className="text-[8px] text-gray-500 uppercase font-black mb-1">Activation (Col 16)</p>
+                                                <p className="text-xs font-bold text-white italic">{getV(data[15])}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-[8px] text-gray-500 uppercase font-black mb-1">Expiry Date (Col 17)</p>
+                                                <p className="text-xs font-bold text-red-400 italic">{getV(data[16])}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Member Profile */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-[8px] text-gray-500 uppercase font-black mb-1">Customer (Col 9)</p>
+                                                <p className="text-sm font-bold text-blue-300 uppercase italic truncate">{getV(data[8])}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-[8px] text-gray-500 uppercase font-black mb-1">Village (Col 6)</p>
+                                                <p className="text-sm font-bold text-white uppercase italic">{getV(data[5])}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Masked Privacy */}
+                                        <div className="bg-black/40 p-4 rounded-2xl grid grid-cols-2 gap-4 border border-white/5">
                                             <div className="space-y-1">
                                                 <p className="text-[7px] text-gray-500 uppercase font-black">Mobile (Col 10)</p>
-                                                <p className="text-[11px] font-bold text-white tracking-widest">{maskValue(card[10], "phone")}</p>
+                                                <p className="text-[10px] font-bold text-white tracking-widest">{mask(data[9], "phone")}</p>
                                             </div>
                                             <div className="text-right space-y-1">
                                                 <p className="text-[7px] text-gray-500 uppercase font-black">Aadhar (Col 12)</p>
-                                                <p className="text-[11px] font-bold text-gray-300 tracking-widest">{maskValue(card[12], "aadhar")}</p>
+                                                <p className="text-[10px] font-bold text-gray-300 tracking-widest">{mask(data[11], "aadhar")}</p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Prize Logic - Controlled by Col 37 (Draw Date) */}
-                                {isDrawPassed(card[37]) ? (
-                                    <div className="glass rounded-[3rem] p-10 text-center border-yellow-500/20 shadow-[0_0_40px_rgba(234,179,8,0.1)]">
-                                        <i className="fa-solid fa-trophy text-6xl text-yellow-500 mb-4 animate-bounce"></i>
-                                        <p className="text-[10px] text-yellow-500 font-black uppercase mb-1 tracking-widest">Congratulations!</p>
-                                        <h2 className="text-4xl font-black text-white uppercase tracking-tighter">{getDisplay(card[5])}</h2>
+                                {/* 3. PRIZE SECTION (Draw Date Logic) */}
+                                {checkDraw(data[36]) ? (
+                                    <div className="glass rounded-[3.5rem] p-10 text-center prize-glow relative border-yellow-500/40">
+                                        <i className="fa-solid fa-trophy text-7xl text-yellow-500 mb-6 drop-shadow-[0_0_20px_#eab308]"></i>
+                                        <p className="text-[10px] text-yellow-500 font-black uppercase mb-1 tracking-widest animate-pulse">🎉 Mubarak Ho! Aapka Inam 🎉</p>
+                                        <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-tight drop-shadow-lg">{getV(data[4])}</h2>
+                                        <div className="mt-8 pt-4 border-t border-white/5 opacity-40">
+                                            <p className="text-[8px] text-gray-500 uppercase tracking-widest">Digital Problem Solution Group</p>
+                                        </div>
                                     </div>
                                 ) : (
-                                    <div className="glass rounded-[2rem] p-8 text-center border border-dashed border-white/10">
-                                        <i className="fa-solid fa-lock text-gray-600 mb-2"></i>
-                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Result Draw Date par khulega</p>
+                                    <div className="glass rounded-[2.5rem] p-8 text-center border border-dashed border-white/10 opacity-60">
+                                        <i className="fa-solid fa-gift text-gray-600 mb-3 text-2xl"></i>
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-loose">Lucky Draw Result<br/>PAGATE PHUTNE KA INTEZAR KAREIN</p>
                                         <p className="text-[10px] text-blue-400 mt-2 italic font-bold tracking-tighter">Jankaari updat ki jaa rhi h...</p>
                                     </div>
                                 )}
 
-                                {/* Admin Vault - Password: Chanchal@6375 */}
+                                {/* 4. ADMIN DASHBOARD (Master View - 39 Columns) */}
                                 {!isAdmin ? (
-                                    <div className="glass rounded-[2rem] p-6 text-center space-y-4">
-                                        <p className="text-[9px] text-gray-500 font-black uppercase tracking-[0.2em]">BANA ADMIN MODE</p>
-                                        <input type="password" placeholder="PASSWORD" className="w-full bg-black/50 border border-white/10 rounded-xl py-3 text-center text-xl text-white outline-none focus:border-yellow-500" onChange={(e)=>setPass(e.target.value)} />
-                                        <button onClick={()=>{if(pass===MASTER_PASS) setIsAdmin(true); else alert("Wrong Password!");}} className="w-full bg-white text-black font-black py-3 rounded-xl text-[10px] uppercase tracking-widest">Unlock All Columns</button>
+                                    <div className="glass rounded-[2rem] p-8 text-center space-y-4">
+                                        <p className="text-[9px] text-gray-500 font-black uppercase tracking-[0.3em]">Master Admin Access</p>
+                                        <input type="password" placeholder="PASSWORD" className="w-full bg-black/60 border border-white/10 rounded-xl py-4 text-center text-white outline-none focus:border-yellow-500 text-3xl font-bold tracking-[0.4em]" onChange={(e)=>setPin(e.target.value)} />
+                                        <button onClick={()=>{if(pin===ADMIN_PIN) setIsAdmin(true); else alert("Pin Galat Hai!");}} className="w-full bg-white text-black font-black py-4 rounded-xl text-[10px] uppercase tracking-widest shadow-2xl active:scale-95 transition-all">Unlock Master Dashboard</button>
                                     </div>
                                 ) : (
-                                    <div className="admin-dashboard rounded-[3rem] p-8 space-y-4 animate-in slide-in-from-bottom-4 duration-500">
-                                        <div className="flex justify-between items-center border-b border-yellow-500/20 pb-2 mb-4">
-                                            <h3 className="text-[10px] font-black text-yellow-500 uppercase italic">Admin View (All 39 Columns)</h3>
-                                            <button onClick={()=>setIsAdmin(false)} className="text-[8px] text-gray-500 uppercase underline">Exit</button>
+                                    <div className="admin-view rounded-[3.5rem] p-8 space-y-4 animate-in slide-in-from-bottom-5 duration-500 max-h-[500px] overflow-y-auto shadow-2xl">
+                                        <div className="flex justify-between items-center border-b border-yellow-500/30 pb-4 mb-4 sticky top-0 bg-[#010413] z-20">
+                                            <h3 className="text-[11px] font-black text-yellow-500 uppercase italic tracking-widest flex items-center"><i className="fa-solid fa-shield-check mr-2"></i> Master Dashboard (39 Columns)</h3>
+                                            <button onClick={()=>setIsAdmin(false)} className="text-[9px] text-white bg-red-600/50 px-3 py-1.5 rounded-lg uppercase font-bold shadow-lg">Close</button>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-y-3 text-[10px] leading-relaxed">
-                                            <span className="text-gray-500 uppercase">Prize (Col 5):</span><span className="text-right font-bold text-green-400">{getDisplay(card[5])}</span>
-                                            <span className="text-gray-500 uppercase">Phone (Col 10):</span><span className="text-right font-bold text-white">{getDisplay(card[10])}</span>
-                                            <span className="text-gray-500 uppercase">Security (Col 8):</span><span className="text-right font-bold text-yellow-500">{getDisplay(card[8])}</span>
-                                            <span className="text-gray-500 uppercase">Sale Date (Col 7):</span><span className="text-right">{getDisplay(card[7])}</span>
-                                            <span className="text-gray-500 uppercase">Draw Date (Col 37):</span><span className="text-right">{getDisplay(card[37])}</span>
-                                            <span className="text-gray-500 uppercase">Notice (Col 39):</span><span className="text-right italic text-blue-200">{getDisplay(card[39])}</span>
+                                        <div className="space-y-4">
+                                            {colNames.map((name, idx) => (
+                                                <div key={idx} className="flex justify-between items-center text-[10px] py-1 border-b border-white/5 last:border-0">
+                                                    <span className="text-gray-500 uppercase font-black">{idx + 1}. {name}</span>
+                                                    <span className={`text-right font-black ${idx === 4 ? 'text-green-400' : idx === 9 ? 'text-blue-400' : 'text-white'}`}>
+                                                        {getV(data[idx])}
+                                                    </span>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
                                 )}
                             </div>
                         )}
                         
-                        <p className="text-center text-[7px] text-gray-800 font-black uppercase mt-12 tracking-[0.5em] italic opacity-30">Digital Problem Solution | Nimbahera</p>
+                        <p className="text-center text-[7px] text-gray-800 font-black uppercase mt-16 tracking-[0.5em] italic opacity-40">Digital Problem Solution | Nimbahera | J. Zorawar Singh</p>
                     </div>
                 </div>
             );
