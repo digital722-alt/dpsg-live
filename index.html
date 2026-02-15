@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DPSG डिजिटल बचत पोर्टल</title>
-    <!-- आवश्यक प्रोफेशनल लाइब्रेरीज़ -->
+    <!-- Professional CDN Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -15,8 +15,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        body { font-family: 'Inter', 'Noto Sans Devanagari', sans-serif; background-color: #010413; color: #ffffff; overflow-x: hidden; }
-        .receipt-card { background: white; color: #0f172a; border-radius: 2.5rem; box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 1); position: relative; }
+        body { font-family: 'Inter', 'Noto Sans Devanagari', sans-serif; background-color: #020617; color: #ffffff; overflow-x: hidden; }
+        .receipt-card { background: white; color: #0f172a; border-radius: 2.5rem; box-shadow: 0 35px 70px -15px rgba(0, 0, 0, 1); position: relative; }
         .points-box { background: linear-gradient(135deg, #1e40af, #1e3a8a); }
         .benefit-row { border-bottom: 1px dashed #e2e8f0; padding: 10px 0; display: flex; align-items: start; }
         .benefit-row:last-child { border-bottom: none; }
@@ -40,22 +40,21 @@
             const [status, setStatus] = useState("loading"); // ऐप डेटा मिलने तक वेट करेगा
             const [member, setMember] = useState(null);
             const [searchId, setSearchId] = useState("");
-            const [clock, setClock] = useState(new Date());
-
+            
             const FILE_NAME = "CSV Data DPSG - Digital_Problem_Solution_Master.csv";
 
             // कार्ड के लाभ - पक्का डेटा
             const cardRules = {
                 VIP: ["कीमत: ₹500 (वैधता: 6 महीने)", "उपयोग: संपूर्ण परिवार हेतु मान्य", "कोटा: 150 प्रिंट + 80 फोटो (या 380 फोटो)", "लैमिनेशन: 5 फ्री", "ई-मित्र: 100% फ्री सेवा (केवल टोकन चार्ज)", "डिलीवरी: 2 बार FREE", "इनाम: ₹100 तुरंत वापस + बड़ा धमाका!"],
-                Gold: ["कीमत: ₹100 (वैधता: 3 महीने)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 40 प्रिंट + 24 फोटो (या 100 फोटो)", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट (केवल टोकन चार्ज)", "डिलीवरी: 1 बार (न्यूनतम रेट)", "इनाम: 100% गारंटीड उपहार!"],
+                Gold: ["कीमत: ₹100 (वैधता: 3 महीने)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 40 प्रिंट + 24 फोटो (या 100 फोटो)", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट (केवल टोकन चार्ज)", "डिलीवरी: 1 बार (न्यूनतम रेट)", "इनाम: 100% गारंटी उपहार!"],
                 Silver: ["कीमत: ₹50 (वैधता: 1 महीना)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 15 प्रिंट + 12 फोटो (या 40 फोटो)", "ई-मित्र: सीमित सेवा (केवल टोकन चार्ज)", "डिलीवरी: 1 बार (न्यूनतम रेट)", "इनाम: लकी ड्रा का शानदार अवसर!"]
             };
 
             useEffect(() => {
-                const timer = setInterval(() => setClock(new Date()), 1000);
-                const queryId = new URLSearchParams(window.location.search).get('id');
+                const params = new URLSearchParams(window.location.search);
+                const queryId = params.get('id');
 
-                // 1. डेटा लोड होने का पक्का इंतज़ार (Force Loading Lock)
+                // 1. सबसे पहले डेटा लोड होने का इंतज़ार करेंगे
                 Papa.parse(FILE_NAME, {
                     download: true,
                     header: false,
@@ -63,11 +62,12 @@
                     complete: (results) => {
                         const rows = results.data;
                         
+                        // 2. डेटा मिलने के बाद ही सर्च का काम शुरू होगा
                         if (queryId) {
                             const term = queryId.trim().toLowerCase();
                             const termPadded = term.padStart(4, '0');
                             
-                            // 2. सटीक मिलान इंजन: Serial (Col 0) या Membership ID (Col 1)
+                            // सटीक मिलान इंजन (Serial or Membership ID)
                             const found = rows.find(r => 
                                 (r[0] && r[0].toString().trim().toLowerCase() === term) || 
                                 (r[0] && r[0].toString().trim().toLowerCase() === termPadded) ||
@@ -76,21 +76,21 @@
 
                             if (found) {
                                 setMember(found);
-                                setStatus("view"); // डेटा मिल गया, सीधे रसीद दिखाओ
-                                if (found[36] && new Date() >= new Date(found[36])) { 
+                                setStatus("view"); // आईडी मिलते ही सीधे रसीद
+                                if (found[37] && found[37].toLowerCase().includes("win")) { 
                                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                                 }
                             } else {
-                                setStatus("search"); // आईडी गलत है तो ही सर्च दिखाओ
+                                setStatus("search"); // आईडी नहीं मिली
                             }
                         } else {
-                            setStatus("search"); // लिंक में आईडी नहीं है तो ही सर्च दिखाओ
+                            setStatus("search"); // लिंक में आईडी नहीं है
                         }
                     },
-                    error: () => { setStatus("search"); }
+                    error: () => {
+                        setStatus("search");
+                    }
                 });
-
-                return () => clearInterval(timer);
             }, []);
 
             const getBenefits = (typeStr) => {
@@ -108,7 +108,7 @@
                 <div className="h-screen flex items-center justify-center bg-[#010413]">
                     <div className="text-center">
                         <div className="w-16 h-16 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                        <p className="text-[11px] font-black uppercase tracking-[0.3em] text-yellow-500 animate-pulse italic">डिजिटल रसीद लोड हो रही है...</p>
+                        <p className="text-[11px] font-black uppercase tracking-[0.3em] text-yellow-500 animate-pulse italic">डिजिटल रसीद पोर्टल लोड हो रहा है...</p>
                     </div>
                 </div>
             );
@@ -116,110 +116,101 @@
             return (
                 <div className="min-h-screen flex flex-col items-center p-4 relative">
                     
-                    {/* Top Stats Bar */}
-                    <div className="w-full max-w-md no-print flex justify-between items-center mb-8 border-b border-white/10 pb-4">
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-black uppercase text-gray-500">{clock.toLocaleDateString('hi-IN')}</span>
-                            <span className="text-blue-500 font-black text-xs uppercase">{clock.toLocaleTimeString()}</span>
+                    {status === "search" ? (
+                        <div className="bg-white/5 rounded-[3.5rem] p-12 text-center w-full max-w-md mt-20 border border-white/10 shadow-2xl animate-in zoom-in duration-300">
+                            <h2 className="text-xl font-bold uppercase mb-8 text-white tracking-widest italic">मेंबरशिप आईडी दर्ज करें</h2>
+                            <input type="text" placeholder="DPSG-26-..." className="w-full bg-black/40 border border-white/20 rounded-xl py-5 text-center text-3xl font-black mb-10 outline-none text-white uppercase shadow-inner" onChange={(e)=>setSearchId(e.target.value)} />
+                            <button onClick={()=>{window.location.href=`?id=${searchId}`}} className="w-full bg-blue-600 py-5 rounded-xl font-bold text-white uppercase shadow-lg active:scale-95 transition-all">रिकॉर्ड खोजें</button>
                         </div>
-                        <div className="bg-white/5 px-4 py-2 rounded-xl border border-white/10 shadow-lg">
-                            <span className="text-[10px] font-black uppercase text-white tracking-widest italic">DPSG Nimbahera</span>
-                        </div>
-                    </div>
-
-                    <div className="max-w-md w-full">
-                        {status === "search" ? (
-                            <div className="bg-white/5 rounded-[3rem] p-12 text-center border border-white/10 shadow-2xl animate-in zoom-in duration-500 no-print">
-                                <h2 className="text-xl font-black uppercase mb-8 text-white tracking-widest italic">मेंबरशिप आईडी यहाँ भरें</h2>
-                                <input type="text" placeholder="DPSG-26-..." className="w-full bg-black/40 border border-white/20 rounded-xl py-5 text-center text-2xl font-black mb-6 outline-none text-white uppercase shadow-inner" onChange={(e)=>setSearchId(e.target.value)} />
-                                <button onClick={()=>{window.location.href=`?id=${searchId}`}} className="w-full bg-blue-600 hover:bg-blue-500 py-6 rounded-2xl font-bold text-white uppercase shadow-xl active:scale-95 transition-all tracking-widest">रिकॉर्ड खोजें</button>
+                    ) : (
+                        <div className="w-full max-w-md space-y-6 animate-in slide-in-from-bottom-5 duration-500 mt-6 pb-20">
+                            {/* Header Branding */}
+                            <div className="text-center mb-8 no-print">
+                                <h1 className="text-3xl font-black italic uppercase leading-none tracking-tighter text-white">डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप</h1>
+                                <p className="text-[10px] text-blue-300 font-bold tracking-widest mt-3 uppercase italic leading-none">समस्या आपकी, समाधान हमारा !</p>
                             </div>
-                        ) : (
-                            <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500 mt-6 pb-20">
-                                {/* Branding */}
-                                <div className="text-center mb-10 no-print">
-                                    <h1 className="text-3xl font-black italic uppercase leading-none tracking-tighter text-white">डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप</h1>
-                                    <p className="text-[10px] text-blue-300 font-bold tracking-widest mt-2 uppercase italic leading-none">समस्या आपकी, समाधान हमारा !</p>
+
+                            {/* Official Notice Board (Col 38) */}
+                            <div className="bg-yellow-500/10 border border-yellow-500/30 p-5 rounded-[2.5rem] no-print relative">
+                                <div className="flex items-center space-x-2 mb-2 text-yellow-500">
+                                    <i className="fa-solid fa-bullhorn text-xs animate-bounce"></i>
+                                    <span className="text-[10px] font-black uppercase tracking-widest">आधिकारिक सूचना</span>
+                                </div>
+                                <p className="text-[11px] font-bold text-gray-100 italic leading-relaxed text-center leading-loose">"{clean(member[38])}"</p>
+                            </div>
+
+                            {/* THE RECEIPT (White Professional Bill Layout) */}
+                            <div id="receipt-print" className="receipt-card p-10 shadow-2xl relative overflow-hidden">
+                                <div className="text-center border-b-2 border-dashed border-gray-100 pb-6 mb-10">
+                                    <h3 className="font-black text-2xl text-blue-600 uppercase italic leading-none tracking-tight">डिजिटल बचत रसीद</h3>
+                                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-2">निम्बाहेड़ा, राजस्थान</p>
                                 </div>
 
-                                {/* Official Notice Board (Col 38) */}
-                                <div className="bg-yellow-500/10 border border-yellow-500/30 p-5 rounded-[2.5rem] no-print relative">
-                                    <div className="flex items-center space-x-2 mb-2 text-yellow-500">
-                                        <i className="fa-solid fa-bullhorn text-xs animate-bounce"></i>
-                                        <span className="text-[10px] font-black uppercase tracking-widest">आधिकारिक सूचना</span>
-                                    </div>
-                                    <p className="text-[11px] font-bold text-gray-100 italic leading-relaxed text-center leading-loose">"{clean(member[38])}"</p>
-                                </div>
-
-                                {/* THE RECEIPT (Standard Professional White Bill) */}
-                                <div id="receipt-print" className="receipt-card p-10 shadow-2xl relative overflow-hidden">
-                                    <div className="text-center border-b-2 border-dashed border-gray-100 pb-6 mb-10">
-                                        <h3 className="font-black text-2xl text-blue-600 uppercase italic leading-none tracking-tight">डिजिटल बचत रसीद</h3>
-                                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-2">निम्बाहेड़ा, राजस्थान</p>
+                                <div className="space-y-10">
+                                    {/* Membership Identity (Col 1 & 2) */}
+                                    <div className="flex justify-between items-start border-b border-gray-50 pb-6">
+                                        <div className="space-y-1 w-2/3">
+                                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none">सदस्यता आईडी (ID)</p>
+                                            <p className="text-xl font-black text-slate-900 leading-none mt-1 tracking-tighter">{clean(member[1])}</p>
+                                        </div>
+                                        <div className="text-right w-1/3">
+                                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none">कार्ड नाम</p>
+                                            <p className="text-[10px] font-bold text-blue-700 uppercase leading-none mt-1">{clean(member[2])}</p>
+                                        </div>
                                     </div>
 
-                                    <div className="space-y-10">
-                                        {/* Membership Identity (Col 1 & 2) */}
-                                        <div className="flex justify-between items-start border-b border-gray-50 pb-6">
-                                            <div className="space-y-1 w-2/3">
-                                                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none">मेंबरशिप आईडी (ID)</p>
-                                                <p className="text-xl font-black text-slate-900 leading-none mt-1">{clean(member[1])}</p>
-                                            </div>
-                                            <div className="text-right w-1/3">
-                                                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none">कार्ड नाम</p>
-                                                <p className="text-[10px] font-bold text-blue-700 uppercase leading-none mt-1">{clean(member[2])}</p>
-                                            </div>
+                                    {/* Points Highlights (Col 21) */}
+                                    <div className="points-box rounded-[2.5rem] p-8 text-center text-white shadow-xl shadow-blue-500/20">
+                                        <p className="text-[10px] font-bold uppercase opacity-80 mb-1 italic tracking-widest">शेष सर्विस पॉइंट्स</p>
+                                        <span className="text-7xl font-black tracking-tighter leading-none">{clean(member[21])}</span>
+                                        <div className="grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-white/10 text-[9px] font-black uppercase tracking-widest opacity-60">
+                                            <div>कुल आवंटित<p className="text-sm opacity-100">{clean(member[18])}</p></div>
+                                            <div className="border-l border-white/10">उपयोग किए<p className="text-sm opacity-100">{(parseInt(member[19]) || 0) + (parseInt(member[20]) || 0)}</p></div>
                                         </div>
+                                    </div>
 
-                                        {/* Points Overview Box (Col 21) */}
-                                        <div className="points-box rounded-[2.5rem] p-8 text-center text-white shadow-xl shadow-blue-500/30">
-                                            <p className="text-[10px] font-bold uppercase opacity-80 mb-1 italic tracking-widest">शेष सर्विस पॉइंट्स</p>
-                                            <span className="text-7xl font-black tracking-tighter leading-none">{clean(member[21])}</span>
-                                        </div>
-
-                                        {/* Card Benefits Section (Col 3 mapping) */}
-                                        <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 shadow-inner">
-                                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-1">कार्ड श्रेणी (Type)</p>
-                                            <p className="text-[16px] font-black text-slate-800 italic uppercase mb-5">{clean(member[3])}</p>
-                                            <div className="pt-4 border-t border-slate-200">
-                                                <p className="text-[10px] font-black text-blue-700 uppercase mb-3"><i className="fa-solid fa-crown mr-1"></i> कार्ड की मुख्य सुविधायें</p>
-                                                <div className="space-y-0.5">
-                                                    {getBenefits(member[3]).map((b, i) => (
-                                                        <div key={i} className="benefit-row">
-                                                            <i className="fa-solid fa-circle-check text-green-500 text-[10px] mt-1 mr-3"></i>
-                                                            <p className="text-[11px] text-slate-600 font-bold leading-tight">{b}</p>
-                                                        </div>
-                                                    ))}
-                                                </div>
+                                    {/* Card Benefits Section (Price Mapping) */}
+                                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 shadow-inner">
+                                        <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-1">कार्ड श्रेणी (Type)</p>
+                                        <p className="text-[15px] font-black text-slate-800 italic uppercase mb-5 tracking-tighter">{clean(member[3])}</p>
+                                        <div className="pt-4 border-t border-slate-200">
+                                            <p className="text-[10px] font-black text-blue-700 uppercase mb-3 flex items-center"><i className="fa-solid fa-crown mr-2 text-xs"></i> कार्ड की मुख्य सुविधायें</p>
+                                            <div className="space-y-0.5">
+                                                {getBenefits(member[3]).map((b, i) => (
+                                                    <div key={i} className="benefit-row">
+                                                        <i className="fa-solid fa-circle-check text-green-500 text-[10px] mt-1 mr-3"></i>
+                                                        <p className="text-[11px] text-slate-600 font-bold leading-snug">{b}</p>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
+                                    </div>
 
-                                        {/* Detailed Mapping (Col 8, 5, 6, 37) */}
-                                        <div className="grid grid-cols-2 gap-x-6 gap-y-6 py-6 border-y border-slate-50">
-                                            <div><p className="text-[9px] text-gray-400 font-bold uppercase">ग्राहक का नाम</p><p className="text-[15px] font-black text-slate-900 uppercase italic">{clean(member[8])}</p></div>
-                                            <div className="text-right"><p className="text-[9px] text-gray-400 font-bold uppercase">गाँव / स्थान</p><p className="text-[15px] font-black text-slate-900 uppercase italic">{clean(member[5])}</p></div>
-                                            <div><p className="text-[9px] text-gray-400 font-bold uppercase">बिक्री तिथि</p><p className="text-[12px] font-bold text-slate-700 italic">{clean(member[6])}</p></div>
-                                            <div className="text-right"><p className="text-[9px] text-gray-400 font-bold uppercase">इनाम स्टेटस</p><p className="text-[12px] font-black text-blue-600 italic uppercase">{clean(member[37])}</p></div>
-                                        </div>
+                                    {/* Detailed Mapping (Names, Village, Sales) */}
+                                    <div className="grid grid-cols-2 gap-x-8 gap-y-8 py-6 border-y border-slate-50">
+                                        <div><p className="text-[9px] text-gray-400 font-bold uppercase">ग्राहक का नाम</p><p className="text-[15px] font-black text-slate-900 uppercase italic leading-tight">{clean(member[8])}</p></div>
+                                        <div className="text-right"><p className="text-[9px] text-gray-400 font-bold uppercase">गाँव / स्थान</p><p className="text-[15px] font-black text-slate-900 uppercase italic leading-tight">{clean(member[5])}</p></div>
+                                        <div><p className="text-[9px] text-gray-400 font-bold uppercase">बिक्री तिथि</p><p className="text-[12px] font-bold text-slate-700 italic leading-none">{clean(member[6])}</p></div>
+                                        <div className="text-right"><p className="text-[9px] text-gray-400 font-bold uppercase">इनाम स्टेटस</p><p className="text-[12px] font-black text-blue-600 italic uppercase leading-none">{clean(member[37])}</p></div>
+                                    </div>
 
-                                        {/* Validity Section (Col 15, 16, 17) */}
-                                        <div className="grid grid-cols-3 gap-2 bg-slate-950 text-white p-5 rounded-3xl text-center shadow-lg">
-                                            <div><span className="text-[7px] font-bold opacity-50 uppercase block mb-1">सक्रिय</span><p className="text-[10px] font-bold">{clean(member[15])}</p></div>
-                                            <div className="border-x border-white/10"><span className="text-[7px] font-bold opacity-50 uppercase block mb-1">वैधता</span><p className="text-[10px] font-bold text-red-400">{clean(member[16])}</p></div>
-                                            <div><span className="text-[7px] font-bold opacity-50 uppercase block mb-1">शेष दिन</span><p className="text-[10px] font-bold text-green-400">{clean(member[17])}</p></div>
-                                        </div>
+                                    {/* Validity Dates (Col 15, 16, 17) */}
+                                    <div className="grid grid-cols-3 gap-2 bg-slate-950 text-white p-5 rounded-3xl text-center shadow-lg">
+                                        <div><span className="text-[7px] font-bold opacity-50 uppercase block mb-1">सक्रिय</span><p className="text-[10px] font-bold">{clean(member[15])}</p></div>
+                                        <div className="border-x border-white/10"><span className="text-[7px] font-bold opacity-50 uppercase block mb-1">वैधता</span><p className="text-[10px] font-bold text-red-400">{clean(member[16])}</p></div>
+                                        <div><span className="text-[7px] font-bold opacity-50 uppercase block mb-1">शेष दिन</span><p className="text-[10px] font-bold text-green-400">{clean(member[17])}</p></div>
+                                    </div>
 
-                                        <div className="mt-8 text-center no-print pt-6 border-t border-slate-50">
-                                            <button onClick={()=>window.print()} className="bg-slate-100 hover:bg-slate-200 text-slate-900 px-12 py-4 rounded-full text-[11px] font-black uppercase flex items-center justify-center mx-auto space-x-3 transition-all active:scale-95 border border-slate-200 shadow-md">
-                                                <i className="fa-solid fa-print"></i><span>रसीद प्रिंट करें</span>
-                                            </button>
-                                        </div>
+                                    <div className="mt-8 text-center no-print pt-6 border-t border-slate-50">
+                                        <button onClick={()=>window.print()} className="bg-slate-100 hover:bg-slate-200 text-slate-900 px-12 py-4 rounded-full text-[11px] font-black uppercase flex items-center justify-center mx-auto space-x-3 transition-all active:scale-95 border border-slate-200 shadow-md">
+                                            <i className="fa-solid fa-print"></i><span>रसीद प्रिंट करें</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                        )}
-                        <p className="text-center text-[8px] text-slate-600 font-bold uppercase tracking-[1.5em] opacity-40 py-10 italic">DPSG NIMBAHERA | JORAWAR SINGH</p>
-                    </div>
+                            <p className="text-center text-[8px] text-slate-600 font-bold uppercase tracking-[1.5em] opacity-40 py-10 italic">DPSG NIMBAHERA | JORAWAR SINGH</p>
+                        </div>
+                    )}
                 </div>
             );
         };
