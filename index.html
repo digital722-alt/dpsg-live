@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DPSG Digital Seva - Nimbahera Official</title>
-    <!-- Essential Libraries -->
+    <!-- आवश्यक लाइब्रेरीज़ -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -34,7 +34,7 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- मास्टर कॉन्फ़िगरेशन (हुक्म ज़ोरावर सिंह जी) ---
+        // --- मास्टर सेटिंग्स (हुक्म ज़ोरावर सिंह जी) ---
         const SHEET_ID = "1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo";
         const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
         const MASTER_PIN = "Chanchal@6375"; 
@@ -50,7 +50,6 @@
             const [pinInput, setPinInput] = useState("");
             const [imgSrc, setImgSrc] = useState("");
             const [imgLoading, setImgLoading] = useState(true);
-            const [imgRetry, setImgRetry] = useState(0); // For cycling sources
             const [currentTime, setCurrentTime] = useState(new Date());
 
             const vocab = {
@@ -61,8 +60,7 @@
                     winner: "बधाई हो! आप विजेता हैं", prize: "आपका विशेष उपहार",
                     print: "डिजिटल रसीद प्रिंट करें", auth: "एडमिन मास्टर वेरिफिकेशन",
                     unlock: "Unlock Dashboard", update: "अपडेट हो रहा है...",
-                    name: "ग्राहक नाम", village: "स्थान / गाँव", mobile: "मोबाइल (Secure)", aadhar: "आधार (Secure)", 
-                    points: "सर्विस पॉइंट्स", active: "सक्रियण", expiry: "समाप्ति", left: "शेष दिन", draw: "लकी ड्रा संभावित तिथि"
+                    points: "सर्विस पॉइंट्स", active: "सक्रियण", expiry: "समाप्ति", left: "शेष दिन"
                 },
                 en: {
                     brand: "Digital Problem Solution Group", service: "Digital Seva",
@@ -71,8 +69,7 @@
                     winner: "CONGRATULATIONS! YOU WON", prize: "Your Special Reward",
                     print: "Print Receipt", auth: "Admin Master Authorization",
                     unlock: "Unlock Panel", update: "Updating...",
-                    name: "Customer Name", village: "Location / Village", mobile: "Mobile (Secure)", aadhar: "Aadhar (Secure)",
-                    points: "Service Points", active: "Activation", expiry: "Expiry", left: "Days Left", draw: "Lucky Draw Date"
+                    points: "Service Points", active: "Activation", expiry: "Expiry", left: "Days Left"
                 }
             };
 
@@ -91,15 +88,22 @@
                 }
             };
 
-            // --- 1000% IMAGE HUNTER ENGINE (MULTI-SOURCE) ---
-            const getImageSource = (itemName, attempt) => {
-                const keyword = encodeURIComponent(itemName || "gift");
-                // Attempt 1: High Quality Source
-                if (attempt === 0) return `https://loremflickr.com/800/600/${keyword},product/all?lock=${searchId}`;
-                // Attempt 2: Professional Unsplash
-                if (attempt === 1) return `https://source.unsplash.com/featured/800x600?${keyword},product`;
-                // Attempt 3: Generic Gift Fallback
-                return `https://via.placeholder.com/800/600/010413/fbbf24?text=${keyword}+Product`;
+            // --- 1000% IMAGE HUNTER ENGINE ---
+            const findItemImage = (itemName) => {
+                if (!itemName) return;
+                setImgLoading(true);
+                
+                // AI Translator for Keywords
+                let cleanKey = itemName.toLowerCase();
+                if (cleanKey.includes("मिक्सर")) cleanKey = "Kitchen Mixer Grinder Machine";
+                else if (cleanKey.includes("पंख")) cleanKey = "Electric Ceiling Fan";
+                else if (cleanKey.includes("घड़ी")) cleanKey = "Digital Smart Watch";
+                else if (cleanKey.includes("साइकिल")) cleanKey = "Bicycle hero";
+                else if (cleanKey.includes("कूलर")) cleanKey = "Desert Air Cooler";
+
+                // Triple-Source Search
+                const mainUrl = `https://loremflickr.com/800/600/${encodeURIComponent(cleanKey)},product,item/all?lock=${Math.random()}`;
+                setImgSrc(mainUrl);
             };
 
             useEffect(() => {
@@ -121,8 +125,11 @@
                             if (match) {
                                 setMember(match); setStatus("view");
                                 if (match[37]?.toLowerCase().includes("win")) { 
-                                    confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } }); 
-                                    setImgSrc(getImageSource(match[4], 0));
+                                    // पटाखे फोड़ना (Confetti Success)
+                                    setTimeout(() => {
+                                        confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
+                                    }, 500);
+                                    findItemImage(match[4]); 
                                 }
                             } else setStatus("search");
                         } else setStatus("search");
@@ -133,27 +140,17 @@
             }, []);
 
             const mask = (val) => {
-                if (!val || val === "#REF!") return vocab[lang].update;
+                if (!val || val === "#REF!") return "Updating...";
                 const s = val.toString().trim();
                 return s.length > 4 ? s.slice(0, 2) + "******" + s.slice(-2) : s;
             };
 
-            const clean = (v) => (v && v !== "#REF!") ? v : vocab[lang].update;
+            const clean = (v) => (v && v !== "#REF!") ? v : "Updating...";
 
             const handleAdminLogin = (e) => {
                 if(e) e.preventDefault();
                 if (pinInput === MASTER_PIN) setIsAdmin(true);
-                else alert("गलत पासवर्ड! कृपया सही पिन दर्ज करें (Hint: Chanchal@6375)");
-            };
-
-            const handleImageError = () => {
-                if (imgRetry < 2) {
-                    const nextRetry = imgRetry + 1;
-                    setImgRetry(nextRetry);
-                    setImgSrc(getImageSource(member[4], nextRetry));
-                } else {
-                    setImgLoading(false);
-                }
+                else alert("गलत पासवर्ड! (Chanchal@6375)");
             };
 
             if (status === "loading") return <div className="h-screen flex items-center justify-center bg-[#010413]"><div className="spinner"></div></div>;
@@ -163,7 +160,7 @@
 
             return (
                 <div className="min-h-screen p-4 sm:p-8 text-center overflow-x-hidden">
-                    {/* Synchronized Header Bar */}
+                    {/* Header Bar */}
                     <div className="max-w-md mx-auto no-print flex justify-between items-center mb-8 border-b border-white/10 pb-4 font-black text-[10px]">
                         <div className="text-left">
                             {currentTime.toLocaleDateString()}<br/><span className="text-blue-500 italic">{currentTime.toLocaleTimeString()}</span>
@@ -179,12 +176,12 @@
                             <div className="bg-white/5 border border-white/10 p-10 rounded-[3.5rem] shadow-2xl animate-in zoom-in">
                                 <i className="fa-solid fa-qrcode text-6xl text-blue-500 mb-8 animate-pulse"></i>
                                 <h2 className="text-xl font-black mb-10 tracking-widest uppercase italic leading-none">{ui.idLabel}</h2>
-                                <input type="text" id="sid" placeholder="आईडी लिखें" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center text-xl font-bold mb-10 text-white outline-none focus:border-blue-500" />
+                                <input type="text" id="sid" placeholder="आईडी यहाँ लिखें" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center text-xl font-bold mb-10 text-white outline-none focus:border-blue-500" />
                                 <button onClick={()=>window.location.href=`?id=`+document.getElementById('sid').value} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-white shadow-xl active:scale-95 transition-all">SEARCH</button>
                             </div>
                         ) : (
                             <div className="space-y-10 pb-24 text-center">
-                                {/* Brand Branding - Chanchal Drive Replaced by Digital Seva */}
+                                {/* Branding Restored */}
                                 <div>
                                     <h1 className="text-2xl font-black uppercase tracking-tighter leading-none italic">{ui.brand}</h1>
                                     <p className="text-[16px] text-yellow-500 font-bold tracking-widest mt-2 uppercase">{ui.service}</p>
@@ -192,7 +189,7 @@
                                     <p className="text-[10px] text-gray-500 font-black uppercase mt-1 tracking-widest leading-none">{ui.subSlogan}</p>
                                 </div>
 
-                                {/* Winner Reveal (1000% Image Hunter Engine) */}
+                                {/* Winner Experience */}
                                 {isWinner && (
                                     <div className="bg-gradient-to-br from-yellow-300 via-yellow-600 to-yellow-900 p-1 rounded-[3.5rem] shadow-2xl animate-in zoom-in">
                                         <div className="bg-[#020617] rounded-[3.3rem] p-10 relative overflow-hidden">
@@ -201,14 +198,16 @@
                                                 <p className="text-gray-400 text-[10px] uppercase font-black mb-2">{ui.prize}</p>
                                                 <p className="text-white text-3xl font-black italic underline decoration-yellow-500 underline-offset-8 mb-8 leading-tight">{member[4]}</p>
                                                 
-                                                {/* --- ULTIMATE PRODUCT IMAGE FRAME --- */}
                                                 <div className="aspect-video bg-black/60 rounded-3xl overflow-hidden flex items-center justify-center relative image-glow shadow-inner">
                                                     {imgLoading && <div className="spinner absolute z-10"></div>}
                                                     <img 
                                                         src={imgSrc} 
                                                         className={`w-full h-full object-cover transition-opacity duration-1000 ${imgLoading ? 'opacity-0' : 'opacity-100'}`}
                                                         onLoad={()=>setImgLoading(false)}
-                                                        onError={handleImageError}
+                                                        onError={(e)=>{
+                                                            e.target.src="https://via.placeholder.com/800/600/020617/fbbf24?text=OFFICIAL+REWARD";
+                                                            setImgLoading(false);
+                                                        }}
                                                     />
                                                 </div>
                                             </div>
@@ -221,33 +220,32 @@
                                 <div id="receipt-print" className="bg-white text-slate-900 rounded-[3rem] p-10 shadow-2xl relative border border-slate-100 receipt-card text-left">
                                     <div className="text-center border-b-2 border-dashed pb-8 mb-10 text-slate-900 leading-none">
                                         <h3 className="font-black text-3xl text-blue-700 uppercase italic tracking-tighter">{ui.receipt}</h3>
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em] mt-3 italic">NIMBAHERA, RAJASTHAN</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em] mt-3 italic text-center">NIMBAHERA, RAJASTHAN</p>
                                     </div>
 
-                                    <div className="space-y-12">
-                                        <div className="flex justify-between items-start border-b pb-8 leading-none">
+                                    <div className="space-y-12 leading-none">
+                                        <div className="flex justify-between items-start border-b pb-8">
                                             <div><p className="text-[10px] text-slate-400 font-black uppercase italic">Identity (ID)</p><p className="text-2xl font-black text-slate-950 uppercase mt-1">{clean(member[1])}</p></div>
-                                            <div className="text-right"><p className="text-[10px] text-slate-400 font-black uppercase italic leading-none">Category</p><p className="text-[11px] font-black text-blue-700 uppercase mt-1 italic leading-none">{clean(member[3])}</p></div>
+                                            <div className="text-right"><p className="text-[10px] text-slate-400 font-black uppercase italic">Category</p><p className="text-[11px] font-black text-blue-700 uppercase mt-1 italic">{clean(member[3])}</p></div>
                                         </div>
 
                                         <div className="bg-blue-600 rounded-[3.5rem] p-10 text-center text-white shadow-2xl relative overflow-hidden">
                                             <div className="absolute top-0 right-0 p-8 opacity-10"><i className="fa-solid fa-gem text-7xl"></i></div>
                                             <p className="text-[11px] font-black uppercase opacity-80 mb-2 italic tracking-widest">{ui.points}</p>
-                                            <span className="text-8xl font-black tracking-tighter drop-shadow-2xl leading-none">{clean(member[21])}</span>
+                                            <span className="text-8xl font-black tracking-tighter drop-shadow-2xl">{clean(member[21])}</span>
                                             <div className="grid grid-cols-2 gap-4 mt-12 pt-10 border-t border-white/10 text-[10px] font-black uppercase leading-none">
                                                 <div className="text-center">कुल आवंटित<p className="text-xl font-black mt-1 leading-none">{clean(member[18])}</p></div>
                                                 <div className="border-l border-white/10 text-center">कुल उपयोग<p className="text-xl font-black mt-1 leading-none">{(parseInt(member[19]) || 0) + (parseInt(member[20]) || 0)}</p></div>
                                             </div>
                                         </div>
 
-                                        {/* Card Privileges Display (Language Fixed) */}
                                         <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 shadow-inner">
                                             <p className="text-[10px] font-black text-blue-700 uppercase mb-4 italic flex items-center leading-none"><i className="fa-solid fa-crown mr-2 text-xs"></i> {lang === 'hi' ? 'विशेष कार्ड सुविधायें' : 'SPECIAL CARD PRIVILEGES'}</p>
                                             <div className="space-y-1">
                                                 {(() => {
                                                     const s = member[3]?.toLowerCase() || "";
                                                     let bKey = (s.includes("vip") || s.includes("500")) ? "VIP" : (s.includes("gold") || s.includes("100")) ? "Gold" : "Silver";
-                                                    // Dynamic Access based on 'lang'
+                                                    // Dynamic English/Hindi Switch
                                                     return cardSpecs[bKey][lang].map((ben, i) => (
                                                         <div key={i} className="flex items-start text-[12px] font-bold italic py-2 border-b border-slate-200/50 last:border-0 leading-tight"><i className="fa-solid fa-circle-check text-green-500 mt-1 mr-3 text-[10px]"></i>{ben}</div>
                                                     ));
@@ -256,28 +254,23 @@
                                         </div>
 
                                         <div className="grid grid-cols-3 gap-3 bg-slate-100 p-8 rounded-[3rem] text-center shadow-inner font-black">
-                                            <div><p className="text-[9px] text-slate-400 uppercase italic mb-1">{ui.active}</p><p className="text-[12px] font-black">{clean(member[15])}</p></div>
-                                            <div className="border-x border-slate-200"><p className="text-[9px] text-red-500 uppercase italic mb-1">{ui.expiry}</p><p className="text-[12px] text-red-600 leading-none">{clean(member[16])}</p></div>
-                                            <div><p className="text-[9px] text-green-600 uppercase italic mb-1">{ui.left}</p><p className="text-[12px] font-black text-green-600 leading-none">{clean(member[17])}</p></div>
+                                            <div><p className="text-[9px] text-slate-400 uppercase italic mb-1">{ui.active}</p><p className="text-[12px] text-slate-950">{clean(member[15])}</p></div>
+                                            <div className="border-x border-slate-200"><p className="text-[9px] text-red-500 uppercase italic mb-1">{ui.expiry}</p><p className="text-[12px] text-red-600">{clean(member[16])}</p></div>
+                                            <div><p className="text-[9px] text-green-600 uppercase italic mb-1">{ui.left}</p><p className="text-[12px] text-green-600">{clean(member[17])}</p></div>
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-y-12 py-10 border-y border-slate-100 leading-none">
-                                            <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic leading-none">{ui.name}</p><p className="text-[18px] font-black uppercase italic text-slate-900 leading-tight">{clean(member[8])}</p></div>
-                                            <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic leading-none">{ui.village}</p><p className="text-[18px] font-black uppercase italic text-slate-900 leading-tight">{clean(member[5])}</p></div>
-                                            <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic leading-none">{ui.mobile}</p><p className="text-[16px] font-bold tracking-widest">{mask(member[9])}</p></div>
-                                            <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic leading-none">{ui.aadhar}</p><p className="text-[16px] font-bold tracking-widest">{mask(member[11])}</p></div>
-                                        </div>
-
-                                        <div className="bg-slate-950 text-white p-8 rounded-[2.5rem] text-center shadow-2xl relative leading-none">
-                                            <p className="text-[11px] font-black uppercase opacity-50 tracking-widest mb-3 italic leading-none">{ui.draw}</p>
-                                            <p className="text-3xl font-black text-yellow-500 italic uppercase tracking-tighter leading-none">{clean(member[36])}</p>
+                                            <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Name</p><p className="text-[18px] font-black uppercase italic text-slate-900 leading-tight">{clean(member[8])}</p></div>
+                                            <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Village</p><p className="text-[18px] font-black uppercase italic text-slate-900 leading-tight">{clean(member[5])}</p></div>
+                                            <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Mobile</p><p className="text-[16px] font-bold tracking-widest">{mask(member[9])}</p></div>
+                                            <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Aadhar</p><p className="text-[16px] font-bold tracking-widest">{mask(member[11])}</p></div>
                                         </div>
 
                                         <button onClick={()=>window.print()} className="no-print w-full bg-slate-900 text-white py-6 rounded-full text-[13px] font-black uppercase shadow-2xl active:scale-95 transition-all">PRINT OFFICIAL RECEIPT</button>
                                     </div>
                                 </div>
 
-                                {/* ADMIN MASTER ACCESS (39 Columns) */}
+                                {/* Master Admin Access (39 Columns) */}
                                 <div className="no-print pt-32 pb-20 flex flex-col items-center">
                                     {!isAdmin && <button onClick={()=>setShowAdminPanel(!showAdminPanel)} className="opacity-10 hover:opacity-30 transition-all p-8 bg-white/5 rounded-full shadow-2xl"><i className="fa-solid fa-fingerprint text-4xl"></i></button>}
                                     {showAdminPanel && !isAdmin && (
@@ -292,7 +285,7 @@
                                     {isAdmin && (
                                         <div className="w-full mt-10 bg-white/5 border border-white/10 rounded-[3.5rem] p-12 overflow-hidden shadow-2xl text-left animate-in zoom-in">
                                             <div className="flex justify-between items-center mb-12 pb-8 border-b border-white/10 text-white uppercase italic leading-none">
-                                                <h3 className="text-[13px] font-black text-blue-400">System Master Log (39 Columns)</h3>
+                                                <h3 className="text-[13px] font-black text-blue-400">Master Data Dashboard (39 Columns)</h3>
                                                 <button onClick={()=>setIsAdmin(false)} className="bg-red-500/10 text-red-500 px-6 py-2 rounded-full font-black text-[10px] border border-red-500/20 active:scale-95">LOGOUT</button>
                                             </div>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[800px] overflow-y-auto pr-4 custom-scroll">
@@ -306,7 +299,7 @@
                                         </div>
                                     )}
                                 </div>
-                                <p className="text-center text-[10px] text-slate-600 font-black uppercase mt-12 tracking-[2.5em] opacity-30 py-12 italic no-print leading-loose">DPSG NIMBAHERA | J. ZORAWAR SINGH</p>
+                                <p className="text-center text-[10px] text-slate-600 font-black uppercase mt-12 tracking-[2.5em] opacity-30 py-12 italic no-print leading-loose">DPSG NIMBAHERA | NORTH INDIA OFFICIAL</p>
                             </div>
                         )}
                     </div>
