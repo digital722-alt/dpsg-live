@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPSG डिजिटल रसीद पोर्टल</title>
-    <!-- आवश्यक प्रोफेशनल लाइब्रेरीज़ -->
+    <title>DPSG डिजिटल बचत पोर्टल</title>
+    <!-- Professional Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -18,8 +18,8 @@
         body { font-family: 'Inter', 'Noto Sans Devanagari', sans-serif; background-color: #010413; color: #ffffff; overflow-x: hidden; }
         .receipt-card { background: white; color: #0f172a; border-radius: 2.5rem; box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 1); position: relative; }
         .points-box { background: linear-gradient(135deg, #1e40af, #1e3a8a); }
-        .benefit-row { border-bottom: 1px dashed #e2e8f0; padding: 10px 0; display: flex; align-items: start; }
-        .benefit-row:last-child { border-bottom: none; }
+        .benefit-item { border-bottom: 1px dashed #e2e8f0; padding: 10px 0; display: flex; align-items: start; }
+        .benefit-item:last-child { border-bottom: none; }
         .gold-label { background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         @media print {
             .no-print { display: none !important; }
@@ -37,20 +37,21 @@
         const { useState, useEffect } = React;
 
         const App = () => {
-            const [status, setStatus] = useState("loading"); // ऐप हमेशा 'loading' से शुरू होगा
+            const [status, setStatus] = useState("loading"); // ऐप पहले डेटा का इंतज़ार करेगा
             const [member, setMember] = useState(null);
             const [searchId, setSearchId] = useState("");
-            
+            const [clock, setClock] = useState(new Date());
+
             const FILE_NAME = "CSV Data DPSG - Digital_Problem_Solution_Master.csv";
 
-            // कार्ड सुविधाओं का डेटा
+            // कार्ड सुविधाओं का पक्का डेटा
             const cardRules = {
                 VIP: [
                     "कीमत: ₹500 (वैधता: 6 महीने)",
                     "उपयोग: संपूर्ण परिवार हेतु मान्य",
                     "कोटा: 150 प्रिंट + 80 फोटो (या 380 फोटो)",
                     "लैमिनेशन: 5 फ्री",
-                    "ई-मित्र: 100% फ्री सेवा (केवल टोकन चार्ज देय)",
+                    "ई-मित्र: 100% फ्री सेवा (केवल टोकन चार्ज)",
                     "डिलीवरी: 2 बार FREE (उसके बाद न्यूनतम रेट)",
                     "इनाम: ₹100 तुरंत वापस + बड़ा धमाका!"
                 ],
@@ -61,7 +62,7 @@
                     "लैमिनेशन: 1 फ्री",
                     "ई-मित्र: 50% छूट (केवल टोकन चार्ज देय)",
                     "डिलीवरी: 1 बार (न्यूनतम रेट पर)",
-                    "इनाम: 100% गारंटीड उपहार!"
+                    "इनाम: 100% गारंटी उपहार!"
                 ],
                 Silver: [
                     "कीमत: ₹50 (वैधता: 1 महीना)",
@@ -74,10 +75,10 @@
             };
 
             useEffect(() => {
-                const params = new URLSearchParams(window.location.search);
-                const queryId = params.get('id');
+                const interval = setInterval(() => setClock(new Date()), 1000);
+                const queryId = new URLSearchParams(window.location.search).get('id');
 
-                // 1. सबसे पहले एक्सेल डेटा लोड करेंगे
+                // 1. सबसे पहले डेटा को पूरी तरह लोड करेंगे (Force Wait)
                 Papa.parse(FILE_NAME, {
                     download: true,
                     header: false,
@@ -85,12 +86,12 @@
                     complete: (results) => {
                         const rows = results.data;
                         
-                        // 2. डेटा लोड होने के बाद ही रसीद खोजने का फैसला लेंगे
+                        // 2. डेटा लोड होने के बाद मिलान (Matching Logic)
                         if (queryId) {
-                            const term = queryId.trim().toLowerCase();
+                            const term = queryId.trim();
                             const termPadded = term.padStart(4, '0');
                             
-                            // सटीक मिलान इंजन (Serial or Membership ID)
+                            // सटीक मिलान: Serial (Col 0) या Membership ID (Col 1)
                             const found = rows.find(r => 
                                 (r[0] && r[0].toString().trim() === term) || 
                                 (r[0] && r[0].toString().trim() === termPadded) ||
@@ -99,22 +100,24 @@
 
                             if (found) {
                                 setMember(found);
-                                setStatus("view"); // आईडी मिलते ही सीधे रसीद दिखाओ
+                                setStatus("view"); // आईडी मिलते ही सीधे रसीद पर ले जाएगा
                                 if (found[36] && new Date() >= new Date(found[36])) { 
                                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                                 }
                             } else {
-                                setStatus("search"); // आईडी नहीं मिली तो सर्च बॉक्स दिखाओ
+                                setStatus("search"); // आईडी नहीं मिली तो ही सर्च पेज दिखाओ
                             }
                         } else {
-                            setStatus("search"); // लिंक में आईडी नहीं है तो सर्च बॉक्स दिखाओ
+                            setStatus("search"); // लिंक में आईडी नहीं है तो ही सर्च पेज दिखाओ
                         }
                     },
                     error: () => {
-                        console.error("CSV loading failed.");
+                        console.error("CSV file loading failed.");
                         setStatus("search");
                     }
                 });
+
+                return () => clearInterval(interval);
             }, []);
 
             const getBenefits = (typeStr) => {
@@ -126,10 +129,12 @@
                 return [];
             };
 
+            const clean = (v) => (v && v.toString().trim() !== "" && v !== "#REF!" && v !== "Pending") ? v : "---";
+
             if (status === "loading") return (
                 <div className="h-screen flex items-center justify-center bg-[#010413]">
                     <div className="text-center">
-                        <div className="w-16 h-16 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <div className="w-14 h-14 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                         <p className="text-[11px] font-black uppercase tracking-[0.3em] text-yellow-500 animate-pulse italic">डिजिटल रसीद लोड हो रही है...</p>
                     </div>
                 </div>
@@ -140,29 +145,29 @@
                     {status === "search" ? (
                         <div className="bg-white/5 rounded-[2.5rem] p-10 text-center w-full max-w-md mt-20 border border-white/10 shadow-2xl">
                             <h2 className="text-xl font-bold uppercase mb-8 text-white tracking-widest italic">सदस्यता आईडी दर्ज करें</h2>
-                            <input type="text" placeholder="DPSG-26-..." className="w-full bg-black/40 border border-white/20 rounded-xl py-5 text-center text-2xl font-black mb-6 outline-none text-white uppercase shadow-inner" onChange={(e)=>setSearchId(e.target.value)} />
+                            <input type="text" placeholder="ID या सीरियल नंबर" className="w-full bg-black/40 border border-white/20 rounded-xl py-5 text-center text-2xl font-black mb-6 outline-none text-white uppercase shadow-inner" onChange={(e)=>setSearchId(e.target.value)} />
                             <button onClick={()=>{window.location.href=`?id=${searchId}`}} className="w-full bg-blue-600 py-5 rounded-xl font-bold text-white uppercase shadow-lg active:scale-95 transition-all">रिकॉर्ड खोजें</button>
                         </div>
                     ) : (
-                        <div className="w-full max-w-md space-y-6 animate-in slide-in-from-bottom-5 duration-500 mt-6">
-                            {/* Header Branding */}
+                        <div className="w-full max-w-md space-y-6 animate-in slide-in-from-bottom-5 duration-500 mt-6 pb-10">
+                            {/* Branding Header */}
                             <div className="text-center mb-6 no-print">
-                                <h1 className="text-2xl font-black uppercase text-white tracking-tight leading-none">डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप</h1>
+                                <h1 className="text-2xl font-black uppercase text-white leading-none tracking-tight">डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप</h1>
                                 <p className="text-[10px] text-blue-300 font-bold tracking-widest mt-2 uppercase">समस्या आपकी, समाधान हमारा !</p>
                             </div>
 
-                            {/* THE RECEIPT (White Bill) */}
-                            <div id="print-area" className="receipt-card p-8">
+                            {/* THE RECEIPT (Standard Professional White Layout) */}
+                            <div id="receipt-area" className="receipt-card p-8">
                                 <div className="text-center border-b-2 border-dashed border-gray-100 pb-4 mb-6">
                                     <h3 className="font-black text-2xl text-blue-600 uppercase italic">डिजिटल बचत रसीद</h3>
                                     <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-1 italic">निम्बाहेड़ा, राजस्थान</p>
                                 </div>
 
                                 <div className="space-y-6">
-                                    {/* Membership Info */}
+                                    {/* Membership Identity (Exactly as in CSV) */}
                                     <div className="flex justify-between border-b border-gray-50 pb-6">
-                                        <div className="space-y-1 w-2/3">
-                                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">सदस्यता आईडी (ID)</p>
+                                        <div className="w-2/3">
+                                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">मेंबरशिप आईडी (ID)</p>
                                             <p className="text-xl font-black text-slate-900 leading-none">{member[1] || "---"}</p>
                                         </div>
                                         <div className="text-right w-1/3">
@@ -171,21 +176,21 @@
                                         </div>
                                     </div>
 
-                                    {/* Points Highlights */}
+                                    {/* Points Overview Box */}
                                     <div className="points-box rounded-[2rem] p-6 text-center text-white shadow-xl">
                                         <p className="text-[10px] font-bold uppercase opacity-80 mb-1 italic">शेष सर्विस पॉइंट्स</p>
-                                        <span className="text-7xl font-black tracking-tighter leading-none">{member[21] || "---"}</span>
+                                        <span className="text-7xl font-black tracking-tighter leading-none">{clean(member[21])}</span>
                                     </div>
 
-                                    {/* Benefits Box based on Price (Col 3) */}
+                                    {/* Card Benefits Section (Price Mapped) */}
                                     <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 shadow-inner">
                                         <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-1">कार्ड श्रेणी (Type)</p>
-                                        <p className="text-[16px] font-black text-slate-800 italic uppercase mb-5">{member[3] || "---"}</p>
+                                        <p className="text-[16px] font-black text-slate-800 italic uppercase mb-5">{clean(member[3])}</p>
                                         <div className="pt-4 border-t border-slate-200">
                                             <p className="text-[10px] font-black text-blue-700 uppercase mb-3"><i className="fa-solid fa-crown mr-1"></i> कार्ड की मुख्य सुविधायें</p>
                                             <div className="space-y-0.5">
                                                 {getBenefits(member[3]).map((b, i) => (
-                                                    <div key={i} className="benefit-row">
+                                                    <div key={i} className="benefit-item">
                                                         <i className="fa-solid fa-circle-check text-green-500 text-[10px] mt-1 mr-3"></i>
                                                         <p className="text-[11px] text-slate-600 font-bold leading-tight">{b}</p>
                                                     </div>
@@ -194,12 +199,12 @@
                                         </div>
                                     </div>
 
-                                    {/* Data Grid Mapping (39 Columns Available in row) */}
+                                    {/* Details Data Mapping (Col 8, 5, 6, 37) */}
                                     <div className="grid grid-cols-2 gap-x-6 gap-y-6 py-6 border-y border-slate-50">
-                                        <div><p className="text-[9px] text-gray-400 font-bold uppercase">ग्राहक का नाम</p><p className="text-[15px] font-black text-slate-900 uppercase italic">{member[8] || "---"}</p></div>
-                                        <div className="text-right"><p className="text-[9px] text-gray-400 font-bold uppercase">गाँव / स्थान</p><p className="text-[15px] font-black text-slate-900 uppercase italic">{member[5] || "---"}</p></div>
-                                        <div><p className="text-[9px] text-gray-400 font-bold uppercase">बिक्री तिथि</p><p className="text-[12px] font-bold text-slate-700 italic">{member[6] || "---"}</p></div>
-                                        <div className="text-right"><p className="text-[9px] text-gray-400 font-bold uppercase">इनाम स्टेटस</p><p className="text-[12px] font-black text-blue-600 italic uppercase">{member[37] || "---"}</p></div>
+                                        <div><p className="text-[9px] text-gray-400 font-bold uppercase">ग्राहक का नाम</p><p className="text-[15px] font-black text-slate-900 uppercase italic">{clean(member[8])}</p></div>
+                                        <div className="text-right"><p className="text-[9px] text-gray-400 font-bold uppercase">गाँव / स्थान</p><p className="text-[15px] font-black text-slate-900 uppercase italic">{clean(member[5])}</p></div>
+                                        <div><p className="text-[9px] text-gray-400 font-bold uppercase">बिक्री तिथि</p><p className="text-[12px] font-bold text-slate-700 italic">{clean(member[6])}</p></div>
+                                        <div className="text-right"><p className="text-[9px] text-gray-400 font-bold uppercase">इनाम स्टेटस</p><p className="text-[12px] font-black text-blue-600 italic uppercase">{clean(member[37])}</p></div>
                                     </div>
 
                                     {/* Notice (Col 38) */}
@@ -207,11 +212,11 @@
                                         <p className="text-[10px] font-bold text-gray-800 italic text-center leading-relaxed italic">"{member[38] || "सूचना अपडेट की जा रही है..."}"</p>
                                     </div>
 
-                                    {/* Validity Dates (Col 15, 16, 17) */}
+                                    {/* Service Dates (Col 15, 16, 17) */}
                                     <div className="grid grid-cols-3 gap-2 bg-slate-950 text-white p-5 rounded-3xl text-center shadow-lg">
-                                        <div><span className="text-[7px] font-bold opacity-50 uppercase block mb-1">सक्रिय</span><p className="text-[10px] font-bold">{member[15] || "---"}</p></div>
-                                        <div className="border-x border-white/10"><span className="text-[7px] font-bold opacity-50 uppercase block mb-1">वैधता</span><p className="text-[10px] font-bold text-red-400">{member[16] || "---"}</p></div>
-                                        <div><span className="text-[7px] font-bold opacity-50 uppercase block mb-1">शेष दिन</span><p className="text-[10px] font-bold text-green-400">{member[17] || "---"}</p></div>
+                                        <div><span className="text-[7px] font-bold opacity-50 uppercase block mb-1">सक्रिय</span><p className="text-[10px] font-bold">{clean(member[15])}</p></div>
+                                        <div className="border-x border-white/10"><span className="text-[7px] font-bold opacity-50 uppercase block mb-1">वैधता</span><p className="text-[10px] font-bold text-red-400">{clean(member[16])}</p></div>
+                                        <div><span className="text-[7px] font-bold opacity-50 uppercase block mb-1">शेष दिन</span><p className="text-[10px] font-bold text-green-400">{clean(member[17])}</p></div>
                                     </div>
 
                                     <div className="mt-8 text-center no-print pt-6 border-t border-slate-50">
