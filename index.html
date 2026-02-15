@@ -3,9 +3,9 @@ import { createRoot } from 'react-dom/client';
 import Papa from 'papaparse';
 import confetti from 'canvas-confetti';
 
-// --- CONFIGURATION ---
+// --- कॉन्फ़िगरेशन (CONFIGURATION) ---
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTQkqhLTtRAhSxsmb2eLeSfRNhZjue28NGF9tHMSgqQ_1jWJWqVQ2-amEbAune6y1dwgRFxcpjIIgaH/pub?gid=1255606959&single=true&output=csv";
-const ADMIN_PASS = "Chanchal@6375"; 
+const ADMIN_PIN = "Chanchal@6375"; 
 
 const App = () => {
   const [lang, setLang] = useState('hi');
@@ -14,18 +14,18 @@ const App = () => {
   const [searchId, setSearchId] = useState("");
   const [showAdmin, setShowAdmin] = useState(false);
   const [isAuth, setIsAuth] = useState(false);
-  const [pinField, setPinField] = useState("");
-  const [time, setTime] = useState(new Date());
+  const [pinInput, setPinInput] = useState("");
+  const [now, setNow] = useState(new Date());
 
-  // Comprehensive Multilingual Dictionary
-  const vocab = {
+  // प्रोफेशनल बहुभाषी शब्दावली (Professional Dictionary)
+  const t = {
     hi: {
       brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप",
       slogan: "चंचल ड्राइव - समस्या आपकी, समाधान हमारा !",
       subSlogan: "उचित मूल्य, बेहतरीन सेवा !",
-      notice: "महत्वपूर्ण सूचना पट्ट",
+      notice: "आधिकारिक सूचना पट्ट",
       receipt: "प्रोफेशनल डिजिटल रसीद",
-      idLabel: "मेंबरशिप आईडी (Identity)",
+      idLabel: "सदस्यता आईडी (Identity)",
       catLabel: "कार्ड श्रेणी (Plan)",
       pointsRem: "शेष सर्विस पॉइंट्स",
       pointsTot: "कुल आवंटित पॉइंट्स",
@@ -36,21 +36,20 @@ const App = () => {
       aadLabel: "आधार कार्ड",
       winner: "बधाई हो! आप विजेता हैं",
       draw: "लकी ड्रा संभावित तिथि",
-      expiry: "वैधता समाप्ति तिथि",
+      expiry: "वैधता समाप्ति",
       days: "वैधता शेष दिन",
       update: "विवरण अपडेट किया जा रहा है...",
       print: "ऑफिशियल रसीद प्रिंट करें",
-      auth: "मास्टर एडमिन वेरिफिकेशन",
-      loading: "सुरक्षित डेटा स्ट्रीम सिंक हो रही है...",
+      auth: "एडमिन मास्टर वेरिफिकेशन",
+      loading: "सुरक्षित डेटा सिंक हो रहा है...",
       pending: "लकी ड्रा का इंतज़ार करें...",
-      adminTitle: "मास्टर डेटा डैशबोर्ड (39 कॉलम)",
+      adminTitle: "मास्टर डेटा डैशबोर्ड (सभी 39 कॉलम)",
       prizeTitle: "आपका लकी ड्रा इनाम",
-      termsTitle: "पंजीकरण एवं सदस्यता - नियम व शर्तें",
-      term1: "पंजीकरण शुल्क (Non-Refundable): यह राशि केवल 'पंजीकरण व परामर्श' (Registration & Consultation) के लिए है, जो किसी भी स्थिति में वापस नहीं होगी।",
+      termsTitle: "डिजिटल बचत कार्ड - नियम व शर्तें",
+      term1: "पंजीकरण शुल्क (Non-Refundable): जमा की गई राशि केवल 'पंजीकरण व परामर्श' के लिए है, जो किसी भी स्थिति में वापस नहीं होगी।",
       term2: "सेवा की सीमा: सदस्यता का अर्थ सेवाओं पर 'विशेष छूट' (Discount) और कार्य में 'प्राथमिकता' देना है। यह पूरी तरह 'मुफ्त सेवा' का अनुबंध नहीं है।",
       term3: "सदस्यता शुल्क: यह भुगतान केवल एक 'सदस्यता शुल्क' (Membership Fee) है, न कि किसी वस्तु या भविष्य की सेवा का अग्रिम भुगतान।",
-      term4: "वैधता नियम: कार्ड की सभी सुविधाओं और आवंटित कोटा का लाभ केवल सक्रिय वैधता (Active Validity) अवधि के दौरान ही लिया जा सकेगा।",
-      delivery: "(न्यूनतम चार्ज पर डिलीवरी की जाएगी)"
+      term4: "वैधता नियम: कार्ड की सभी सुविधाओं और आवंटित कोटा का लाभ केवल सक्रिय वैधता (Active Validity) अवधि के दौरान ही लिया जा सकेगा।"
     },
     en: {
       brand: "Digital Problem Solution Group",
@@ -60,13 +59,13 @@ const App = () => {
       receipt: "OFFICIAL DIGITAL RECEIPT",
       idLabel: "Membership ID (Identity)",
       catLabel: "Membership Category",
-      pointsRem: "Remaining Service Points",
+      pointsRem: "Available Service Points",
       pointsTot: "Total Points Allocated",
       pointsUsed: "Consumed Points",
       nameLabel: "Customer Full Name",
       locLabel: "Village / Location",
       mobLabel: "Mobile Contact",
-      aadLabel: "Aadhaar Identity",
+      aadLabel: "Aadhaar Identity Card",
       winner: "CONGRATULATIONS! YOU WON",
       draw: "Expected Draw Date",
       expiry: "Validity Expiration",
@@ -77,44 +76,44 @@ const App = () => {
       loading: "Securing Data Connection...",
       pending: "Stay tuned for the lucky draw...",
       adminTitle: "System Master Log (39 Columns)",
-      prizeTitle: "Your Lucky Draw Reward",
-      termsTitle: "Registration & Membership - Terms & Conditions",
+      prizeTitle: "Your Lucky Reward",
+      termsTitle: "Digital Savings Card - Terms & Conditions",
       term1: "Registration Fee (Non-Refundable): The amount paid is strictly for 'Registration & Consultation' and is non-refundable under any circumstances.",
-      term2: "Service Limitation: Membership implies 'Special Discount' and 'Priority' in services. It is not a contract for entirely free services.",
-      term3: "Membership Only: This payment is solely a 'Membership Fee' and not a prepayment for any specific goods or future third-party services.",
-      term4: "Validity Terms: All privileges and quotas are valid only within the 'Active Validity' period of the membership card.",
-      delivery: "(Delivery will be done at minimum charges)"
+      term2: "Service Limitation: Membership implies 'Special Discount' and 'Priority' in work. It is not a contract for entirely free services.",
+      term3: "Membership Fee: This payment is solely a 'Membership Fee' and not a prepayment for any specific goods or third-party services.",
+      term4: "Validity: All benefits and quotas are valid only during the active validity period of the membership card."
     }
   };
 
-  const planSpecs = {
+  const planBenefits = {
     VIP: ["कोटा: 150 प्रिंट + 80 फोटो (या 380 फोटो / 190 प्रिंट)", "डिलीवरी: (न्यूनतम चार्ज पर डिलीवरी की जाएगी)", "ई-मित्र: 100% फ्री सेवा (केवल टोकन चार्ज)"],
     Gold: ["कोटा: 40 प्रिंट + 24 फोटो (या 100 फोटो / 52 प्रिंट)", "डिलीवरी: (न्यूनतम चार्ज पर डिलीवरी की जाएगी)", "ई-मित्र: 50% छूट (केवल टोकन चार्ज)"],
-    Silver: ["कोटा: 15 प्रिंट + 12 फोटो (या 40 फोटो / 21 प्रिंट)", "डिलीवरी: (न्यूनतम चार्ज पर डिलीवरी की जाएगी)", "ई-मित्र: सीमित सहायता (केवल टोकन चार्ज)"]
+    Silver: ["कोटा: 15 प्रिंट + 12 फोटो (या 40 फोटो / 21 प्रिंट)", "डिलीवरी: (न्यूनतम चार्ज पर डिलीवरी की जाएगी)", "ई-मित्र: सीमित सेवा (केवल टोकन चार्ज)"]
   };
 
   useEffect(() => {
-    const clock = setInterval(() => setTime(new Date()), 1000);
+    const clock = setInterval(() => setNow(new Date()), 1000);
     const params = new URLSearchParams(window.location.search);
     const qId = params.get('id');
 
-    Papa.parse(`${CSV_URL}&v=${Date.now()}`, {
+    // डेटा को ताजा रखने के लिए कैश-बस्टर का उपयोग
+    Papa.parse(`${CSV_URL}&bust=${Date.now()}`, {
       download: true,
       header: false,
       skipEmptyLines: true,
       complete: (res) => {
         const rows = res.data;
         if (qId) {
-          const q = qId.trim().toLowerCase();
+          const query = qId.trim().toLowerCase();
           const match = rows.find(r => 
-            (r[0] && r[0].toString().trim().toLowerCase() === q) ||
-            (r[0] && r[0].toString().trim().padStart(4, '0') === q) ||
-            (r[1] && r[1].toString().trim().toLowerCase() === q)
+            (r[0] && r[0].toString().trim().toLowerCase() === query) ||
+            (r[0] && r[0].toString().trim().padStart(4, '0') === query) ||
+            (r[1] && r[1].toString().trim().toLowerCase() === query)
           );
           if (match) {
             setMember(match);
             setStatus("view");
-            if (match[37] && match[37].toLowerCase().includes("win")) { triggerFireworks(); }
+            if (match[37] && match[37].toLowerCase().includes("win")) { triggerCelebration(); }
           } else setStatus("search");
         } else setStatus("search");
       },
@@ -123,60 +122,60 @@ const App = () => {
     return () => clearInterval(clock);
   }, []);
 
-  const triggerFireworks = () => {
+  const triggerCelebration = () => {
     const end = Date.now() + (7 * 1000);
     (function frame() {
-      confetti({ particleCount: 5, angle: 60, spread: 60, origin: { x: 0, y: 0.8 }, colors: ['#bf953f', '#ffffff', '#2563eb'] });
-      confetti({ particleCount: 5, angle: 120, spread: 60, origin: { x: 1, y: 0.8 }, colors: ['#bf953f', '#ffffff', '#2563eb'] });
+      confetti({ particleCount: 4, angle: 60, spread: 60, origin: { x: 0, y: 0.8 }, colors: ['#bf953f', '#ffffff'] });
+      confetti({ particleCount: 4, angle: 120, spread: 60, origin: { x: 1, y: 0.8 }, colors: ['#2563eb', '#ffffff'] });
       if (Date.now() < end) requestAnimationFrame(frame);
     }());
   };
 
   const handleAdminAuth = () => {
-    if (pinField === ADMIN_PASS) { setIsAuth(true); } 
-    else { alert("अवैध एक्सेस! पिन गलत है।"); }
+    if (pinInput === ADMIN_PIN) { setIsAuth(true); } 
+    else { alert("सुरक्षा त्रुटि: गलत पिन!"); }
   };
 
-  const maskValue = (val) => {
-    if (!val || val.toString().trim() === "" || val === "#REF!" || val === "#VALUE!") return vocab[lang].update;
+  // डेटा मास्किंग: हुक्म के अनुसार आगे २ और पीछे २
+  const maskSecured = (val) => {
+    if (!val || val.toString().trim() === "" || val === "#REF!") return t[lang].update;
     const s = val.toString().trim();
     if (s.length <= 4) return s;
     return s.slice(0, 2) + "******" + s.slice(-2);
   };
 
-  const clean = (v) => (v && v.toString().trim() !== "" && v !== "#REF!" && v !== "#VALUE!") ? v : vocab[lang].update;
+  const clean = (v) => (v && v.toString().trim() !== "" && v !== "#REF!") ? v : t[lang].update;
 
   if (status === "loading") return (
     <div className="h-screen flex items-center justify-center bg-[#010413]">
-      <div className="w-20 h-20 border-4 border-blue-600 border-t-yellow-500 rounded-full animate-spin"></div>
+      <div className="w-16 h-16 border-4 border-blue-600 border-t-yellow-500 rounded-full animate-spin"></div>
     </div>
   );
 
-  const tX = vocab[lang];
-  const win = member && member[37]?.toLowerCase().includes("win");
+  const tX = t[lang];
+  const winner = member && member[37]?.toLowerCase().includes("win");
 
   return (
     <div className="min-h-screen bg-[#010413] text-white p-4 sm:p-8 font-sans overflow-x-hidden">
       
-      {/* Dynamic Header */}
+      {/* प्रीमियम टॉप बार */}
       <div className="max-w-md mx-auto no-print flex justify-between items-center mb-8 border-b border-white/10 pb-4">
         <div className="flex flex-col">
-          <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{time.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-US')}</span>
-          <span className="text-blue-500 font-bold text-xs italic">{time.toLocaleTimeString()}</span>
+          <span className="text-[9px] font-black text-gray-500 uppercase">{now.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-US')}</span>
+          <span className="text-blue-500 font-bold text-xs italic">{now.toLocaleTimeString()}</span>
         </div>
-        <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
-          <button onClick={()=>setLang('hi')} className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${lang === 'hi' ? 'bg-white text-black shadow-lg' : 'text-gray-400'}`}>हिन्दी</button>
-          <button onClick={()=>setLang('en')} className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${lang === 'en' ? 'bg-white text-black shadow-lg' : 'text-gray-400'}`}>ENGLISH</button>
+        <div className="flex bg-white/5 p-1 rounded-xl border border-white/5 shadow-inner">
+          <button onClick={()=>setLang('hi')} className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${lang === 'hi' ? 'bg-white text-black shadow-md' : 'text-gray-400'}`}>हिन्दी</button>
+          <button onClick={()=>setLang('en')} className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${lang === 'en' ? 'bg-white text-black shadow-md' : 'text-gray-400'}`}>ENGLISH</button>
         </div>
       </div>
 
       <div className="max-w-md mx-auto">
         {status === "search" ? (
-          <div className="bg-white/5 backdrop-blur-3xl rounded-[3rem] p-12 text-center border border-white/10 shadow-2xl animate-in zoom-in duration-500">
-            <i className="fa-solid fa-qrcode text-5xl text-blue-500 mb-8"></i>
+          <div className="bg-white/5 border border-white/10 p-12 rounded-[3.5rem] text-center shadow-2xl animate-in zoom-in duration-500">
             <h2 className="text-xl font-black mb-10 italic tracking-widest uppercase">{tX.idLabel}</h2>
             <input type="text" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center text-3xl font-black mb-10 text-white uppercase outline-none focus:border-blue-500" onChange={(e)=>setSearchId(e.target.value)} />
-            <button onClick={()=>window.location.href=`?id=${searchId}`} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-sm active:scale-95 transition-all tracking-widest shadow-xl">रिकॉर्ड खोजें</button>
+            <button onClick={()=>window.location.href=`?id=${searchId}`} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-sm tracking-widest active:scale-95 shadow-xl transition-all">रिकॉर्ड खोजें</button>
           </div>
         ) : (
           <div className="space-y-10 animate-in slide-in-from-bottom-10 duration-700 pb-20">
@@ -187,17 +186,14 @@ const App = () => {
               <p className="text-[9px] text-gray-500 font-black uppercase mt-1 tracking-widest">{tX.subSlogan}</p>
             </div>
 
-            {/* Official Notice board */}
+            {/* आधिकारिक नोटिस */}
             <div className="bg-yellow-500/10 border border-yellow-500/20 p-6 rounded-[2.5rem] no-print text-center shadow-xl">
-              <div className="flex items-center justify-center space-x-2 mb-2 text-yellow-500">
-                 <i className="fa-solid fa-bullhorn text-xs animate-bounce"></i>
-                 <span className="text-[10px] font-black uppercase tracking-widest italic">{tX.notice}</span>
-              </div>
-              <p className="text-[12px] font-bold italic text-white/90 leading-relaxed">"{clean(member[38])}"</p>
+              <p className="text-[10px] font-black text-yellow-500 uppercase mb-2 tracking-widest italic">{tX.notice}</p>
+              <p className="text-[13px] font-bold italic text-white/90 leading-relaxed">"{clean(member[38])}"</p>
             </div>
 
-            {/* AI WINNER CARD: AUTO REVEAL */}
-            {win && (
+            {/* AI विजेता रिवील कार्ड: स्मार्ट इमेज सर्च के साथ */}
+            {winner && (
               <div className="bg-gradient-to-br from-yellow-300 via-yellow-600 to-yellow-900 p-1.5 rounded-[3.5rem] shadow-[0_0_60px_rgba(234,179,8,0.4)] animate-in zoom-in duration-1000">
                 <div className="bg-[#020617] rounded-[3.3rem] p-10 text-center relative overflow-hidden">
                    <h2 className="text-yellow-500 font-black text-3xl uppercase tracking-tighter mb-6 italic drop-shadow-lg">{tX.winTitle}</h2>
@@ -205,14 +201,14 @@ const App = () => {
                       <p className="text-gray-500 text-[11px] uppercase font-black mb-3 tracking-widest italic">{tX.prizeTitle}</p>
                       <p className="text-white text-4xl font-black uppercase tracking-tighter italic mb-8 drop-shadow-md underline decoration-yellow-500 underline-offset-8 leading-tight">{clean(member[4])}</p>
                       
-                      {/* AI IMAGE SEARCH: Multi-language Compatible */}
+                      {/* AI SMART IMAGE: इनाम के नाम से ऑटोमैटिक फोटो */}
                       <div className="w-full aspect-video bg-black/60 rounded-3xl flex items-center justify-center overflow-hidden border border-white/5 shadow-inner">
                         <img 
-                          src={`https://loremflickr.com/640/480/${encodeURIComponent(clean(member[4]))},prize,gift/all`} 
-                          alt="Reward" 
+                          src={`https://loremflickr.com/640/480/${encodeURIComponent(clean(member[4]))},gift,product,prize/all`} 
+                          alt="Prize Reward" 
                           className="w-full h-full object-cover transition-transform duration-1000 hover:scale-110"
                           loading="lazy"
-                          onError={(e) => { e.target.src="https://via.placeholder.com/600x400/000000/FFFFFF?text=DPSG+REWARD"; }}
+                          onError={(e) => { e.target.src="https://via.placeholder.com/600x400/000000/FFFFFF?text=DPSG+REWARD+IMAGE"; }}
                         />
                       </div>
                    </div>
@@ -221,17 +217,17 @@ const App = () => {
               </div>
             )}
 
-            {!win && (
-               <div className="bg-white/5 border border-white/5 p-8 rounded-[2.5rem] text-center shadow-xl italic no-print">
+            {!winner && (
+               <div className="bg-white/5 border border-white/5 p-8 rounded-[2.5rem] text-center shadow-xl italic no-print backdrop-blur-md">
                   <p className="text-blue-400 text-[13px] font-black uppercase tracking-widest">{tX.pending}</p>
                </div>
             )}
 
-            {/* THE MASTER RECEIPT (WHITE PREMIUM) */}
-            <div id="receipt-print" className="bg-white text-slate-900 rounded-[3.5rem] p-10 shadow-2xl relative overflow-hidden border border-slate-100">
+            {/* प्रोफेशनल सफेद रसीद */}
+            <div id="receipt-print" className="bg-white text-slate-900 rounded-[3rem] p-10 shadow-2xl relative overflow-hidden border border-slate-100">
               <div className="text-center border-b-2 border-dashed border-slate-100 pb-8 mb-10">
                 <h3 className="font-black text-3xl text-blue-700 uppercase italic tracking-tighter leading-none">{tX.receipt}</h3>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.5em] mt-3 italic">NIMBAHERA, RAJASTHAN</p>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.5em] mt-3">NIMBAHERA, RAJASTHAN</p>
               </div>
 
               <div className="space-y-12">
@@ -241,30 +237,30 @@ const App = () => {
                     <p className="text-2xl font-black text-slate-950 tracking-tighter uppercase leading-none mt-1">{clean(member[1])}</p>
                   </div>
                   <div className="w-1/2 text-right">
-                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{tX.catLabel}</p>
+                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{lang === 'hi' ? 'कार्ड श्रेणी' : 'Plan'}</p>
                     <p className="text-[11px] font-black text-blue-700 uppercase leading-none mt-1 italic">{clean(member[3])}</p>
                   </div>
                 </div>
 
-                {/* Points Circle Overview */}
+                {/* सर्विस पॉइंट्स सेंटरपीस */}
                 <div className="bg-blue-600 rounded-[3.5rem] p-10 text-center text-white shadow-2xl relative overflow-hidden">
                    <div className="absolute top-0 right-0 p-8 opacity-10"><i className="fa-solid fa-gem text-7xl"></i></div>
                    <p className="text-[11px] font-black uppercase tracking-widest opacity-80 mb-2 italic">{tX.pointsRem}</p>
-                   <span className="text-8xl font-black tracking-tighter leading-none drop-shadow-xl">{clean(member[21])}</span>
+                   <span className="text-9xl font-black tracking-tighter leading-none drop-shadow-xl">{clean(member[21])}</span>
                    <div className="grid grid-cols-2 gap-4 mt-12 pt-10 border-t border-white/10 text-[10px] font-black uppercase tracking-widest">
                      <div>{tX.pointsTot}<p className="text-xl font-black mt-1">{clean(member[18])}</p></div>
-                     <div className="border-l border-white/10">{lang === 'hi' ? 'उपयोग' : 'Used'}<p className="text-xl font-black mt-1">{(parseInt(member[19]) || 0) + (parseInt(member[20]) || 0)}</p></div>
+                     <div className="border-l border-white/10">उपयोग<p className="text-xl font-black mt-1">{(parseInt(member[19]) || 0) + (parseInt(member[20]) || 0)}</p></div>
                    </div>
                 </div>
 
-                {/* Exclusive Benefits with Print+Photo Logic */}
+                {/* विशेष कार्ड सुविधाएं */}
                 <div className="bg-slate-50 p-10 rounded-[3rem] border border-slate-100 shadow-inner">
                   <p className="text-[11px] font-black text-blue-700 uppercase mb-6 italic tracking-widest flex items-center"><i className="fa-solid fa-crown mr-3"></i> {lang === 'hi' ? 'विशेष कार्ड सुविधायें' : 'EXCLUSIVE PRIVILEGES'}</p>
                   <div className="space-y-1">
                     {(() => {
                       const s = member[3]?.toLowerCase() || "";
                       let bKey = s.includes("vip") ? "VIP" : (s.includes("gold") ? "Gold" : "Silver");
-                      return planSpecs[bKey].map((ben, i) => (
+                      return planBenefits[bKey].map((ben, i) => (
                         <div key={i} className="flex items-start py-3 border-b border-slate-100 last:border-0">
                           <i className="fa-solid fa-circle-check text-green-500 text-[11px] mt-1 mr-4"></i>
                           <p className="text-[12px] font-bold text-slate-700 leading-snug tracking-tight">{ben}</p>
@@ -274,14 +270,14 @@ const App = () => {
                   </div>
                 </div>
 
-                {/* Profile Grid: Secure Masking */}
+                {/* ग्राहक विवरण: २-आगे, २-पीछे सुरक्षा के साथ */}
                 <div className="grid grid-cols-2 gap-x-10 gap-y-12 py-10 border-y border-slate-50">
                   <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">{tX.nameLabel}</p><p className="text-[18px] font-black leading-tight uppercase italic text-slate-900">{clean(member[8])}</p></div>
                   <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">{tX.locLabel}</p><p className="text-[18px] font-black leading-tight uppercase italic text-slate-900">{clean(member[5])}</p></div>
-                  <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">{tX.mobLabel}</p><p className="text-[16px] font-bold tracking-[0.2em] text-slate-900">{maskValue(member[9])}</p></div>
-                  <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">{tX.aadLabel}</p><p className="text-[16px] font-bold tracking-[0.2em] text-slate-900">{maskValue(member[11])}</p></div>
+                  <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">{tX.mobLabel}</p><p className="text-[16px] font-bold tracking-[0.2em] text-slate-900">{maskSecured(member[9])}</p></div>
+                  <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">{tX.aadLabel}</p><p className="text-[16px] font-bold tracking-[0.2em] text-slate-900">{maskSecured(member[11])}</p></div>
                   <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">बिक्री तारीख</p><p className="text-[14px] font-bold italic text-slate-600">{clean(member[6])}</p></div>
-                  <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">ड्रा स्टेटस</p><p className="text-[14px] font-black text-blue-600 uppercase italic">{clean(member[37])}</p></div>
+                  <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">ड्रा स्थिति</p><p className="text-[14px] font-black text-blue-600 uppercase italic">{clean(member[37])}</p></div>
                 </div>
 
                 <div className="bg-slate-950 text-white rounded-[2.5rem] p-8 text-center shadow-2xl relative">
@@ -289,12 +285,12 @@ const App = () => {
                   <p className="text-3xl font-black italic tracking-tighter text-yellow-500 uppercase drop-shadow-lg">{clean(member[36])}</p>
                 </div>
 
-                {/* OFFICIAL TERMS & CONDITIONS (Bilingual & Refined) */}
+                {/* विस्तृत नियम व शर्तें (Professional T&C Section) */}
                 <div className="bg-slate-50 p-10 rounded-[3rem] border border-slate-200 mt-10">
                    <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-6 border-b border-slate-200 pb-3 flex items-center">
                      <i className="fa-solid fa-scale-balanced mr-3 text-blue-600"></i> {tX.termsTitle}
                    </h4>
-                   <div className="space-y-5">
+                   <div className="space-y-6">
                       <div className="flex items-start">
                          <span className="text-[10px] font-black text-blue-600 mt-1 mr-3">०१.</span>
                          <p className="text-[11px] font-bold text-slate-600 leading-relaxed italic">{tX.term1}</p>
@@ -314,6 +310,12 @@ const App = () => {
                    </div>
                 </div>
 
+                <div className="grid grid-cols-3 gap-3 bg-slate-100 p-8 rounded-[3rem] text-center shadow-inner mt-10">
+                  <div><span className="text-[9px] font-black text-slate-400 uppercase block mb-1 tracking-widest">ACTIVE</span><p className="text-[12px] font-black text-slate-900">{clean(member[15])}</p></div>
+                  <div className="border-x border-slate-200"><span className="text-[9px] font-black text-slate-400 uppercase block mb-1 tracking-widest">EXPIRY</span><p className="text-[12px] font-black text-red-600">{clean(member[16])}</p></div>
+                  <div><span className="text-[9px] font-black text-slate-400 uppercase block mb-1 tracking-widest">DAYS</span><p className="text-[12px] font-black text-green-600">{clean(member[17])}</p></div>
+                </div>
+
                 <div className="mt-8 text-center no-print pt-10 border-t border-slate-50">
                   <button onClick={()=>window.print()} className="bg-slate-900 text-white px-16 py-6 rounded-full text-[13px] font-black uppercase flex items-center justify-center mx-auto space-x-5 shadow-2xl active:scale-95 transition-all">
                     <i className="fa-solid fa-print"></i><span>{tX.print}</span>
@@ -322,7 +324,7 @@ const App = () => {
               </div>
             </div>
 
-            {/* MASTER ADMIN GATEWAY */}
+            {/* गुप्त एडमिन कंट्रोल (MASTER ADMIN) */}
             <div className="no-print pt-32 pb-20 flex flex-col items-center">
               {!isAuth && (
                 <button onClick={() => setShowAdmin(!showAdmin)} className="text-white/5 hover:text-white/20 transition-all p-8 bg-white/5 rounded-full border border-white/10 shadow-2xl">
@@ -332,9 +334,9 @@ const App = () => {
 
               {showAdmin && !isAuth && (
                 <div className="mt-8 flex flex-col bg-white/5 p-10 rounded-[3.5rem] border border-white/10 w-full animate-in slide-in-from-top-4 duration-300 backdrop-blur-3xl shadow-2xl">
-                   <p className="text-[11px] font-black text-blue-400 uppercase tracking-[0.3em] mb-8 text-center italic">{tX.auth}</p>
+                   <p className="text-[11px] font-black text-blue-400 uppercase tracking-widest mb-8 text-center italic">{tX.auth}</p>
                    <div className="flex space-x-3">
-                    <input type="password" placeholder="PIN" className="flex-1 bg-black/60 border border-white/10 rounded-2xl px-8 py-5 text-lg outline-none focus:border-blue-500 font-bold tracking-[0.8em] text-white" onChange={(e) => setPinField(e.target.value)} />
+                    <input type="password" placeholder="PIN" className="flex-1 bg-black/60 border border-white/10 rounded-2xl px-8 py-5 text-lg outline-none focus:border-blue-500 font-bold tracking-[0.8em] text-white" onChange={(e) => setPinInput(e.target.value)} />
                     <button onClick={handleAdminAuth} className="bg-blue-600 px-10 py-5 rounded-2xl text-[11px] font-black uppercase shadow-xl active:scale-90 transition-all">Unlock</button>
                    </div>
                 </div>
@@ -346,10 +348,10 @@ const App = () => {
                       <h3 className="text-[13px] font-black uppercase tracking-[0.3em] text-blue-400 italic">{tX.adminTitle}</h3>
                       <button onClick={()=>setIsAuth(false)} className="bg-red-500/10 text-red-500 px-6 py-2.5 rounded-full text-[11px] font-black border border-red-500/20 active:scale-95 transition-all">Logout</button>
                    </div>
-                   <div className="grid grid-cols-1 gap-5 max-h-[800px] overflow-y-auto pr-6 custom-scroll scroll-smooth">
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-h-[800px] overflow-y-auto pr-6 custom-scroll scroll-smooth">
                       {member.map((val, i) => (
                         <div key={i} className="bg-black/50 p-6 rounded-3xl border border-white/5 hover:border-blue-500/40 transition-all text-left group">
-                           <p className="text-[9px] text-gray-500 uppercase mb-2 font-black tracking-widest opacity-60 italic">Database Column {i}</p>
+                           <p className="text-[9px] text-gray-500 uppercase mb-2 font-black tracking-widest opacity-60 italic">Column {i}</p>
                            <p className="text-[15px] font-bold text-gray-100 break-words italic">{val || vocab[lang].update}</p>
                         </div>
                       ))}
