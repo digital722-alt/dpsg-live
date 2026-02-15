@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPSG Chanchal Drive - Official Portal</title>
-    <!-- आवश्यक स्क्रिप्ट्स - React, Tailwind, PapaParse -->
+    <title>DPSG Official Portal - Nimbahera</title>
+    <!-- Essential Libraries -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -15,6 +15,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #010413; color: white; margin: 0; }
+        .receipt-card { border: 1px solid #e2e8f0; }
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; color: black !important; }
@@ -30,80 +31,81 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- कॉन्फ़िगरेशन (आपकी शीट का लिंक) ---
+        // --- GOOGLE SHEET CONFIGURATION ---
         const SHEET_ID = "1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo";
         const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
         const MASTER_PIN = "Chanchal@6375";
 
         const App = () => {
             const [lang, setLang] = useState('hi');
-            const [status, setStatus] = useState("loading"); 
+            const [status, setStatus] = useState("loading");
             const [member, setMember] = useState(null);
             const [searchId, setSearchId] = useState("");
             const [isAdmin, setIsAdmin] = useState(false);
-            const [showAdminPanel, setShowAdminPanel] = useState(false);
-            const [pin, setPin] = useState("");
+            const [showAdminLogin, setShowAdminLogin] = useState(false);
+            const [pinInput, setPinInput] = useState("");
             const [time, setTime] = useState(new Date());
 
             const vocab = {
                 hi: {
                     brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप",
-                    slogan: "चंचल ड्राइव - समस्या आपकी, समाधान हमारा !",
+                    slogan: "समस्या आपकी, समाधान हमारा !",
                     subSlogan: "उचित मूल्य, बेहतरीन सेवा !",
                     idLabel: "मेंबरशिप आईडी दर्ज करें",
-                    idPlace: "यहाँ आईडी लिखें (जैसे: 0022)",
-                    findBtn: "डेटा खोजें",
-                    receipt: "प्रोफेशनल डिजिटल रसीद",
+                    receipt: "आधिकारिक डिजिटल रसीद",
                     winner: "बधाई हो! आप विजेता हैं",
-                    prizeLabel: "आपका लकी ड्रा इनाम",
-                    drawLabel: "लकी ड्रा तिथि",
+                    prize: "आपका इनाम",
                     update: "विवरण अपडेट किया जा रहा है...",
-                    print: "डिजिटल रसीद प्रिंट करें",
-                    pending: "लकी ड्रा का इंतज़ार करें...",
-                    auth: "एडमिन मास्टर वेरिफिकेशन",
-                    adminHeader: "सिस्टम मास्टर डेटा (39 कॉलम)",
-                    termsTitle: "पंजीकरण एवं सदस्यता - नियम व शर्तें",
-                    term1: "पंजीकरण शुल्क (Non-Refundable): यह राशि केवल 'पंजीकरण व परामर्श' (Registration & Consultation) के लिए है, जो किसी भी स्थिति में वापस नहीं होगी।",
-                    term2: "सेवा की सीमा: सदस्यता का अर्थ सेवाओं पर 'विशेष छूट' (Discount) और कार्य में 'प्राथमिकता' देना है। यह पूरी तरह 'मुफ्त सेवा' का अनुबंध नहीं है।",
-                    term3: "सदस्यता शुल्क: यह भुगतान केवल एक 'सदस्यता शुल्क' (Membership Fee) है, न कि किसी वस्तु का अग्रिम भुगतान।",
-                    term4: "वैधता नियम: सभी सुविधाओं का लाभ केवल सक्रिय वैधता (Active Validity) अवधि के दौरान ही लिया जा सकेगा।",
-                    term5: "डिलीवरी नियम: सामग्री की होम डिलीवरी 'न्यूनतम चार्ज' के भुगतान पर ही की जाएगी।"
+                    print: "रसीद प्रिंट करें",
+                    tTitle: "नियम व शर्तें (Terms & Conditions)",
+                    term1: "पंजीकरण शुल्क (Non-Refundable): यह राशि केवल 'पंजीकरण व परामर्श' के लिए है, जो वापस नहीं होगी।",
+                    term2: "सेवा की सीमा: सदस्यता का अर्थ सेवाओं पर 'छूट' और 'प्राथमिकता' है। यह पूरी तरह 'मुफ्त सेवा' नहीं है।",
+                    term3: "सदस्यता शुल्क: यह भुगतान केवल एक 'सदस्यता शुल्क' है, किसी वस्तु का अग्रिम भुगतान नहीं।",
+                    term4: "वैधता: सुविधाओं का लाभ केवल सक्रिय कार्ड वैधता अवधि के दौरान ही मिलेगा।",
+                    term5: "डिलीवरी: सामग्री की होम डिलीवरी न्यूनतम चार्ज के भुगतान पर ही प्रदान की जाएगी।",
+                    auth: "मास्टर एडमिन वेरिफिकेशन",
+                    adminTitle: "सिस्टम मास्टर डेटा (39 कॉलम)"
                 },
                 en: {
                     brand: "Digital Problem Solution Group",
-                    slogan: "Chanchal Drive - Your Problem, Our Solution!",
+                    slogan: "Your Problem, Our Solution!",
                     subSlogan: "Best Price, Excellent Service!",
                     idLabel: "Enter Membership ID",
-                    idPlace: "Type ID here (e.g. 0022)",
-                    findBtn: "Search Data",
                     receipt: "OFFICIAL DIGITAL RECEIPT",
                     winner: "CONGRATULATIONS! YOU WON",
-                    prizeLabel: "Your Lucky Reward",
-                    drawLabel: "Projected Draw Date",
+                    prize: "Your Prize Reward",
                     update: "Details being updated...",
                     print: "Print Official Receipt",
-                    pending: "Stay tuned for the lucky draw...",
+                    tTitle: "Terms & Conditions",
+                    term1: "Registration Fee (Non-Refundable): The amount is for 'Consultation' and is non-refundable.",
+                    term2: "Scope of Service: Membership provides 'Discounts' and 'Priority'. Not a free service contract.",
+                    term3: "Membership Only: This is strictly a 'Membership Fee', not a prepayment for goods.",
+                    term4: "Validity: Privileges valid only during active card validity period.",
+                    term5: "Delivery: Home delivery provided at minimum charges only.",
                     auth: "Admin Authorization",
-                    adminHeader: "System Master Log (39 Columns)",
-                    termsTitle: "Membership Terms & Conditions",
-                    term1: "Registration Fee (Non-Refundable): Strictly for 'Registration & Consultation', non-refundable under any circumstances.",
-                    term2: "Scope of Service: Membership implies 'Discounts' and 'Priority'. Not a contract for free services.",
-                    term3: "Membership Only: This is strictly a 'Membership Fee' and not a prepayment for goods.",
-                    term4: "Validity: Privileges valid only within the active card validity period.",
-                    term5: "Delivery: Home delivery will be done at minimum charges."
+                    adminTitle: "System Master Log (39 Columns)"
                 }
             };
 
-            const planBenefits = {
-                VIP: ["कोटा: 150 प्रिंट + 80 फोटो (या 380 फोटो / 190 प्रिंट)", "डिलीवरी: (न्यूनतम चार्ज पर डिलीवरी की जाएगी)", "ई-मित्र: 100% फ्री सेवा"],
-                Gold: ["कोटा: 40 प्रिंट + 24 फोटो (या 100 फोटो / 52 प्रिंट)", "डिलीवरी: (न्यूनतम चार्ज पर डिलीवरी की जाएगी)", "ई-मित्र: 50% छूट"],
-                Silver: ["कोटा: 15 प्रिंट + 12 फोटो (या 40 फोटो / 21 प्रिंट)", "डिलीवरी: (न्यूनतम चार्ज पर डिलीवरी की जाएगी)", "ई-मित्र: सीमित सहायता"]
+            const cardSpecs = {
+                VIP: {
+                    hi: ["कीमत: ₹500 (वैधता: 6 महीने)", "उपयोग: संपूर्ण परिवार हेतु मान्य", "कोटा: 150 प्रिंट + 80 फोटो (या 380 फोटो / 190 प्रिंट)", "लैमिनेशन: 5 फ्री", "ई-मित्र: 100% फ्री सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 2 बार FREE (उसके बाद न्यूनतम रेट)", "इनाम: ₹100 तुरंत वापस + बड़ा धमाका!"],
+                    en: ["Price: ₹500 (6 Months)", "Usage: Family Access", "Quota: 150P + 80 Photos", "Lamination: 5 Free", "E-Mitra: 100% Free Service", "Delivery: 2 Free", "Prize: ₹100 Cashback + Surprise!"]
+                },
+                Gold: {
+                    hi: ["कीमत: ₹100 (वैधता: 3 महीने)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 40 प्रिंट + 24 फोटो (या 100 फोटो / 52 प्रिंट)", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: 100% गारंटी उपहार!"],
+                    en: ["Price: ₹100 (3 Months)", "Usage: Individual", "Quota: 40P + 24 Photos", "Lamination: 1 Free", "E-Mitra: 50% Discount", "Delivery: 1 Time", "Prize: Guaranteed Gift!"]
+                },
+                Silver: {
+                    hi: ["कीमत: ₹50 (वैधता: 1 महीना)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 15 प्रिंट + 12 फोटो (या 40 फोटो / 21 प्रिंट)", "ई-मित्र: सीमित सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: लकी ड्रा का शानदार अवसर!"],
+                    en: ["Price: ₹50 (1 Month)", "Usage: Individual", "Quota: 15P + 12 Photos", "E-Mitra: Limited Support", "Delivery: 1 Time", "Prize: Lucky Draw Chance!"]
+                }
             };
 
             useEffect(() => {
                 const timer = setInterval(() => setTime(new Date()), 1000);
-                const urlParams = new URLSearchParams(window.location.search);
-                const qId = urlParams.get('id');
+                const params = new URLSearchParams(window.location.search);
+                const qId = params.get('id');
 
                 Papa.parse(`${CSV_URL}&v=${Date.now()}`, {
                     download: true,
@@ -121,7 +123,7 @@
                             if (match) {
                                 setMember(match);
                                 setStatus("view");
-                                if (match[37]?.toLowerCase().includes("win")) { blast(); }
+                                if (match[37]?.toLowerCase().includes("win")) { triggerCelebration(); }
                             } else setStatus("search");
                         } else setStatus("search");
                     },
@@ -130,19 +132,21 @@
                 return () => clearInterval(timer);
             }, []);
 
-            const blast = () => {
+            const triggerCelebration = () => {
                 const end = Date.now() + (7 * 1000);
                 (function frame() {
-                    confetti({ particleCount: 5, angle: 60, spread: 60, origin: { x: 0, y: 0.8 }, colors: ['#bf953f', '#ffffff'] });
+                    confetti({ particleCount: 5, angle: 60, spread: 60, origin: { x: 0, y: 0.8 }, colors: ['#fbbf24', '#ffffff'] });
                     confetti({ particleCount: 5, angle: 120, spread: 60, origin: { x: 1, y: 0.8 }, colors: ['#2563eb', '#ffffff'] });
                     if (Date.now() < end) requestAnimationFrame(frame);
                 }());
             };
 
+            // २-आगे, २-पीछे सुरक्षा मास्किंग
             const maskValue = (val) => {
                 if (!val || val.toString().trim() === "" || val === "#REF!") return vocab[lang].update;
                 const s = val.toString().trim();
-                return s.length > 4 ? s.slice(0, 2) + "******" + s.slice(-2) : s;
+                if (s.length <= 4) return s;
+                return s.slice(0, 2) + "******" + s.slice(-2);
             };
 
             const clean = (v) => (v && v.toString().trim() !== "" && v !== "#REF!") ? v : vocab[lang].update;
@@ -157,11 +161,11 @@
             const isWinner = member && member[37]?.toLowerCase().includes("win");
 
             return (
-                <div className="min-h-screen p-4 sm:p-8 overflow-x-hidden">
+                <div className="min-h-screen p-4 sm:p-8 overflow-x-hidden text-center">
                     {/* Header */}
                     <div className="max-w-md mx-auto no-print flex justify-between items-center mb-8 border-b border-white/10 pb-4">
                         <div className="flex flex-col text-left">
-                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{time.toLocaleDateString()}</span>
+                            <span className="text-[9px] font-black text-gray-500 uppercase">{time.toLocaleDateString()}</span>
                             <span className="text-blue-500 font-bold text-xs italic">{time.toLocaleTimeString()}</span>
                         </div>
                         <div className="flex bg-white/5 p-1 rounded-xl">
@@ -173,107 +177,126 @@
                     <div className="max-w-md mx-auto">
                         {status === "search" ? (
                             <div className="bg-white/5 border border-white/10 p-10 rounded-[3rem] text-center shadow-2xl backdrop-blur-xl animate-in zoom-in">
-                                <i className="fa-solid fa-qrcode text-6xl text-blue-500 mb-8"></i>
-                                <h2 className="text-xl text-white font-black mb-8 uppercase tracking-widest">{ui.idLabel}</h2>
-                                <input type="text" placeholder={ui.idPlace} className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center text-xl font-bold mb-10 text-white outline-none focus:border-blue-500 shadow-inner" onChange={(e)=>setSearchId(e.target.value)} />
-                                <button onClick={()=>window.location.href=`?id=${searchId}`} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-sm text-white shadow-xl active:scale-95 transition-all">रिकॉर्ड खोजें</button>
+                                <i className="fa-solid fa-id-card-clip text-6xl text-blue-500 mb-8 animate-pulse"></i>
+                                <h2 className="text-xl text-white font-black mb-10 tracking-widest uppercase">{ui.idLabel}</h2>
+                                <input type="text" placeholder="यहाँ आईडी लिखें (जैसे 0022)" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center text-xl font-bold mb-10 text-white outline-none focus:border-blue-500 shadow-inner" onChange={(e)=>setSearchId(e.target.value)} />
+                                <button onClick={()=>window.location.href=`?id=${searchId}`} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-sm text-white shadow-xl active:scale-95 transition-all">रिकॉर्ड खोजें (Search)</button>
                             </div>
                         ) : (
-                            <div className="space-y-10 pb-24 text-center">
+                            <div className="space-y-10 pb-24">
+                                {/* Brand Branding */}
                                 <div>
                                     <h1 className="text-2xl text-white font-black italic uppercase tracking-tighter leading-none">{ui.brand}</h1>
-                                    <p className="text-[10px] text-blue-400 font-bold tracking-[0.3em] mt-4 uppercase italic">{ui.slogan}</p>
+                                    <p className="text-[10px] text-blue-400 font-bold tracking-[0.3em] mt-4 uppercase italic leading-none">{ui.slogan}</p>
                                     <p className="text-[10px] text-gray-500 font-black uppercase mt-2 tracking-widest">{ui.subSlogan}</p>
                                 </div>
 
-                                <div className="bg-yellow-500/10 border border-yellow-500/20 p-6 rounded-[2.5rem] no-print text-center shadow-xl">
-                                    <p className="text-[10px] font-black text-yellow-500 uppercase mb-2 tracking-widest">आधिकारिक सूचना</p>
-                                    <p className="text-[13px] text-white font-bold italic opacity-90 leading-relaxed text-center">"{clean(member[38])}"</p>
+                                {/* Official Notice */}
+                                <div className="bg-yellow-500/10 border border-yellow-500/20 p-6 rounded-[2.5rem] no-print shadow-xl">
+                                    <p className="text-[10px] font-black text-yellow-500 uppercase mb-2 tracking-widest">आधिकारिक सूचना पट्ट</p>
+                                    <p className="text-[13px] text-white font-bold italic opacity-90 leading-relaxed">"{clean(member[38])}"</p>
                                 </div>
 
+                                {/* Winner Reveal */}
                                 {isWinner && (
                                     <div className="bg-gradient-to-br from-yellow-300 via-yellow-600 to-yellow-900 p-1 rounded-[3.5rem] shadow-2xl animate-in zoom-in">
                                         <div className="bg-[#020617] rounded-[3.3rem] p-10 text-center relative overflow-hidden">
                                             <h2 className="text-yellow-500 font-black text-2xl uppercase tracking-tighter mb-6 italic">{ui.winner}</h2>
-                                            <div className="bg-white/5 rounded-[2.5rem] p-8 border border-yellow-500/30">
-                                                <p className="text-white text-4xl font-black uppercase tracking-tighter italic mb-8 drop-shadow-md underline decoration-yellow-500 underline-offset-8">{clean(member[4])}</p>
+                                            <div className="bg-white/5 rounded-[2.5rem] p-8 border border-yellow-500/30 shadow-inner">
+                                                <p className="text-white text-4xl font-black uppercase tracking-tighter italic mb-8 drop-shadow-md underline underline-offset-8 decoration-yellow-500">{clean(member[4])}</p>
                                                 <div className="w-full aspect-video bg-black/60 rounded-3xl overflow-hidden border border-white/5 shadow-inner">
                                                     <img src={`https://loremflickr.com/640/480/${encodeURIComponent(clean(member[4]))},gift,prize/all`} alt="Reward" className="w-full h-full object-cover transition-transform hover:scale-110" />
                                                 </div>
                                             </div>
-                                            <p className="text-[9px] text-yellow-500/40 font-black mt-8 tracking-widest uppercase animate-pulse italic">EXCLUSIVELY BY CHANCHAL DRIVE</p>
+                                            <p className="text-[9px] text-yellow-500/40 font-black mt-8 tracking-widest uppercase animate-pulse italic">DPSG NIMBAHERA OFFICIAL</p>
                                         </div>
                                     </div>
                                 )}
 
-                                {/* प्रोफेशनल सफेद रसीद */}
+                                {/* Main White Receipt */}
                                 <div id="receipt-print" className="bg-white text-slate-900 rounded-[3rem] p-10 shadow-2xl relative overflow-hidden border border-slate-100 receipt-card text-left">
                                     <div className="text-center border-b-2 border-dashed border-slate-100 pb-8 mb-10">
                                         <h3 className="font-black text-3xl text-blue-700 uppercase italic tracking-tighter leading-none">{ui.receipt}</h3>
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.5em] mt-3 italic text-center">NIMBAHERA, RAJASTHAN</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.5em] mt-4 italic text-center">NIMBAHERA, RAJASTHAN</p>
                                     </div>
 
                                     <div className="space-y-12">
+                                        {/* ID & Plan */}
                                         <div className="flex justify-between items-start border-b border-slate-50 pb-8">
                                             <div className="w-1/2">
-                                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">ID Identity</p>
-                                                <p className="text-2xl font-black text-slate-950 tracking-tighter uppercase mt-1">{clean(member[1])}</p>
+                                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest italic">मेंबरशिप आईडी (ID)</p>
+                                                <p className="text-2xl font-black text-slate-950 tracking-tighter uppercase mt-1 leading-none">{clean(member[1])}</p>
                                             </div>
                                             <div className="w-1/2 text-right">
-                                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Category</p>
-                                                <p className="text-[11px] font-black text-blue-700 uppercase leading-none mt-1 italic">{clean(member[3])}</p>
+                                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest italic">कैटेगरी (Category)</p>
+                                                <p className="text-[12px] font-black text-blue-700 uppercase leading-none mt-1 italic leading-none">{clean(member[3])}</p>
                                             </div>
                                         </div>
 
+                                        {/* Points Bar */}
                                         <div className="bg-blue-600 rounded-[3.5rem] p-10 text-center text-white shadow-2xl relative overflow-hidden">
                                             <div className="absolute top-0 right-0 p-8 opacity-10"><i className="fa-solid fa-gem text-7xl"></i></div>
-                                            <p className="text-[11px] font-black uppercase tracking-widest opacity-80 mb-2 italic">उपलब्ध सर्विस पॉइंट्स</p>
+                                            <p className="text-[11px] font-black uppercase tracking-widest opacity-80 mb-2 italic">डिजिटल सर्विस पॉइंट्स</p>
                                             <span className="text-8xl font-black tracking-tighter leading-none drop-shadow-xl">{clean(member[21])}</span>
                                             <div className="grid grid-cols-2 gap-4 mt-12 pt-10 border-t border-white/10 text-[10px] font-black uppercase">
-                                                <div className="text-center">TOTAL<p className="text-xl font-black mt-1">{clean(member[18])}</p></div>
-                                                <div className="border-l border-white/10 text-center">USED<p className="text-xl font-black mt-1">{(parseInt(member[19]) || 0) + (parseInt(member[20]) || 0)}</p></div>
+                                                <div className="text-center">कुल आवंटित<p className="text-xl font-black mt-1 leading-none">{clean(member[18])}</p></div>
+                                                <div className="border-l border-white/10 text-center">उपयोग (Used)<p className="text-xl font-black mt-1 leading-none">{(parseInt(member[19]) || 0) + (parseInt(member[20]) || 0)}</p></div>
                                             </div>
                                         </div>
 
+                                        {/* Full Card Privileges */}
                                         <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 shadow-inner">
                                             <p className="text-[10px] font-black text-blue-700 uppercase mb-4 italic tracking-widest flex items-center"><i className="fa-solid fa-crown mr-2 text-xs"></i> कार्ड की विशेष सुविधायें</p>
                                             <div className="space-y-1">
                                                 {(() => {
                                                     const s = member[3]?.toLowerCase() || "";
-                                                    let bKey = s.includes("vip") ? "VIP" : (s.includes("gold") ? "Gold" : "Silver");
-                                                    return planBenefits[bKey].map((ben, i) => (
-                                                        <div key={i} className="flex items-start py-3 border-b border-slate-100 last:border-0">
-                                                            <i className="fa-solid fa-circle-check text-green-500 text-[11px] mt-1 mr-3"></i>
-                                                            <p className="text-[12px] font-bold text-slate-700 leading-snug tracking-tight">{ben}</p>
+                                                    let bKey = "Silver";
+                                                    if (s.includes("vip") || s.includes("500")) bKey = "VIP";
+                                                    else if (s.includes("gold") || s.includes("100")) bKey = "Gold";
+                                                    return cardSpecs[bKey][lang].map((ben, i) => (
+                                                        <div key={i} className="flex items-start py-2.5 border-b border-slate-200/50 last:border-0">
+                                                            <i className="fa-solid fa-circle-check text-green-500 text-[11px] mt-1.5 mr-3"></i>
+                                                            <p className="text-[12px] font-bold text-slate-700 leading-snug tracking-tight italic">{ben}</p>
                                                         </div>
                                                     ));
                                                 })()}
                                             </div>
                                         </div>
 
+                                        {/* Activation & Validity (All Required Columns) */}
+                                        <div className="grid grid-cols-3 gap-3 bg-slate-100 p-8 rounded-[3rem] text-center shadow-inner">
+                                            <div><span className="text-[9px] font-black text-slate-400 uppercase block mb-1 tracking-widest italic">सक्रियण (Activation)</span><p className="text-[12px] font-black text-slate-950 mt-1 leading-none">{clean(member[15])}</p></div>
+                                            <div className="border-x border-slate-200"><span className="text-[9px] font-black text-slate-400 uppercase block mb-1 tracking-widest italic">समाप्ति (Expiry)</span><p className="text-[12px] font-black text-red-600 mt-1 leading-none">{clean(member[16])}</p></div>
+                                            <div><span className="text-[9px] font-black text-slate-400 uppercase block mb-1 tracking-widest italic">शेष दिन (Days)</span><p className="text-[12px] font-black text-green-600 mt-1 leading-none">{clean(member[17])}</p></div>
+                                        </div>
+
+                                        {/* Secure Customer Profile (Masked) */}
                                         <div className="grid grid-cols-2 gap-x-10 gap-y-12 py-10 border-y border-slate-50">
-                                            <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">नाम (Name)</p><p className="text-[18px] font-black leading-tight uppercase italic text-slate-900">{clean(member[8])}</p></div>
-                                            <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">स्थान (Village)</p><p className="text-[18px] font-black leading-tight uppercase italic text-slate-900">{clean(member[5])}</p></div>
-                                            <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">मोबाइल (Masked)</p><p className="text-[16px] font-bold tracking-[0.2em] text-slate-950">{maskValue(member[9])}</p></div>
-                                            <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">आधार (Masked)</p><p className="text-[16px] font-bold tracking-[0.2em] text-slate-950">{maskValue(member[11])}</p></div>
+                                            <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic leading-none">ग्राहक नाम (Name)</p><p className="text-[18px] font-black leading-tight uppercase italic text-slate-900">{clean(member[8])}</p></div>
+                                            <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic leading-none">स्थान / गाँव (Village)</p><p className="text-[18px] font-black leading-tight uppercase italic text-slate-900">{clean(member[5])}</p></div>
+                                            <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic leading-none">मोबाइल (Security)</p><p className="text-[16px] font-bold tracking-[0.2em] text-slate-950">{maskValue(member[9])}</p></div>
+                                            <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic leading-none">आधार (Security)</p><p className="text-[16px] font-bold tracking-[0.2em] text-slate-950">{maskValue(member[11])}</p></div>
+                                            <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1">बिक्री तारीख</p><p className="text-[14px] font-bold italic text-slate-600 leading-none">{clean(member[6])}</p></div>
+                                            <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1">Status</p><p className="text-[14px] font-black text-blue-600 uppercase italic leading-none">{clean(member[37])}</p></div>
                                         </div>
 
+                                        {/* Lucky Draw Box */}
                                         <div className="bg-slate-950 text-white rounded-[2.5rem] p-8 text-center shadow-2xl relative">
-                                            <p className="text-[11px] font-black uppercase opacity-50 tracking-widest mb-3">लकी ड्रा संभावित तिथि</p>
-                                            <p className="text-3xl font-black italic tracking-tighter text-yellow-500 uppercase drop-shadow-lg text-center">{clean(member[36])}</p>
+                                            <p className="text-[11px] font-black uppercase opacity-50 tracking-widest mb-3 italic">लकी ड्रा संभावित तिथि</p>
+                                            <p className="text-3xl font-black italic tracking-tighter text-yellow-500 uppercase drop-shadow-lg text-center leading-none">{clean(member[36])}</p>
                                         </div>
 
-                                        {/* नियम और शर्तें */}
-                                        <div className="bg-slate-50 p-10 rounded-[3rem] border border-slate-200 mt-10">
+                                        {/* Terms & Conditions */}
+                                        <div className="bg-slate-50 p-10 rounded-[3rem] border border-slate-200 mt-10 shadow-inner">
                                             <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-6 border-b border-slate-200 pb-3 flex items-center">
-                                                <i className="fa-solid fa-scale-balanced mr-3 text-blue-600"></i> {ui.termsTitle}
+                                                <i className="fa-solid fa-scale-balanced mr-3 text-blue-600"></i> {ui.tTitle}
                                             </h4>
-                                            <div className="space-y-6">
-                                                <div className="flex items-start text-left"><span className="text-[10px] font-black text-blue-600 mt-1 mr-3">०१.</span><p className="text-[11px] font-bold text-slate-600 leading-relaxed italic">{ui.term1}</p></div>
-                                                <div className="flex items-start text-left"><span className="text-[10px] font-black text-blue-600 mt-1 mr-3">०२.</span><p className="text-[11px] font-bold text-slate-600 leading-relaxed italic">{ui.term2}</p></div>
-                                                <div className="flex items-start text-left"><span className="text-[10px] font-black text-blue-600 mt-1 mr-3">०३.</span><p className="text-[11px] font-bold text-slate-600 leading-relaxed italic">{ui.term3}</p></div>
-                                                <div className="flex items-start text-left"><span className="text-[10px] font-black text-blue-600 mt-1 mr-3">०४.</span><p className="text-[11px] font-bold text-slate-600 leading-relaxed italic">{ui.term4}</p></div>
-                                                <div className="flex items-start text-left"><span className="text-[10px] font-black text-blue-600 mt-1 mr-3">०५.</span><p className="text-[11px] font-bold text-slate-600 leading-relaxed italic">{ui.term5}</p></div>
+                                            <div className="space-y-6 text-left">
+                                                <div className="flex items-start"><span className="text-[10px] font-black text-blue-600 mt-1 mr-3 leading-none">०१.</span><p className="text-[11px] font-bold text-slate-600 leading-relaxed italic">{ui.term1}</p></div>
+                                                <div className="flex items-start"><span className="text-[10px] font-black text-blue-600 mt-1 mr-3 leading-none">०२.</span><p className="text-[11px] font-bold text-slate-600 leading-relaxed italic">{ui.term2}</p></div>
+                                                <div className="flex items-start"><span className="text-[10px] font-black text-blue-600 mt-1 mr-3 leading-none">०३.</span><p className="text-[11px] font-bold text-slate-600 leading-relaxed italic">{ui.term3}</p></div>
+                                                <div className="flex items-start"><span className="text-[10px] font-black text-blue-600 mt-1 mr-3 leading-none">०४.</span><p className="text-[11px] font-bold text-slate-600 leading-relaxed italic">{ui.term4}</p></div>
+                                                <div className="flex items-start"><span className="text-[10px] font-black text-blue-600 mt-1 mr-3 leading-none">०५.</span><p className="text-[11px] font-bold text-slate-600 leading-relaxed italic">{ui.term5}</p></div>
                                             </div>
                                         </div>
 
@@ -285,20 +308,20 @@
                                     </div>
                                 </div>
 
-                                {/* एडमिन मास्टर */}
+                                {/* Secret Admin Master Control */}
                                 <div className="no-print pt-32 pb-20 flex flex-col items-center">
                                     {!isAdmin && (
-                                        <button onClick={() => setShowAdminPanel(!showAdminPanel)} className="text-white/5 hover:text-white/20 transition-all p-8 bg-white/5 rounded-full border border-white/10 shadow-2xl">
+                                        <button onClick={() => setShowAdminLogin(!showAdminLogin)} className="text-white/5 hover:text-white/20 transition-all p-8 bg-white/5 rounded-full border border-white/10 shadow-2xl">
                                             <i className="fa-solid fa-fingerprint text-4xl"></i>
                                         </button>
                                     )}
 
-                                    {showAdminPanel && !isAdmin && (
+                                    {showAdminLogin && !isAdmin && (
                                         <div className="mt-8 flex flex-col bg-white/5 p-10 rounded-[3.5rem] border border-white/10 w-full backdrop-blur-3xl shadow-2xl">
-                                            <p className="text-[11px] font-black text-blue-400 uppercase tracking-widest mb-8 text-center italic">{ui.auth}</p>
+                                            <p className="text-[11px] font-black text-blue-400 uppercase tracking-widest mb-6 text-center italic">{ui.auth}</p>
                                             <div className="flex space-x-3">
-                                                <input type="password" placeholder="PIN" className="flex-1 bg-black/60 border border-white/10 rounded-2xl px-8 py-5 text-lg outline-none focus:border-blue-500 font-bold tracking-[1em] text-white" onChange={(e) => setPin(e.target.value)} />
-                                                <button onClick={()=>{ if(pin === MASTER_PIN) setIsAdmin(true); else alert("Invalid Pin!"); }} className="bg-blue-600 px-10 py-5 rounded-2xl text-[11px] font-black uppercase text-white shadow-xl active:scale-90">Unlock</button>
+                                                <input type="password" placeholder="PIN" className="flex-1 bg-black/60 border border-white/10 rounded-2xl px-8 py-5 text-lg outline-none focus:border-blue-500 font-bold tracking-[1em] text-white" onChange={(e) => setPinInput(e.target.value)} />
+                                                <button onClick={()=>{ if(pinInput === MASTER_PIN) setIsAdmin(true); else alert("Pin Error!"); }} className="bg-blue-600 px-10 py-5 rounded-2xl text-[11px] font-black uppercase text-white shadow-xl active:scale-90">Unlock</button>
                                             </div>
                                         </div>
                                     )}
@@ -306,13 +329,13 @@
                                     {isAdmin && (
                                         <div className="w-full mt-10 bg-white/5 border border-white/10 rounded-[3.5rem] p-12 overflow-hidden shadow-2xl animate-in zoom-in">
                                             <div className="flex justify-between items-center mb-12 pb-8 border-b border-white/10 text-white">
-                                                <h3 className="text-[13px] font-black uppercase tracking-[0.3em] text-blue-400 italic">{ui.adminHeader}</h3>
-                                                <button onClick={()=>setIsAdmin(false)} className="bg-red-500/10 text-red-500 px-6 py-2.5 rounded-full text-[11px] font-black border border-red-500/20 active:scale-95">LOGOUT</button>
+                                                <h3 className="text-[13px] font-black uppercase tracking-[0.3em] text-blue-400 italic">{ui.adminTitle}</h3>
+                                                <button onClick={()=>setIsAdmin(false)} className="bg-red-500/10 text-red-500 px-6 py-2.5 rounded-full text-[11px] font-black border border-red-500/20 active:scale-95 transition-all">LOGOUT</button>
                                             </div>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-h-[800px] overflow-y-auto pr-6 custom-scroll">
                                                 {member.map((val, i) => (
-                                                    <div key={i} className="bg-black/50 p-6 rounded-3xl border border-white/5 hover:border-blue-500/40 transition-all text-left">
-                                                        <p className="text-[9px] text-gray-500 uppercase mb-2 font-black tracking-widest opacity-60">Column Index {i}</p>
+                                                    <div key={i} className="bg-black/50 p-6 rounded-3xl border border-white/5 hover:border-blue-500/40 transition-all text-left group">
+                                                        <p className="text-[9px] text-gray-500 uppercase mb-2 font-black tracking-widest opacity-60 italic">Col {i}</p>
                                                         <p className="text-[15px] text-white font-bold break-words italic">{val || ui.update}</p>
                                                     </div>
                                                 ))}
