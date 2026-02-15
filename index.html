@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DPSG डिजिटल रसीद पोर्टल</title>
-    <!-- आवश्यक लाइब्रेरीज़ -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -13,48 +12,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;900&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
-        body { 
-            font-family: 'Inter', 'Noto Sans Devanagari', sans-serif; 
-            background-color: #010413; 
-            color: #ffffff;
-            overflow-x: hidden;
-        }
-        .receipt-body { 
-            background: white; 
-            color: #0f172a; 
-            border-radius: 2.5rem;
-            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 1);
-            position: relative;
-        }
-        .lang-active { background: white !important; color: #020617 !important; font-weight: 900; border: 1px solid #ddd; }
-        .gold-label { 
-            background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728); 
-            -webkit-background-clip: text; 
-            -webkit-text-fill-color: transparent; 
-        }
-        .points-box {
-            background: linear-gradient(135deg, #1e40af, #1e3a8a);
-        }
-        .benefit-card { 
-            border-left: 5px solid #bf953f; 
-            background: #f8fafc; 
-            padding: 12px; 
-            border-radius: 12px; 
-            margin-bottom: 8px;
-        }
-        
+        body { font-family: 'Inter', 'Noto Sans Devanagari', sans-serif; background-color: #010413; color: white; overflow-x: hidden; }
+        .receipt-white-box { background: white; color: #0f172a; border-radius: 2.5rem; box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 1); position: relative; }
+        .lang-active { background: white !important; color: #000 !important; font-weight: 900; border: 1px solid #ddd; }
+        .gold-label { background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .points-box { background: linear-gradient(135deg, #1e40af, #1d4ed8); }
+        .benefit-card { border-left: 4px solid #bf953f; background: #f8fafc; padding: 10px; border-radius: 12px; margin-bottom: 6px; }
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; padding: 0 !important; color: black !important; }
-            .receipt-body { 
-                box-shadow: none !important; 
-                border: 1px solid #e2e8f0 !important; 
-                width: 100% !important;
-                margin: 0 !important;
-                border-radius: 0 !important;
-            }
+            .receipt-white-box { box-shadow: none !important; border: 1px solid #e2e8f0 !important; width: 100% !important; border-radius: 0 !important; }
         }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 10px; }
@@ -62,7 +30,6 @@
 </head>
 <body>
     <div id="root"></div>
-
     <script type="text/babel">
         const { useState, useEffect } = React;
 
@@ -73,22 +40,22 @@
             const [pinInput, setPinInput] = useState("");
             const [isAdmin, setIsAdmin] = useState(false);
             const [searchId, setSearchId] = useState("");
-            const [clock, setClock] = useState(new Date());
+            const [currentTime, setCurrentTime] = useState(new Date());
 
             const MASTER_PIN = "Chanchal@6375";
-            // आपकी फाइल का सटीक नाम
-            const CSV_FILE = "CSV Data DPSG - Digital_Problem_Solution_Master.csv";
+            const CSV_FILE_PATH = "CSV Data DPSG - Digital_Problem_Solution_Master.csv";
 
+            // Professional Dictionary
             const dict = {
                 hi: {
                     slogan: "समस्या आपकी, समाधान हमारा - उचित मूल्य, बेहतरीन सेवा !",
                     brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप",
                     city: "निम्बाहेड़ा, राजस्थान",
-                    notice: "सूचना बोर्ड",
-                    receipt: "डिजिटल बचत रसीद",
-                    mId: "मेंबरशिप पहचान (ID)",
+                    notice: "आधिकारिक सूचना बोर्ड",
+                    receipt: "डिजिटल बिल रसीद",
+                    mId: "सदस्यता आईडी (ID)",
                     cName: "कार्ड का नाम",
-                    cType: "कार्ड श्रेणी (Price)",
+                    cType: "कार्ड श्रेणी (Type)",
                     custName: "ग्राहक का नाम",
                     location: "गाँव / स्थान",
                     saleDate: "बिक्री की तारीख",
@@ -97,16 +64,15 @@
                     ptsTot: "कुल आवंटित",
                     ptsUsed: "उपयोग किए गए",
                     active: "सक्रियण तिथि",
-                    exp: "वैधता तिथि",
+                    exp: "वैधता समाप्ति",
                     days: "शेष दिन",
                     ph: "मोबाइल",
                     ad: "आधार",
                     benefitsTitle: "आपके कार्ड की मुख्य सुविधायें",
-                    btnGen: "रसीद प्रिंट करें",
+                    btnGen: "डिजिटल बिल प्रिंट करें",
                     adminTitle: "मास्टर कंट्रोल सेंटर (39 कॉलम)",
-                    drawWait: "लकी ड्रा का इंतज़ार करें",
+                    drawWait: "लकी ड्रा परिणाम का इंतज़ार करें",
                     wonMsg: "बधाई हो! आप विजेता हैं",
-                    infoUp: "विवरण अपडेट किया जा रहा है...",
                     find: "रिकॉर्ड खोजें",
                     enter: "आईडी यहाँ भरें"
                 },
@@ -114,7 +80,7 @@
                     slogan: "Your Problem, Our Solution - Best Price, Best Service!",
                     brand: "Digital Problem Solution Group",
                     city: "Nimbahera, Rajasthan",
-                    notice: "Official Notice Board",
+                    notice: "Official News Board",
                     receipt: "DIGITAL RECEIPT",
                     mId: "Membership ID Number",
                     cName: "Card Name",
@@ -131,86 +97,78 @@
                     days: "Days Left",
                     ph: "Mobile",
                     ad: "Aadhaar",
-                    benefitsTitle: "Exclusive Card Benefits",
+                    benefitsTitle: "Your Exclusive Benefits",
                     btnGen: "Print Official Receipt",
-                    adminHeader: "Master Admin Dashboard",
+                    adminTitle: "Master Admin Dashboard",
                     drawWait: "Awaiting Result",
                     wonMsg: "Congratulations! You Won",
-                    infoUp: "Information Updating...",
                     find: "Search Record",
                     enter: "Enter ID Here"
                 }
             };
 
-            const cardBenefits = {
+            // Card Specific Benefits Logic
+            const cardRules = {
                 VIP: {
-                    hi: ["कीमत: ₹500 (वैधता: 6 महीने)", "उपयोग: संपूर्ण परिवार हेतु", "कोटा: 150 प्रिंट + 80 फोटो", "लैमिनेशन: 5 फ्री", "ई-मित्र: 100% फ्री सेवा", "डिलीवरी: 2 बार FREE", "इनाम: ₹100 वापस + धमाका!"],
-                    en: ["Price: ₹500 (6 Months)", "Usage: Entire Family", "Quota: 150 Prints + 80 Photos", "Lamination: 5 Free", "E-Mitra: 100% Free", "Delivery: 2 times FREE", "Prize: ₹100 Cashback + Big Surprise!"]
+                    hi: ["कीमत: ₹500 (वैधता: 6 महीने)", "उपयोग: संपूर्ण परिवार हेतु मान्य", "कोटा: 150 प्रिंट + 80 फोटो", "लैमिनेशन: 5 फ्री", "ई-मित्र: 100% फ्री सेवा (टोकन चार्ज देय)", "डिलीवरी: 2 बार FREE", "इनाम: ₹100 तुरंत वापस + धमाका!"],
+                    en: ["Price: ₹500 (Validity: 6 Months)", "Usage: Whole Family", "Quota: 150 Prints + 80 Photos", "Lamination: 5 Free", "E-Mitra: 100% Free Service", "Delivery: 2 times FREE", "Prize: ₹100 Return + Big Prize!"]
                 },
                 Gold: {
-                    hi: ["कीमत: ₹100 (वैधता: 3 महीने)", "उपयोग: केवल 1 व्यक्ति", "कोटा: 40 प्रिंट + 24 फोटो", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट", "डिलीवरी: 1 बार", "इनाम: 100% गारंटी उपहार!"],
-                    en: ["Price: ₹100 (3 Months)", "Usage: 1 Person Only", "Quota: 40 Prints + 24 Photos", "Lamination: 1 Free", "E-Mitra: 50% Discount", "Delivery: 1 time", "Prize: 100% Guaranteed Gift!"]
+                    hi: ["कीमत: ₹100 (वैधता: 3 महीने)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 40 प्रिंट + 24 फोटो", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट (टोकन चार्ज देय)", "डिलीवरी: 1 बार", "इनाम: 100% गारंटी उपहार!"],
+                    en: ["Price: ₹100 (Validity: 3 Months)", "Usage: 1 Person Only", "Quota: 40 Prints + 24 Photos", "Lamination: 1 Free", "E-Mitra: 50% Discount", "Delivery: 1 time", "Prize: 100% Guaranteed Gift!"]
                 },
                 Silver: {
-                    hi: ["कीमत: ₹50 (वैधता: 1 महीना)", "उपयोग: केवल 1 व्यक्ति", "कोटा: 15 प्रिंट + 12 फोटो", "ई-मित्र: सीमित सेवा", "डिलीवरी: 1 बार", "इनाम: ड्रा का शानदार अवसर!"],
-                    en: ["Price: ₹50 (1 Month)", "Usage: 1 Person Only", "Quota: 15 Prints + 12 Photos", "E-Mitra: Limited Service", "Delivery: 1 time", "Prize: Lucky Draw Opportunity!"]
+                    hi: ["कीमत: ₹50 (वैधता: 1 महीना)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 15 प्रिंट + 12 फोटो", "ई-मित्र: सीमित सेवा", "डिलीवरी: 1 बार", "इनाम: लकी ड्रा का अवसर!"],
+                    en: ["Price: ₹50 (Validity: 1 Month)", "Usage: 1 Person Only", "Quota: 15 Prints + 12 Photos", "E-Mitra: Limited Service", "Delivery: 1 time", "Prize: Lucky Draw Opportunity!"]
                 }
             };
 
-            const allHeaders = [
+            const all39Headers = [
                 "Serial_No", "Membership_ID", "Card_Name", "Card_Type", "Prize_Inam", 
                 "Village_Gaon", "Sale_Date", "Security_Code", "Customer_Name", "Phone_Number", 
                 "Date_of_Birth", "Aadhar_Last_4", "Status", "QR_Link", "Issue_Date", 
                 "Activation_Date", "Expiry_Date", "Days_Left", "Total Points", "Used Photos", 
                 "Used Prints", "Points Left", "Live Balance", "Total_Sold", "Today Sale", 
                 "Stock Left", "Today's Income", "Total Income", "VIP Sale", "Gold Sale", 
-                "Silver Sale", "तारीख", "बिके कार्ड", "आज की कमाई", "बाकी कार्ड", 
-                "आज की कमाई", "Draw Date", "Inam Status", "Notice"
+                "Silver Sale", "तारीख", "बिके कार्ड", "आज की कमाई (1)", "बाकी कार्ड", 
+                "आज की कमाई (2)", "Draw Date", "Inam Status", "Notice"
             ];
 
             useEffect(() => {
-                const interval = setInterval(() => setClock(new Date()), 1000);
+                const timer = setInterval(() => setCurrentTime(new Date()), 1000);
                 const queryId = new URLSearchParams(window.location.search).get('id');
 
-                // CSV लोड करने का पक्का तरीका
-                Papa.parse(CSV_FILE, {
+                Papa.parse(CSV_FILE_PATH, {
                     download: true,
                     header: false,
                     skipEmptyLines: true,
                     complete: (results) => {
-                        const rows = results.data;
+                        const allRows = results.data;
                         if (queryId) {
-                            const term = queryId.trim();
-                            const termPadded = term.padStart(4, '0');
+                            const cleaned = queryId.trim();
+                            const serialPadded = cleaned.padStart(4, '0');
                             
-                            // सटीक सर्च: सीरियल या आईडी में ढूँढेगा
-                            const found = rows.find(r => 
-                                (r[0] && r[0].toString().trim() === term) || 
-                                (r[0] && r[0].toString().trim() === termPadded) ||
-                                (r[1] && r[1].toString().trim() === term)
+                            // सटीक सर्च: Serial या Membership_ID
+                            const found = allRows.find(r => 
+                                (r[0] && r[0].toString().trim() === cleaned) || 
+                                (r[0] && r[0].toString().trim() === serialPadded) ||
+                                (r[1] && r[1].toString().trim() === cleaned)
                             );
                             
                             if (found) {
                                 setMember(found);
                                 setStatus("view");
-                                if (isWinning(found[36])) { triggerCelebration(); }
-                            } else {
-                                setStatus("not-found");
-                            }
-                        } else {
-                            setStatus("search");
-                        }
+                                if (isWinning(found[36])) { runCelebration(); }
+                            } else { setStatus("search"); }
+                        } else { setStatus("search"); }
                     },
-                    error: () => {
-                        console.error("CSV File Load Failed");
-                        setStatus("search");
-                    }
+                    error: () => { setStatus("search"); }
                 });
 
-                return () => clearInterval(interval);
+                return () => clearInterval(timer);
             }, []);
 
-            const triggerCelebration = () => {
+            const runCelebration = () => {
                 const end = Date.now() + (6 * 1000);
                 (function frame() {
                     confetti({ particleCount: 3, angle: 60, spread: 60, origin: { x: 0 }, colors: ['#bf953f', '#ffffff', '#2563eb'] });
@@ -219,15 +177,15 @@
                 }());
             };
 
-            const clean = (v) => (v && v.toString().trim() !== "" && v !== "#REF!" && v !== "Pending") ? v : dict[lang].infoUp;
             const isWinning = (d) => { if (!d || d.includes("जल्द") || d.trim() === "") return false; return new Date() >= new Date(d); };
+            const clean = (v) => (v && v.toString().trim() !== "" && v !== "#REF!" && v !== "Pending") ? v : "---";
             
             const getBenefits = (typeStr) => {
                 if (!typeStr) return [];
                 const s = typeStr.toLowerCase();
-                if (s.includes("500") || s.includes("vip")) return cardBenefits.VIP[lang];
-                if (s.includes("100") || s.includes("gold")) return cardBenefits.Gold[lang];
-                if (s.includes("50") || s.includes("silver")) return cardBenefits.Silver[lang];
+                if (s.includes("500") || s.includes("vip")) return cardRules.VIP[lang];
+                if (s.includes("100") || s.includes("gold")) return cardRules.Gold[lang];
+                if (s.includes("50") || s.includes("silver")) return cardRules.Silver[lang];
                 return [];
             };
 
@@ -240,126 +198,131 @@
                 </div>
             );
 
-            const t_lang = dict[lang];
+            const d = dict[lang];
 
             return (
                 <div className="min-h-screen flex flex-col items-center p-4 relative">
                     
-                    {/* Header Bar */}
+                    {/* Header: Clock & Language */}
                     <div className="w-full max-w-md no-print flex justify-between items-center mb-8 border-b border-white/10 pb-4">
                         <div className="flex flex-col">
-                            <span className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{clock.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-US')}</span>
-                            <span className="text-blue-500 font-black text-xs tracking-tighter">{clock.toLocaleTimeString()}</span>
+                            <span className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{currentTime.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-US')}</span>
+                            <span className="text-blue-500 font-black text-xs uppercase tracking-tighter">{currentTime.toLocaleTimeString()}</span>
                         </div>
                         <div className="bg-white/5 p-1 rounded-xl flex space-x-1 border border-white/10">
-                            <button onClick={()=>setLang('hi')} className={`px-4 py-1.5 rounded-lg text-[10px] uppercase transition-all ${lang === 'hi' ? 'lang-active shadow-lg' : 'text-gray-400'}`}>हिन्दी</button>
-                            <button onClick={()=>setLang('en')} className={`px-4 py-1.5 rounded-lg text-[10px] uppercase transition-all ${lang === 'en' ? 'lang-active shadow-lg' : 'text-gray-400'}`}>English</button>
+                            <button onClick={()=>setLang('hi')} className={`px-5 py-2 rounded-lg text-[10px] uppercase transition-all ${lang === 'hi' ? 'lang-active shadow-lg' : 'text-gray-400'}`}>हिन्दी</button>
+                            <button onClick={()=>setLang('en')} className={`px-5 py-2 rounded-lg text-[10px] uppercase transition-all ${lang === 'en' ? 'lang-active shadow-lg' : 'text-gray-400'}`}>English</button>
                         </div>
                     </div>
 
                     <div className="max-w-md w-full z-10">
+                        {/* BRANDING */}
                         <div className="text-center mb-10 no-print">
-                            <h1 className="text-2xl font-black italic uppercase leading-none tracking-tighter text-white">
-                                {t_lang.brand}
+                            <h1 className="text-3xl font-black italic uppercase leading-none tracking-tighter text-white">
+                                {d.brand}
                                 <span className="block gold-label text-xl mt-1 tracking-[0.3em]">NIMBAHERA</span>
                             </h1>
-                            <div className="mt-5 px-6 py-3 bg-blue-600/10 border border-blue-500/20 rounded-3xl shadow-inner">
-                                <p className="text-[10px] font-bold text-blue-300 italic text-center leading-relaxed">"{t_lang.slogan}"</p>
+                            <div className="mt-5 px-6 py-3 bg-blue-600/10 border border-blue-500/20 rounded-3xl">
+                                <p className="text-[10px] font-bold text-blue-300 italic text-center leading-relaxed">"{d.slogan}"</p>
                             </div>
                         </div>
 
-                        {status === "search" || status === "not-found" ? (
+                        {status === "search" ? (
                             <div className="bg-white/5 backdrop-blur-2xl rounded-[3.5rem] p-12 text-center animate-in zoom-in duration-500 no-print border border-white/5 shadow-2xl">
-                                <h2 className="text-xl font-black uppercase mb-8 text-white tracking-widest italic">{t_lang.enter}</h2>
-                                <input type="text" placeholder="0001" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center text-5xl font-black mb-10 outline-none focus:border-yellow-500 text-white shadow-inner" onChange={(e)=>setSearchId(e.target.value)} />
-                                <button onClick={()=>{window.location.href=`?id=${searchId}`}} className="w-full bg-blue-600 hover:bg-blue-500 py-6 rounded-2xl font-black uppercase text-xs tracking-widest text-white shadow-xl active:scale-95">{t_lang.find}</button>
-                                {status === "not-found" && <p className="mt-4 text-red-400 text-[10px] font-black uppercase tracking-widest">आईडी नहीं मिली! दोबारा जाँचें।</p>}
+                                <h2 className="text-xl font-black uppercase mb-8 text-white tracking-widest italic">{d.enter}</h2>
+                                <input type="text" placeholder="0001" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center text-4xl font-black mb-10 outline-none focus:border-yellow-500 text-white shadow-inner" onChange={(e)=>setSearchId(e.target.value)} />
+                                <button onClick={()=>{window.location.href=`?id=${searchId}`}} className="w-full bg-blue-600 hover:bg-blue-500 py-5 rounded-xl font-black uppercase text-xs tracking-widest text-white shadow-xl active:scale-95 transition-all">{d.find}</button>
                             </div>
                         ) : (
                             <div className="space-y-6 animate-in slide-in-from-bottom-10 duration-700">
                                 
+                                {/* Notice Section (Col 39) */}
                                 <div className="bg-yellow-500/10 border border-yellow-500/20 p-5 rounded-[2.5rem] no-print relative">
                                     <div className="flex items-center space-x-2 mb-2 text-yellow-500">
                                         <i className="fa-solid fa-bullhorn text-xs animate-pulse"></i>
-                                        <span className="text-[10px] font-black uppercase tracking-widest">{t_lang.notice}</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest">{d.notice}</span>
                                     </div>
-                                    <p className="text-[11px] font-bold text-gray-100 italic leading-relaxed">"{clean(member[38])}"</p>
+                                    <p className="text-[11px] font-bold text-gray-100 leading-relaxed italic">"{clean(member[38])}"</p>
                                 </div>
 
-                                {/* Master Receipt */}
-                                <div id="bill-area" className="receipt-body p-10 shadow-2xl relative overflow-hidden">
+                                {/* MASTER BILL RECEIPT */}
+                                <div id="bill-print" className="receipt-white-box p-10 shadow-2xl relative overflow-hidden">
                                     <div className="text-center border-b-2 border-dashed border-gray-100 pb-6 mb-10">
-                                        <h3 className="font-black text-2xl tracking-tighter text-blue-600 italic uppercase">{t_lang.receipt}</h3>
-                                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-[0.5em] mt-1 italic">{t_lang.city}</p>
+                                        <h3 className="font-black text-2xl tracking-tighter text-blue-600 italic uppercase">{d.receipt}</h3>
+                                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-[0.5em] mt-1 italic">{d.city}</p>
                                     </div>
 
                                     <div className="space-y-10">
+                                        {/* Membership Info (Fix: Exact IDs and Names from Col 2, 3) */}
                                         <div className="flex justify-between items-start border-b border-gray-50 pb-6">
                                             <div className="space-y-1 w-2/3">
-                                                <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest">{t_lang.mId}</p>
+                                                <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest">{d.mId}</p>
                                                 <p className="text-xl font-black text-slate-900 tracking-tighter uppercase leading-tight">{clean(member[1])}</p>
                                             </div>
                                             <div className="text-right w-1/3">
-                                                <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest">{t_lang.cName}</p>
+                                                <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest">{d.cName}</p>
                                                 <p className="text-[11px] font-black text-blue-700 uppercase italic leading-tight">{clean(member[2])}</p>
                                             </div>
                                         </div>
 
+                                        {/* Points Highlight */}
                                         <div className="points-box rounded-[2.5rem] p-8 text-center text-white shadow-2xl shadow-blue-500/30">
-                                            <p className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-70 italic">{t_lang.ptsRem}</p>
+                                            <p className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-70 italic">{d.ptsRem}</p>
                                             <div className="flex justify-center items-end mb-6">
                                                 <span className="text-7xl font-black tracking-tighter leading-none">{clean(member[21])}</span>
                                             </div>
                                             <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/10 text-[9px] font-black uppercase tracking-widest">
-                                                <div><span className="opacity-60">{t_lang.ptsTot}</span><p className="text-sm">{clean(member[18])}</p></div>
-                                                <div className="border-l border-white/10"><span className="opacity-60">{t_lang.ptsUsed}</span><p className="text-sm">{(parseInt(member[19]) || 0) + (parseInt(member[20]) || 0)}</p></div>
+                                                <div><span className="opacity-60">{d.ptsTot}</span><p className="text-sm">{clean(member[18])}</p></div>
+                                                <div className="border-l border-white/10"><span className="opacity-60">{d.ptsUsed}</span><p className="text-sm">{(parseInt(member[19]) || 0) + (parseInt(member[20]) || 0)}</p></div>
                                             </div>
                                         </div>
 
+                                        {/* Automated Benefits Logic (Col 4 Based) */}
                                         <div className="space-y-6">
                                             <div className="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 shadow-inner">
-                                                <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-2">{t_lang.cType}</p>
+                                                <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-2">{d.cType}</p>
                                                 <p className="text-[16px] font-black text-slate-800 uppercase italic tracking-tighter mb-4">{clean(member[3])}</p>
                                                 
                                                 <div className="pt-4 border-t border-slate-200">
-                                                    <p className="text-[10px] font-black text-blue-700 uppercase tracking-widest mb-4 flex items-center"><i className="fa-solid fa-crown mr-2 text-xs"></i> {t_lang.benefitsTitle}</p>
+                                                    <p className="text-[10px] font-black text-blue-700 uppercase tracking-widest mb-4 flex items-center"><i className="fa-solid fa-crown mr-2 text-xs"></i> {d.benefitsTitle}</p>
                                                     <div className="space-y-1">
-                                                        {getBenefits(member[3]).map((b, i) => (
+                                                        {getBenefits(member[3]).map((ben, i) => (
                                                             <div key={i} className="flex items-start space-x-3 py-2 border-b border-slate-50 last:border-0">
                                                                 <i className="fa-solid fa-circle-check text-green-500 text-[11px] mt-1"></i>
-                                                                <p className="text-[11px] font-bold text-slate-600 leading-snug">{b}</p>
+                                                                <p className="text-[11px] font-bold text-slate-600 leading-snug">{ben}</p>
                                                             </div>
                                                         ))}
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-8 py-2 border-y border-slate-50">
-                                                <div><p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-2 italic">{t_lang.custName}</p><p className="text-[15px] font-black text-slate-950 uppercase italic leading-tight">{clean(member[8])}</p></div>
-                                                <div className="text-right"><p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-2 italic">{t_lang.location}</p><p className="text-[15px] font-black text-slate-950 uppercase italic leading-tight">{clean(member[5])}</p></div>
+                                            {/* Details Grid (Cols 9, 6, 7, 38) */}
+                                            <div className="grid grid-cols-2 gap-x-8 gap-y-6 py-6 border-y border-slate-50">
+                                                <div><p className="text-[8px] text-gray-400 font-black uppercase mb-1">{d.custName}</p><p className="text-[14px] font-black text-slate-950 uppercase italic leading-tight">{clean(member[8])}</p></div>
+                                                <div className="text-right"><p className="text-[8px] text-gray-400 font-black uppercase mb-1">{d.location}</p><p className="text-[14px] font-black text-slate-950 uppercase italic leading-tight">{clean(member[5])}</p></div>
+                                                <div><p className="text-[8px] text-gray-400 font-black uppercase mb-1">{d.saleDate}</p><p className="text-[11px] font-black text-slate-600">{clean(member[6])}</p></div>
+                                                <div className="text-right"><p className="text-[8px] text-gray-400 font-black uppercase mb-1">{d.pStatus}</p><p className="text-[11px] font-black text-blue-600">{clean(member[37])}</p></div>
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-4 bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                                            <div><p className="text-[8px] text-gray-400 font-black uppercase mb-1 tracking-widest">{t_lang.saleDate}</p><p className="text-[12px] font-black text-slate-800 uppercase italic tracking-tighter">{clean(member[6])}</p></div>
-                                            <div className="text-right border-l border-slate-200 pl-4"><p className="text-[8px] text-gray-400 font-black uppercase mb-1 tracking-widest">{t_lang.pStatus}</p><p className="text-[12px] font-black text-blue-600 uppercase italic tracking-tighter">{clean(member[37])}</p></div>
+                                        {/* Timeline */}
+                                        <div className="grid grid-cols-3 gap-2 bg-slate-950 text-white p-5 rounded-3xl text-center shadow-lg">
+                                            <div><span className="text-[7px] uppercase font-black opacity-50 block mb-1">{d.active}</span><p className="text-[9px] font-bold">{clean(member[15])}</p></div>
+                                            <div className="border-x border-white/10"><span className="text-[7px] uppercase font-black opacity-50 block mb-1">{d.exp}</span><p className="text-[9px] font-bold text-red-400">{clean(member[16])}</p></div>
+                                            <div><span className="text-[7px] uppercase font-black opacity-50 block mb-1">{d.days}</span><p className="text-[9px] font-bold text-green-400">{clean(member[17])}</p></div>
                                         </div>
 
-                                        <div className="grid grid-cols-3 gap-2 bg-slate-950 text-white p-6 rounded-3xl text-center shadow-lg">
-                                            <div><span className="text-[7px] uppercase font-black opacity-50 block mb-1">{t_lang.active}</span><p className="text-[10px] font-bold">{clean(member[15])}</p></div>
-                                            <div className="border-x border-white/10"> <span className="text-[7px] uppercase font-black opacity-50 block mb-1">{t_lang.exp}</span><p className="text-[10px] font-bold text-red-400">{clean(member[16])}</p></div>
-                                            <div><span className="text-[7px] uppercase font-black opacity-50 block mb-1">{t_lang.days}</span><p className="text-[10px] font-bold text-green-400">{clean(member[17])}</p></div>
-                                        </div>
-
+                                        {/* Action Button */}
                                         <div className="mt-8 text-center no-print">
                                             <button onClick={()=>window.print()} className="bg-slate-100 hover:bg-slate-200 text-slate-900 px-12 py-4 rounded-full text-[11px] font-black uppercase flex items-center justify-center mx-auto space-x-3 transition-all active:scale-95 border border-slate-200 shadow-md">
-                                                <i className="fa-solid fa-print"></i><span>{t_lang.btnGen}</span>
+                                                <i className="fa-solid fa-print"></i><span>{d.btnGen}</span>
                                             </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         )}
+                        <p className="text-center text-[8px] text-gray-800 font-black uppercase mt-24 tracking-[1.5em] italic opacity-40 no-print italic">DPSG NIMBAHERA | J. ZORAWAR SINGH</p>
                     </div>
                 </div>
             );
