@@ -1,60 +1,240 @@
 <!DOCTYPE html>
-<html>
+<html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <title>DPSG Member Lookup</title>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPSG Digital Savings Portal</title>
+    <!-- Professional Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;900&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Inter', 'Noto Sans Devanagari', sans-serif; background-color: #020617; color: #ffffff; overflow-x: hidden; }
+        .receipt-card { background: white; color: #0f172a; border-radius: 3rem; box-shadow: 0 40px 80px -15px rgba(0, 0, 0, 1); position: relative; }
+        .points-badge { background: linear-gradient(135deg, #1e40af, #1e3a8a); box-shadow: 0 15px 30px -5px rgba(30, 64, 175, 0.4); }
+        .benefit-row { border-bottom: 1px dashed #e2e8f0; padding: 12px 0; display: flex; align-items: start; }
+        .benefit-row:last-child { border-bottom: none; }
+        .gold-label { background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; padding: 0 !important; }
+            .receipt-card { box-shadow: none !important; border: 1px solid #cbd5e1 !important; width: 100% !important; border-radius: 0 !important; margin: 0 !important; }
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #bf953f; border-radius: 10px; }
+        .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 </head>
+<body>
+    <div id="root"></div>
 
-<body style="font-family: Arial; text-align:center; padding:20px;">
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-<h2>DPSG Member Details</h2>
+        // Your Working Google Sheets CSV Link
+        const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTQkqhLTtRAhSxsmb2eLeSfRNhZjue28NGF9tHMSgqQ_1jWJWqVQ2-amEbAune6y1dwgRFxcpjIIgaH/pub?gid=1255606959&single=true&output=csv";
 
-<div id="result">Loading...</div>
+        const App = () => {
+            const [status, setStatus] = useState("loading");
+            const [member, setMember] = useState(null);
+            const [searchId, setSearchId] = useState("");
+            const [clock, setClock] = useState(new Date());
 
-<script>
-const CSV_URL =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vTQkqhLTtRAhSxsmb2eLeSfRNhZjue28NGF9tHMSgqQ_1jWJWqVQ2-amEbAune6y1dwgRFxcpjIIgaH/pub?gid=1255606959&single=true&output=csv";
+            // Professional Card Benefits Mapping
+            const cardRules = {
+                VIP: ["कीमत: ₹500 (वैधता: 6 महीने)", "उपयोग: संपूर्ण परिवार हेतु मान्य", "कोटा: 150 प्रिंट + 80 फोटो (या 380 फोटो)", "लैमिनेशन: 5 फ्री", "ई-मित्र: 100% फ्री सेवा (टोकन चार्ज)", "डिलीवरी: 2 बार FREE", "इनाम: ₹100 तुरंत वापस + बड़ा धमाका!"],
+                Gold: ["कीमत: ₹100 (वैधता: 3 महीने)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 40 प्रिंट + 24 फोटो (या 100 फोटो)", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट (केवल टोकन चार्ज)", "डिलीवरी: 1 बार (न्यूनतम रेट)", "इनाम: 100% गारंटी उपहार!"],
+                Silver: ["कीमत: ₹50 (वैधता: 1 महीना)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 15 प्रिंट + 12 फोटो (या 40 फोटो)", "ई-मित्र: सीमित सेवा (केवल टोकन चार्ज)", "डिलीवरी: 1 बार (न्यूनतम रेट)", "इनाम: लकी ड्रा का शानदार अवसर!"]
+            };
 
-function getIdFromURL() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("id");
-}
+            useEffect(() => {
+                const timer = setInterval(() => setClock(new Date()), 1000);
+                const params = new URLSearchParams(window.location.search);
+                const urlId = params.get('id');
 
-function showData(member) {
-  document.getElementById("result").innerHTML = `
-    <h3>${member[8]}</h3>
-    <p><b>ID:</b> ${member[1]}</p>
-    <p><b>Village:</b> ${member[10]}</p>
-    <p><b>Points:</b> ${member[21]}</p>
-  `;
-}
+                // Hard-Lock Data Parsing
+                Papa.parse(CSV_URL, {
+                    download: true,
+                    header: false,
+                    skipEmptyLines: true,
+                    complete: (results) => {
+                        const rows = results.data;
+                        if (urlId) {
+                            const term = urlId.trim().toLowerCase();
+                            const termPadded = term.padStart(4, '0');
 
-function showError(msg) {
-  document.getElementById("result").innerHTML = msg;
-}
+                            // Professional Match Engine (Serial or ID)
+                            const found = rows.find(r => 
+                                (r[0] && r[0].toString().trim().toLowerCase() === term) ||
+                                (r[0] && r[0].toString().trim().toLowerCase() === termPadded) ||
+                                (r[1] && r[1].toString().trim().toLowerCase() === term)
+                            );
 
-const memberId = getIdFromURL();
+                            if (found) {
+                                setMember(found);
+                                setStatus("view");
+                                if (found[37] && found[37].toLowerCase().includes("win")) {
+                                    confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 }, colors: ['#bf953f', '#2563eb', '#ffffff'] });
+                                }
+                            } else { setStatus("search"); }
+                        } else { setStatus("search"); }
+                    },
+                    error: () => { setStatus("search"); }
+                });
+                return () => clearInterval(timer);
+            }, []);
 
-if (!memberId) {
-  showError("ID दर्ज करें");
-} else {
-  Papa.parse(CSV_URL, {
-    download: true,
-    complete: function(results) {
-      const rows = results.data;
+            const getBenefits = (typeStr) => {
+                if (!typeStr) return [];
+                const s = typeStr.toLowerCase();
+                if (s.includes("vip") || s.includes("500")) return cardRules.VIP;
+                if (s.includes("gold") || s.includes("100")) return cardRules.Gold;
+                if (s.includes("silver") || s.includes("50")) return cardRules.Silver;
+                return [];
+            };
 
-      const member = rows.find(r => r[1] === memberId);
+            const clean = (v) => (v && v.toString().trim() !== "" && v !== "#REF!" && v !== "Pending") ? v : "---";
 
-      if (member) {
-        showData(member);
-      } else {
-        showError("Member नहीं मिला");
-      }
-    }
-  });
-}
-</script>
+            if (status === "loading") return (
+                <div className="h-screen flex items-center justify-center bg-[#020617]">
+                    <div className="text-center">
+                        <div className="w-20 h-20 border-[6px] border-blue-600 border-t-yellow-500 rounded-full animate-spin mx-auto mb-6"></div>
+                        <p className="text-sm font-black uppercase tracking-[0.4em] text-blue-500 animate-pulse">डिजिटल रसीद लोड हो रही है...</p>
+                    </div>
+                </div>
+            );
 
+            return (
+                <div className="min-h-screen flex flex-col items-center p-4 sm:p-8 relative">
+                    
+                    {/* Professional Navbar */}
+                    <div className="w-full max-w-md no-print flex justify-between items-center mb-10 border-b border-white/10 pb-4">
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{clock.toLocaleDateString('hi-IN')}</span>
+                            <span className="text-blue-500 font-black text-xs uppercase">{clock.toLocaleTimeString()}</span>
+                        </div>
+                        <div className="bg-white/5 px-5 py-2 rounded-2xl border border-white/10 shadow-xl backdrop-blur-md">
+                            <span className="text-[10px] font-black uppercase text-white tracking-widest italic">DPSG Nimbahera</span>
+                        </div>
+                    </div>
+
+                    <div className="max-w-md w-full animate-fade-in">
+                        {status === "search" ? (
+                            <div className="bg-white/5 backdrop-blur-2xl rounded-[3.5rem] p-12 text-center border border-white/10 shadow-2xl">
+                                <i className="fa-solid fa-id-card-clip text-5xl text-blue-500 mb-6"></i>
+                                <h2 className="text-xl font-black uppercase mb-8 text-white tracking-widest italic">मेंबरशिप आईडी दर्ज करें</h2>
+                                <input type="text" placeholder="DPSG-26-..." className="w-full bg-black/40 border border-white/10 rounded-3xl py-6 text-center text-2xl font-black mb-10 outline-none focus:border-yellow-500 text-white shadow-inner transition-all" onChange={(e)=>setSearchId(e.target.value)} />
+                                <button onClick={()=>{window.location.href=`?id=${searchId}`}} className="w-full bg-blue-600 hover:bg-blue-500 py-6 rounded-3xl font-black uppercase text-sm tracking-widest text-white shadow-2xl active:scale-95 transition-all">रिकॉर्ड खोजें</button>
+                            </div>
+                        ) : (
+                            <div className="space-y-8">
+                                {/* Branding Header */}
+                                <div className="text-center mb-10 no-print">
+                                    <h1 className="text-4xl font-black italic uppercase leading-none tracking-tighter text-white">डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप</h1>
+                                    <p className="text-[11px] text-blue-300 font-bold tracking-[0.3em] mt-3 uppercase italic leading-none opacity-80 text-center">समस्या आपकी, समाधान हमारा !</p>
+                                </div>
+
+                                {/* Official Notice Section (Col 38) */}
+                                <div className="bg-yellow-500/10 border border-yellow-500/30 p-6 rounded-[2.5rem] no-print relative overflow-hidden">
+                                    <div className="flex items-center space-x-3 mb-3 text-yellow-500">
+                                        <i className="fa-solid fa-bullhorn text-sm animate-bounce"></i>
+                                        <span className="text-[11px] font-black uppercase tracking-widest italic">महत्वपूर्ण सूचना</span>
+                                    </div>
+                                    <p className="text-[12px] font-bold text-gray-100 italic leading-relaxed text-center">"{clean(member[38])}"</p>
+                                </div>
+
+                                {/* THE MASTER RECEIPT CARD (Professional White Bill) */}
+                                <div id="receipt-area" className="receipt-card p-10 sm:p-12 shadow-2xl relative overflow-hidden">
+                                    <div className="text-center border-b-2 border-dashed border-slate-100 pb-8 mb-10">
+                                        <h3 className="font-black text-3xl text-blue-600 uppercase italic tracking-tighter">डिजिटल बचत रसीद</h3>
+                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.5em] mt-2 italic">निम्बाहेड़ा, राजस्थान</p>
+                                    </div>
+
+                                    <div className="space-y-12">
+                                        {/* Membership Info */}
+                                        <div className="flex justify-between items-start border-b border-slate-50 pb-8">
+                                            <div className="space-y-2 w-2/3">
+                                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">मेंबरशिप आईडी (ID)</p>
+                                                <p className="text-2xl font-black text-slate-900 leading-none tracking-tighter">{clean(member[1])}</p>
+                                            </div>
+                                            <div className="text-right w-1/3">
+                                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">कार्ड का नाम</p>
+                                                <p className="text-[11px] font-black text-blue-700 uppercase leading-tight italic">{clean(member[2])}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Professional Points Highlight */}
+                                        <div className="points-badge rounded-[3rem] p-10 text-center text-white shadow-2xl">
+                                            <p className="text-[11px] font-black uppercase opacity-80 tracking-widest mb-2 italic">शेष सर्विस पॉइंट्स</p>
+                                            <span className="text-8xl font-black tracking-tighter leading-none">{clean(member[21])}</span>
+                                            <div className="grid grid-cols-2 gap-6 mt-10 pt-8 border-t border-white/10 text-[10px] font-black uppercase tracking-widest">
+                                                <div className="opacity-70">कुल आवंटित<p className="text-lg font-black opacity-100 text-white mt-1">{clean(member[18])}</p></div>
+                                                <div className="border-l border-white/10 opacity-70 pl-6">उपयोग किए गए<p className="text-lg font-black opacity-100 text-white mt-1">{(parseInt(member[19]) || 0) + (parseInt(member[20]) || 0)}</p></div>
+                                            </div>
+                                        </div>
+
+                                        {/* Benefits Box based on Price (Col 3) */}
+                                        <div className="bg-slate-50 p-8 rounded-[3rem] border border-slate-100 shadow-inner">
+                                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">कार्ड श्रेणी (Category)</p>
+                                            <p className="text-[18px] font-black text-slate-800 italic uppercase mb-6 tracking-tighter">{clean(member[3])}</p>
+                                            <div className="pt-6 border-t border-slate-200">
+                                                <p className="text-[11px] font-black text-blue-700 uppercase mb-4 flex items-center italic"><i className="fa-solid fa-crown mr-2 text-xs"></i> इस कार्ड की मुख्य सुविधायें</p>
+                                                <div className="space-y-1">
+                                                    {getBenefits(member[3]).map((b, i) => (
+                                                        <div key={i} className="benefit-row">
+                                                            <i className="fa-solid fa-circle-check text-green-500 text-[12px] mt-1 mr-4"></i>
+                                                            <p className="text-[12px] font-bold text-slate-600 leading-snug">{b}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Detailed Mapping (Names, Locations, etc.) */}
+                                        <div className="grid grid-cols-2 gap-x-10 gap-y-10 py-10 border-y border-slate-50">
+                                            <div><p className="text-[10px] text-slate-400 font-black uppercase mb-1 italic">ग्राहक का नाम</p><p className="text-[16px] font-black text-slate-900 uppercase italic tracking-tighter leading-tight">{clean(member[8])}</p></div>
+                                            <div className="text-right"><p className="text-[10px] text-slate-400 font-black uppercase mb-1 italic">गाँव / स्थान</p><p className="text-[16px] font-black text-slate-900 uppercase italic tracking-tighter leading-tight">{clean(member[5])}</p></div>
+                                            <div><p className="text-[10px] text-slate-400 font-black uppercase mb-1 italic">बिक्री तिथि</p><p className="text-[13px] font-black text-slate-700 italic">{clean(member[6])}</p></div>
+                                            <div className="text-right"><p className="text-[10px] text-slate-400 font-black uppercase mb-1 italic">लकी ड्रा स्थिति</p><p className="text-[13px] font-black text-blue-600 uppercase italic leading-none">{clean(member[37])}</p></div>
+                                        </div>
+
+                                        {/* Draw Date & Security (Col 36, 7) */}
+                                        <div className="bg-slate-950 text-white rounded-[2.5rem] p-8 text-center shadow-xl">
+                                            <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-1">लकी ड्रा की संभावित तिथि</p>
+                                            <p className="text-xl font-black italic gold-label tracking-tighter uppercase">{clean(member[36])}</p>
+                                        </div>
+
+                                        {/* Validity Bar */}
+                                        <div className="grid grid-cols-3 gap-2 bg-slate-100 p-6 rounded-3xl text-center shadow-inner">
+                                            <div><span className="text-[8px] font-black text-slate-400 uppercase block mb-1">सक्रिय</span><p className="text-[11px] font-black text-slate-900">{clean(member[15])}</p></div>
+                                            <div className="border-x border-slate-200"><span className="text-[8px] font-black text-slate-400 uppercase block mb-1">वैधता</span><p className="text-[11px] font-black text-red-600">{clean(member[16])}</p></div>
+                                            <div><span className="text-[8px] font-black text-slate-400 uppercase block mb-1">शेष दिन</span><p className="text-[11px] font-black text-green-600">{clean(member[17])}</p></div>
+                                        </div>
+
+                                        <div className="mt-10 text-center no-print pt-8 border-t border-slate-50">
+                                            <button onClick={()=>window.print()} className="bg-slate-100 hover:bg-slate-200 text-slate-900 px-14 py-5 rounded-full text-[12px] font-black uppercase flex items-center justify-center mx-auto space-x-4 transition-all active:scale-95 border border-slate-200 shadow-lg">
+                                                <i className="fa-solid fa-print text-sm"></i><span>डिजिटल रसीद प्रिंट करें</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        <p className="text-center text-[9px] text-slate-600 font-black uppercase mt-16 tracking-[1.8em] opacity-40 py-10 italic">DPSG NIMBAHERA | JORAWAR SINGH</p>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
