@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPSG Professional Receipt Portal</title>
-    <!-- Professional Libraries -->
+    <title>DPSG डिजिटल रसीद पोर्टल</title>
+    <!-- Professional Tools -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -21,34 +21,30 @@
             color: #ffffff;
             overflow-x: hidden;
         }
-        .receipt-body { 
+        .receipt-card { 
             background: white; 
             color: #0f172a; 
             border-radius: 2.5rem;
-            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 1);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.9);
             position: relative;
         }
         .lang-active { background: white !important; color: #020617 !important; font-weight: 900; border: 1px solid #ddd; }
-        .gold-glow { 
+        .gold-label { 
             background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728); 
             -webkit-background-clip: text; 
             -webkit-text-fill-color: transparent; 
         }
-        .points-box {
-            background: linear-gradient(135deg, #1e40af, #1e3a8a);
+        .points-badge {
+            background: linear-gradient(135deg, #1e40af, #1d4ed8);
+            box-shadow: 0 10px 25px -5px rgba(30, 64, 175, 0.4);
         }
-        .benefit-card { 
-            border-left: 5px solid #bf953f; 
-            background: #f8fafc; 
-            padding: 15px; 
-            border-radius: 15px; 
-            margin-bottom: 10px;
-        }
+        .benefit-row { border-bottom: 1px dashed #e2e8f0; padding: 10px 0; display: flex; align-items: start; }
+        .benefit-row:last-child { border-bottom: none; }
         
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; padding: 0 !important; color: black !important; }
-            .receipt-body { 
+            .receipt-card { 
                 box-shadow: none !important; 
                 border: 1px solid #e2e8f0 !important; 
                 width: 100% !important;
@@ -73,26 +69,26 @@
             const [pinInput, setPinInput] = useState("");
             const [isAdmin, setIsAdmin] = useState(false);
             const [searchId, setSearchId] = useState("");
-            const [now, setNow] = useState(new Date());
+            const [timer, setTimer] = useState(new Date());
 
             const MASTER_PIN = "Chanchal@6375";
-            const FILE_URL = "CSV Data DPSG - Digital_Problem_Solution_Master.csv";
+            const FILE_NAME = "CSV Data DPSG - Digital_Problem_Solution_Master.csv";
 
             // Professional Translation
-            const dict = {
+            const dictionary = {
                 hi: {
                     slogan: "समस्या आपकी, समाधान हमारा - उचित मूल्य, बेहतरीन सेवा !",
                     brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप",
                     city: "निम्बाहेड़ा, राजस्थान",
                     notice: "सूचना बोर्ड",
-                    receipt: "डिजिटल रसीद",
-                    mId: "सदस्यता पहचान (ID)",
+                    receipt: "डिजिटल बचत रसीद",
+                    mId: "मेंबरशिप आईडी (ID)",
                     cName: "कार्ड का नाम",
-                    cType: "कार्ड श्रेणी (Price)",
+                    cType: "कार्ड श्रेणी (Type)",
                     custName: "ग्राहक का नाम",
-                    location: "गाँव / स्थान",
-                    soldDate: "बिक्री की तारीख",
-                    pStatus: "इनाम की स्थिति",
+                    village: "गाँव / स्थान",
+                    saleDate: "बिक्री की तारीख",
+                    prizeStatus: "इनाम की स्थिति",
                     ptsRem: "शेष सर्विस पॉइंट्स",
                     ptsTot: "कुल आवंटित",
                     ptsUsed: "उपयोग किए गए",
@@ -101,10 +97,10 @@
                     days: "शेष दिन",
                     ph: "मोबाइल",
                     ad: "आधार",
-                    benefitsTitle: "आपके कार्ड की मुख्य सुविधायें",
+                    benefitsTitle: "कार्ड की मुख्य सुविधायें",
                     btnGen: "रसीद प्रिंट करें",
-                    adminHeader: "मास्टर कंट्रोल सेंटर (39 कॉलम)",
-                    drawWait: "लकी ड्रा के परिणाम की प्रतीक्षा करें",
+                    adminTitle: "मास्टर कंट्रोल सेंटर (39 कॉलम)",
+                    drawWait: "लकी ड्रा का इंतज़ार करें",
                     wonMsg: "बधाई हो! आप विजेता हैं",
                     infoUp: "विवरण अपडेट किया जा रहा है...",
                     find: "रिकॉर्ड खोजें",
@@ -131,19 +127,19 @@
                     days: "Days Left",
                     ph: "Mobile",
                     ad: "Aadhaar",
-                    benefitsTitle: "Exclusive Card Benefits",
+                    benefitsTitle: "Your Exclusive Benefits",
                     btnGen: "Print Official Receipt",
                     adminHeader: "Master Admin Dashboard",
-                    drawWait: "Awaiting Result",
-                    wonMsg: "Congratulations! You are a Winner",
+                    drawWait: "Awaiting Draw Result",
+                    wonMsg: "Congratulations! You Won",
                     infoUp: "Information Updating...",
                     find: "Search Record",
-                    enter: "Enter ID Number"
+                    enter: "Enter ID Here"
                 }
             };
 
-            // Automated Features based on Card Price/Type
-            const cardFeatures = {
+            // Benefit Logic according to Price
+            const cardData = {
                 VIP: {
                     hi: [
                         "कीमत: ₹500 (वैधता: 6 महीने)",
@@ -156,11 +152,11 @@
                     ],
                     en: [
                         "Price: ₹500 (Validity: 6 Months)",
-                        "Usage: Valid for entire family",
+                        "Usage: Valid for Entire Family",
                         "Quota: 150 Prints + 80 Photos (or 380 Photos / 190 Prints)",
                         "Lamination: 5 Free",
-                        "E-Mitra: 100% Free Service (only token charge)",
-                        "Delivery: 2 times FREE (then minimum rate)",
+                        "E-Mitra: 100% Free Service (Only Token Charge)",
+                        "Delivery: 2 times FREE (Then Minimum Rate)",
                         "Prize: ₹100 Instant Cashback + Big Surprise!"
                     ]
                 },
@@ -179,8 +175,8 @@
                         "Usage: Valid for 1 person only",
                         "Quota: 40 Prints + 24 Photos (or 100 Photos / 52 Prints)",
                         "Lamination: 1 Free",
-                        "E-Mitra: 50% Discount (only token charge)",
-                        "Delivery: 1 time (at minimum rate)",
+                        "E-Mitra: 50% Discount (Only Token Charge)",
+                        "Delivery: 1 time (At Minimum Rate)",
                         "Prize: 100% Guaranteed Gift!"
                     ]
                 },
@@ -197,14 +193,14 @@
                         "Price: ₹50 (Validity: 1 Month)",
                         "Usage: Valid for 1 person only",
                         "Quota: 15 Prints + 12 Photos (or 40 Photos / 21 Prints)",
-                        "E-Mitra: Limited Service (only token charge)",
-                        "Delivery: 1 time (at minimum rate)",
+                        "E-Mitra: Limited Service (Only Token Charge)",
+                        "Delivery: 1 time (At Minimum Rate)",
                         "Prize: Great chance in Lucky Draw!"
                     ]
                 }
             };
 
-            const allHeaders = [
+            const colHeaders = [
                 "Serial_No", "Membership_ID", "Card_Name", "Card_Type", "Prize_Inam", 
                 "Village_Gaon", "Sale_Date", "Security_Code", "Customer_Name", "Phone_Number", 
                 "Date_of_Birth", "Aadhar_Last_4", "Status", "QR_Link", "Issue_Date", 
@@ -216,18 +212,18 @@
             ];
 
             useEffect(() => {
-                const clockTimer = setInterval(() => setNow(new Date()), 1000);
+                const intervalInt = setInterval(() => setTimer(new Date()), 1000);
                 const queryId = new URLSearchParams(window.location.search).get('id');
 
-                Papa.parse(FILE_URL, {
+                Papa.parse(FILE_NAME, {
                     download: true,
                     header: false,
                     complete: (results) => {
-                        const rows = results.data;
+                        const allRows = results.data;
                         if (queryId) {
                             const term = queryId.trim();
-                            // स्मार्ट सर्च: सीरियल नंबर या पूरी आईडी दोनों से ढूँढेगा
-                            const found = rows.find(r => 
+                            // स्मार्ट सर्च: सीरियल या आईडी दोनों में ढूँढेगा
+                            const found = allRows.find(r => 
                                 (r[0] && r[0].toString().trim() === term) || 
                                 (r[0] && r[0].toString().padStart(4, '0') === term.padStart(4, '0')) ||
                                 (r[1] && r[1].toString().trim() === term)
@@ -236,21 +232,17 @@
                             if (found) {
                                 setMember(found);
                                 setStatus("view");
-                                if (isDrawPassed(found[36])) { triggerFireworks(); }
-                            } else {
-                                setStatus("search");
-                            }
-                        } else {
-                            setStatus("search");
-                        }
+                                if (isWinning(found[36])) { fireworksEffect(); }
+                            } else { setStatus("search"); }
+                        } else { setStatus("search"); }
                     },
                     error: () => { setStatus("search"); }
                 });
 
-                return () => clearInterval(clockTimer);
+                return () => clearInterval(intervalInt);
             }, []);
 
-            const triggerFireworks = () => {
+            const fireworksEffect = () => {
                 const end = Date.now() + (6 * 1000);
                 (function frame() {
                     confetti({ particleCount: 3, angle: 60, spread: 60, origin: { x: 0 }, colors: ['#bf953f', '#ffffff', '#2563eb'] });
@@ -259,34 +251,34 @@
                 }());
             };
 
-            const clean = (v) => (v && v.toString().trim() !== "" && v !== "#REF!" && v !== "Pending") ? v : dictionary[lang].infoUp;
-            const isDrawPassed = (d) => { if (!d || d.includes("जल्द") || d.trim() === "") return false; return new Date() >= new Date(d); };
+            const cleanVal = (v) => (v && v.toString().trim() !== "" && v !== "#REF!" && v !== "Pending") ? v : dictionary[lang].infoUp;
+            const isWinning = (d) => { if (!d || d.includes("जल्द") || d.trim() === "") return false; return new Date() >= new Date(d); };
             
             const getBenefits = (typeStr) => {
                 if (!typeStr) return [];
                 const s = typeStr.toLowerCase();
-                if (s.includes("500") || s.includes("vip")) return cardFeatures.VIP[lang];
-                if (s.includes("100") || s.includes("gold")) return cardFeatures.Gold[lang];
-                if (s.includes("50") || s.includes("silver")) return cardFeatures.Silver[lang];
+                if (s.includes("vip") || s.includes("500")) return cardData.VIP[lang];
+                if (s.includes("gold") || s.includes("100")) return cardData.Gold[lang];
+                if (s.includes("silver") || s.includes("50")) return cardData.Silver[lang];
                 return [];
             };
 
             if (status === "loading") return (
                 <div className="h-screen flex items-center justify-center bg-[#010413]">
-                    <div className="w-16 h-16 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-14 h-14 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
                 </div>
             );
 
-            const dict_now = dictionary[lang];
+            const dict = dictionary[lang];
 
             return (
                 <div className="min-h-screen flex flex-col items-center p-4 relative">
                     
-                    {/* Top Status Bar */}
+                    {/* Top Stats Bar */}
                     <div className="w-full max-w-md no-print flex justify-between items-center mb-8 border-b border-white/10 pb-4">
                         <div className="flex flex-col">
-                            <span className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{now.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-US')}</span>
-                            <span className="text-blue-500 font-black text-xs uppercase tracking-tighter">{now.toLocaleTimeString()}</span>
+                            <span className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{timer.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-US')}</span>
+                            <span className="text-blue-500 font-black text-xs uppercase tracking-tighter">{timer.toLocaleTimeString()}</span>
                         </div>
                         <div className="bg-white/5 p-1 rounded-xl flex space-x-1 border border-white/10">
                             <button onClick={()=>setLang('hi')} className={`px-5 py-2 rounded-lg text-[10px] uppercase transition-all ${lang === 'hi' ? 'lang-active shadow-lg' : 'text-gray-400'}`}>हिन्दी</button>
@@ -295,88 +287,87 @@
                     </div>
 
                     <div className="max-w-md w-full z-10">
-                        {/* Branding */}
+                        {/* Branding Header */}
                         <div className="text-center mb-10 no-print">
                             <h1 className="text-2xl font-black italic uppercase leading-none tracking-tighter text-white">
-                                {dict_now.brand}
-                                <span className="block gold-glow text-xl mt-1 tracking-[0.3em]">NIMBAHERA</span>
+                                {dict.brand}
+                                <span className="block gold-label text-xl mt-1 tracking-[0.3em]">NIMBAHERA</span>
                             </h1>
                             <div className="mt-5 px-6 py-3 bg-blue-600/10 border border-blue-500/20 rounded-3xl">
-                                <p className="text-[10px] font-bold text-blue-300 italic text-center">"{dict_now.slogan}"</p>
+                                <p className="text-[10px] font-bold text-blue-300 italic text-center italic">"{dict.slogan}"</p>
                             </div>
                         </div>
 
                         {status === "search" ? (
                             <div className="bg-white/5 backdrop-blur-2xl rounded-[3.5rem] p-12 text-center animate-in zoom-in duration-500 no-print border border-white/5 shadow-2xl">
-                                <h2 className="text-xl font-black uppercase mb-8 text-white tracking-widest italic">{dict_now.enter}</h2>
+                                <h2 className="text-xl font-black uppercase mb-8 text-white tracking-widest italic">{dict.enter}</h2>
                                 <input type="text" placeholder="0001" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center text-4xl font-black mb-10 outline-none focus:border-yellow-500 text-white shadow-inner" onChange={(e)=>setSearchId(e.target.value)} />
-                                <button onClick={()=>{window.location.href=`?id=${searchId}`}} className="w-full bg-blue-600 hover:bg-blue-500 py-6 rounded-2xl font-black uppercase text-xs tracking-widest text-white shadow-xl transition-all active:scale-95">{dict_now.find}</button>
+                                <button onClick={()=>{window.location.href=`?id=${searchId}`}} className="w-full bg-blue-600 hover:bg-blue-500 py-6 rounded-2xl font-black uppercase text-xs tracking-widest text-white shadow-xl active:scale-95 transition-all">{dict.find}</button>
                             </div>
                         ) : (
                             <div className="space-y-6 animate-in slide-in-from-bottom-10 duration-700">
                                 
-                                {/* Official Notice */}
-                                <div className="bg-yellow-500/10 border border-yellow-500/30 p-5 rounded-[2.5rem] no-print relative">
+                                {/* Official Notice (Col 39) */}
+                                <div className="bg-yellow-500/10 border border-yellow-500/20 p-5 rounded-[2.5rem] no-print relative">
                                     <div className="flex items-center space-x-2 mb-2 text-yellow-500">
                                         <i className="fa-solid fa-bullhorn text-xs animate-pulse"></i>
-                                        <span className="text-[10px] font-black uppercase tracking-widest">{dict_now.notice}</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest">{dict.notice}</span>
                                     </div>
-                                    <p className="text-[11px] font-bold text-gray-100 italic leading-relaxed">"{clean(member[38])}"</p>
+                                    <p className="text-[11px] font-bold text-gray-100 italic leading-relaxed">"{cleanVal(member[38])}"</p>
                                 </div>
 
-                                {/* PREMIUM RECEIPT CARD */}
-                                <div id="dpsg-receipt" className="receipt-body p-10 shadow-2xl relative overflow-hidden">
+                                {/* PREMIUM DIGITAL RECEIPT */}
+                                <div id="dpsg-receipt" className="receipt-card p-10 shadow-2xl relative overflow-hidden">
                                     <div className="text-center border-b-2 border-dashed border-gray-100 pb-6 mb-10">
-                                        <h3 className="font-black text-2xl tracking-tighter text-blue-600 italic uppercase">{dict_now.receipt}</h3>
-                                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-[0.5em] mt-1 italic">{dict_now.city}</p>
+                                        <h3 className="font-black text-2xl tracking-tighter text-blue-600 italic uppercase">{dict.receipt}</h3>
+                                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-[0.5em] mt-1 italic">{dict.city}</p>
                                     </div>
 
                                     <div className="space-y-10">
-                                        {/* Membership Info (Exact mapping from CSV) */}
+                                        {/* Membership Info (Fix: Pulling EXACT Col 2 and Col 3) */}
                                         <div className="flex justify-between items-start border-b border-gray-50 pb-6">
                                             <div className="space-y-1 w-2/3">
-                                                <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest">{dict_now.mId}</p>
-                                                <p className="text-xl font-black text-slate-900 tracking-tighter uppercase leading-tight">{clean(member[1])}</p>
+                                                <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest">{dict.mId}</p>
+                                                <p className="text-xl font-black text-slate-900 tracking-tighter uppercase leading-tight">{cleanVal(member[1])}</p>
                                             </div>
                                             <div className="text-right w-1/3">
-                                                <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest">{dict_now.cName}</p>
-                                                <p className="text-[11px] font-black text-blue-700 uppercase italic leading-tight">{clean(member[2])}</p>
+                                                <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest">{dict.cName}</p>
+                                                <p className="text-[11px] font-black text-blue-700 uppercase italic leading-tight">{cleanVal(member[2])}</p>
                                             </div>
                                         </div>
 
-                                        {/* Main Points Box */}
-                                        <div className="points-box rounded-[2.5rem] p-8 text-center text-white shadow-2xl shadow-blue-500/30">
-                                            <p className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-70 italic">{dict_now.ptsRem}</p>
+                                        {/* Points Center Stage */}
+                                        <div className="points-badge rounded-[2.5rem] p-8 text-center text-white">
+                                            <p className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-70 italic">{dict.ptsRem}</p>
                                             <div className="flex justify-center items-end mb-6">
-                                                <span className="text-7xl font-black tracking-tighter leading-none">{clean(member[21])}</span>
+                                                <span className="text-7xl font-black tracking-tighter leading-none">{cleanVal(member[21])}</span>
                                             </div>
                                             <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/10 text-[9px] font-black uppercase tracking-widest">
                                                 <div className="flex flex-col space-y-1">
-                                                    <span className="opacity-60">{dict_now.ptsTot}</span>
-                                                    <span className="text-sm">{clean(member[18])}</span>
+                                                    <span className="opacity-60">{dict.ptsTot}</span>
+                                                    <span className="text-sm">{cleanVal(member[18])}</span>
                                                 </div>
                                                 <div className="flex flex-col border-l border-white/10">
-                                                    <span className="opacity-60">{dict_now.ptsUsed}</span>
+                                                    <span className="opacity-60">{dict.ptsUsed}</span>
                                                     <span className="text-sm">{(parseInt(member[19]) || 0) + (parseInt(member[20]) || 0)}</span>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        {/* Card Type & Member Details */}
+                                        {/* AUTOMATED CARD BENEFITS BOX */}
                                         <div className="space-y-6">
                                             <div className="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 shadow-inner">
-                                                <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-2">{dict_now.cType}</p>
-                                                <p className="text-[16px] font-black text-slate-800 uppercase italic tracking-tighter mb-5">{clean(member[3])}</p>
+                                                <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-2">{dict.cType}</p>
+                                                <p className="text-[16px] font-black text-slate-800 uppercase italic tracking-tighter mb-4">{cleanVal(member[3])}</p>
                                                 
-                                                {/* BENEFITS SECTION (AUTOMATED) */}
                                                 <div className="pt-4 border-t border-slate-200">
                                                     <p className="text-[10px] font-black text-blue-700 uppercase tracking-widest mb-4 flex items-center">
-                                                        <i className="fa-solid fa-crown mr-2 text-xs"></i> {dict_now.benefitsTitle}
+                                                        <i className="fa-solid fa-crown mr-2 text-xs"></i> {dict.benefitsTitle}
                                                     </p>
-                                                    <div className="space-y-1">
+                                                    <div className="space-y-0">
                                                         {getBenefits(member[3]).map((ben, i) => (
-                                                            <div key={i} className="flex items-start space-x-3 benefit-item py-2 border-b border-slate-100 last:border-0">
-                                                                <i className="fa-solid fa-check-circle text-green-500 text-[11px] mt-1"></i>
+                                                            <div key={i} className="benefit-row">
+                                                                <i className="fa-solid fa-circle-check text-green-500 text-[10px] mt-1 mr-3"></i>
                                                                 <p className="text-[11px] font-bold text-slate-600 leading-snug">{ben}</p>
                                                             </div>
                                                         ))}
@@ -384,95 +375,96 @@
                                                 </div>
                                             </div>
 
+                                            {/* Member Profile Info */}
                                             <div className="grid grid-cols-2 gap-8 py-2 border-y border-slate-50">
                                                 <div>
-                                                    <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-2 italic">{dict_now.custName}</p>
-                                                    <p className="text-[16px] font-black text-slate-950 uppercase italic leading-tight">{clean(member[8])}</p>
+                                                    <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-2 italic">{dict.custName}</p>
+                                                    <p className="text-[16px] font-black text-slate-950 uppercase italic leading-tight">{cleanVal(member[8])}</p>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-2 italic">{dict_now.location}</p>
-                                                    <p className="text-[16px] font-black text-slate-950 uppercase italic leading-tight">{clean(member[5])}</p>
+                                                    <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-2 italic">{dict.village}</p>
+                                                    <p className="text-[16px] font-black text-slate-950 uppercase italic leading-tight">{cleanVal(member[5])}</p>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        {/* Row 7 & 38 Info */}
+                                        {/* Columns 7 & 38 Stats */}
                                         <div className="grid grid-cols-2 gap-4 bg-slate-50 p-6 rounded-3xl border border-slate-100">
                                             <div>
-                                                <p className="text-[8px] text-gray-400 font-black uppercase mb-1 tracking-widest">{dict_now.soldDate}</p>
-                                                <p className="text-[12px] font-black text-slate-800 uppercase italic tracking-tighter">{clean(member[6])}</p>
+                                                <p className="text-[8px] text-gray-400 font-black uppercase mb-1 tracking-widest">{dict.saleDate}</p>
+                                                <p className="text-[12px] font-black text-slate-800 uppercase italic tracking-tighter">{cleanVal(member[6])}</p>
                                             </div>
                                             <div className="text-right border-l border-slate-200 pl-4">
-                                                <p className="text-[8px] text-gray-400 font-black uppercase mb-1 tracking-widest">{dict_now.pStatus}</p>
-                                                <p className="text-[12px] font-black text-blue-600 uppercase italic tracking-tighter">{clean(member[37])}</p>
+                                                <p className="text-[8px] text-gray-400 font-black uppercase mb-1 tracking-widest">{dict.pStatus}</p>
+                                                <p className="text-[12px] font-black text-blue-600 uppercase italic tracking-tighter">{cleanVal(member[37])}</p>
                                             </div>
                                         </div>
 
-                                        {/* Validity Section */}
+                                        {/* Dates Timeline */}
                                         <div className="grid grid-cols-3 gap-2 bg-slate-950 text-white p-6 rounded-3xl text-center shadow-lg">
                                             <div className="flex flex-col">
-                                                <span className="text-[7px] uppercase font-black opacity-50 mb-1 tracking-widest">{dict_now.active}</span>
-                                                <span className="text-[10px] font-bold">{clean(member[15])}</span>
+                                                <span className="text-[7px] uppercase font-black opacity-50 mb-1 tracking-widest">{dict.active}</span>
+                                                <span className="text-[10px] font-bold">{cleanVal(member[15])}</span>
                                             </div>
                                             <div className="flex flex-col border-x border-white/10">
-                                                <span className="text-[7px] uppercase font-black opacity-50 mb-1 tracking-widest">{dict_now.exp}</span>
-                                                <span className="text-[10px] font-bold text-red-400">{clean(member[16])}</span>
+                                                <span className="text-[7px] uppercase font-black opacity-50 mb-1 tracking-widest">{dict.exp}</span>
+                                                <span className="text-[10px] font-bold text-red-400">{cleanVal(member[16])}</span>
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="text-[7px] uppercase font-black opacity-50 mb-1 tracking-widest">{dict_now.days}</span>
-                                                <span className="text-[10px] font-bold text-green-400">{clean(member[17])}</span>
+                                                <span className="text-[7px] uppercase font-black opacity-50 mb-1 tracking-widest">{dict.days}</span>
+                                                <span className="text-[10px] font-bold text-green-400">{cleanVal(member[17])}</span>
                                             </div>
                                         </div>
 
-                                        {/* Footer security & Action */}
+                                        {/* Print Action */}
                                         <div className="mt-8 text-center no-print border-t border-slate-100 pt-8">
                                             <button onClick={()=>window.print()} className="bg-slate-100 hover:bg-slate-200 text-slate-900 px-12 py-4 rounded-full text-[11px] font-black uppercase flex items-center justify-center mx-auto space-x-3 transition-all active:scale-95 border border-slate-200 shadow-md">
                                                 <i className="fa-solid fa-print"></i>
-                                                <span>{dict_now.btnGen}</span>
+                                                <span>{dict.btnGen}</span>
                                             </button>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Prize Celebration Section */}
-                                {isDrawPassed(member[36]) ? (
+                                {/* Bumper Prize Celebration */}
+                                {isWinning(member[36]) ? (
                                     <div className="bg-gradient-to-br from-yellow-500 via-yellow-600 to-yellow-800 rounded-[4rem] p-12 text-center shadow-2xl no-print border-4 border-yellow-200 transform scale-105 shadow-yellow-900/40">
                                         <i className="fa-solid fa-trophy text-8xl text-white mb-8 drop-shadow-2xl animate-bounce"></i>
-                                        <p className="text-[11px] text-white/80 font-black uppercase mb-2 tracking-[0.5em] animate-pulse">{dict_now.wonMsg}</p>
-                                        <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-tight drop-shadow-2xl">{clean(member[4])}</h2>
+                                        <p className="text-[11px] text-white/80 font-black uppercase mb-2 tracking-[0.5em] animate-pulse">{dict.wonMsg}</p>
+                                        <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-tight drop-shadow-2xl">{cleanVal(member[4])}</h2>
                                     </div>
                                 ) : (
                                     <div className="bg-white/5 border border-dashed border-white/10 rounded-[3.5rem] p-12 text-center no-print opacity-50">
                                         <i className="fa-solid fa-gift text-gray-600 mb-4 text-4xl"></i>
-                                        <p className="text-[11px] text-gray-500 font-bold uppercase tracking-[0.4em] leading-relaxed italic text-center leading-loose">{dict_now.drawWait}</p>
+                                        <p className="text-[11px] text-gray-500 font-bold uppercase tracking-[0.4em] leading-relaxed italic text-center leading-loose">{dict.drawWait}</p>
                                     </div>
                                 )}
 
-                                {/* MASTER ADMIN LOGIN */}
+                                {/* MASTER ADMIN PANEL */}
                                 {!isAdmin ? (
                                     <div className="bg-white/5 rounded-[3.5rem] p-12 text-center space-y-8 shadow-2xl border border-white/5 no-print mt-12">
                                         <div className="space-y-2">
                                             <i className="fa-solid fa-shield-halved text-gray-600 text-3xl"></i>
-                                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.6em]">Secure Administrator Authorization</p>
+                                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.6em]">Secure Administrator Access</p>
                                         </div>
                                         <div className="space-y-6">
                                             <input type="password" placeholder="PIN" 
                                                 className="w-full bg-black/60 border border-white/10 rounded-2xl py-6 text-center text-white outline-none focus:border-blue-500 text-5xl font-bold tracking-[0.5em] shadow-inner" 
                                                 value={pinInput}
                                                 onChange={(e)=>setPinInput(e.target.value)} 
-                                                onKeyDown={(e)=>e.key === 'Enter' && (pinInput.trim() === MASTER_PIN ? setIsAdmin(true) : null)}
+                                                onKeyDown={(e)=>e.key === 'Enter' && (pinInput.trim() === MASTER_PIN ? setIsAdmin(true) : alert(dict.wrongPin))}
                                             />
-                                            <button onClick={()=>pinInput.trim() === MASTER_PIN ? setIsAdmin(true) : null} className="w-full bg-white text-black font-black py-5 rounded-2xl text-[11px] uppercase tracking-[0.5em] shadow-2xl transition-all active:scale-95 border-b-4 border-gray-300">Unlock Master Dashboard</button>
+                                            <button onClick={()=>pinInput.trim() === MASTER_PIN ? setIsAdmin(true) : alert(dict.wrongPin)} className="w-full bg-white text-black font-black py-5 rounded-2xl text-[11px] uppercase tracking-[0.5em] shadow-2xl transition-all active:scale-95 border-b-4 border-gray-300">Unlock Master Dashboard</button>
                                         </div>
                                     </div>
                                 ) : (
                                     <div className="bg-slate-950 rounded-[4rem] p-10 space-y-6 shadow-2xl border border-yellow-500/20 max-h-[700px] overflow-y-auto no-print relative">
                                         <div className="flex justify-between items-center border-b border-yellow-500/30 pb-6 mb-8 sticky top-0 bg-slate-950 z-20">
-                                            <h3 className="text-[14px] font-black text-yellow-500 uppercase italic tracking-[0.1em] flex items-center"><i className="fa-solid fa-user-secret mr-3"></i> {dict_now.adminHeader}</h3>
+                                            <h3 className="text-[14px] font-black text-yellow-500 uppercase italic tracking-[0.1em] flex items-center"><i className="fa-solid fa-user-secret mr-3"></i> {dict.adminTitle}</h3>
                                             <button onClick={()=>setIsAdmin(false)} className="text-[11px] text-white bg-red-600/80 px-6 py-2.5 rounded-2xl uppercase font-black shadow-lg">Close Session</button>
                                         </div>
                                         <div className="space-y-5">
-                                            {allHeaders.map((hName, idx) => (
+                                            {colHeaders.map((hName, idx) => (
                                                 <div key={idx} className="flex justify-between items-center text-[11px] py-3 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors px-3 rounded-xl leading-relaxed">
                                                     <span className="text-gray-500 uppercase font-black pr-8">{idx + 1}. {hName}</span>
                                                     <span className={`text-right font-black ${idx === 3 ? 'text-green-400 font-extrabold text-xs' : idx === 8 ? 'text-blue-400 font-extrabold text-xs' : 'text-white'}`}>
