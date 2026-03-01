@@ -1,391 +1,114 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPSG Digital Seva - Nimbahera Official</title>
-    <!-- Essential Libraries (Same as your old code) -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        
-        /* 100% Same Old Design */
-        body { font-family: 'Inter', sans-serif; background-color: #010413; color: white; margin: 0; overflow-x: hidden; }
-        .receipt-card { border: 1px solid #e2e8f0; color: #0f172a; }
-        
-        @media print {
-            .no-print { display: none !important; }
-            body { background: white !important; color: black !important; }
-            .receipt-card { border: none !important; box-shadow: none !important; margin: 0 !important; width: 100% !important; }
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        /* Peela Winner Glow (No 1% Change) */
-        .winner-peela-glow { 
-            border: 4px solid #fbbf24; 
-            box-shadow: 0 0 70px rgba(251, 191, 36, 0.45); 
-            border-radius: 2rem; 
-            background: rgba(2, 6, 23, 0.95); 
-            padding: 2rem;
-            animation: pulse-glow 2s infinite;
-        }
+<title>DPSG Member</title>
 
-        @keyframes pulse-glow {
-            0% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.3); }
-            50% { box-shadow: 0 0 80px rgba(251, 191, 36, 0.6); }
-            100% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.3); }
-        }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 
-        .spinner { border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #fbbf24; border-radius: 50%; width: 45px; height: 45px; animation: spin 0.8s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+<style>
 
-        /* Photo Frame */
-        .prize-image-display { 
-            width: 100%; 
-            max-width: 700px; 
-            margin: 0 auto; 
-            background: #000; 
-            border-radius: 1.5rem; 
-            overflow: hidden; 
-            border: 5px solid #fbbf24; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-        }
-        .prize-image-display img { width: 100%; height: auto; display: block; object-fit: contain; }
+body{
+font-family: Arial;
+text-align:center;
+background:#0b1020;
+color:white;
+padding:20px;
+}
 
-        .custom-scroll::-webkit-scrollbar { width: 5px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-    </style>
+.box{
+background:white;
+color:black;
+padding:20px;
+border-radius:15px;
+max-width:400px;
+margin:auto;
+}
+
+</style>
+
 </head>
+
 <body>
-    <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect, useCallback } = React;
+<h2>DPSG Member Verification</h2>
 
-        // --- मास्टर डेटा लिंक्स ---
-        const SHEET_ID = "1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo";
-        const MAIN_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
-        const MAPPING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";
-        const MASTER_PIN = "Chanchal@6375"; 
+<div id="result">Loading...</div>
 
-        const App = () => {
-            const [lang, setLang] = useState('hi');
-            const [status, setStatus] = useState("loading");
-            const [member, setMember] = useState(null);
-            const [headers, setHeaders] = useState([]);
-            const [prizeDisplay, setPrizeDisplay] = useState({ img: "", msg: "", isLocked: true });
-            
-            const [isAdmin, setIsAdmin] = useState(false);
-            const [pinInput, setPinInput] = useState("");
-            const [showAdminPanel, setShowAdminPanel] = useState(false);
-            const [time, setTime] = useState(new Date());
 
-            // 100% वही पुरानी शब्दावली (Vocab)
-            const vocab = {
-                hi: {
-                    brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", service: "डिजिटल सेवा",
-                    slogan: "समस्या आपकी, समाधान हमारा !", subSlogan: "उचित मूल्य, बेहतरीन सेवा !",
-                    idLabel: "मेंबरशिप आईडी दर्ज करें", receipt: "प्रोफेशनल डिजिटल रसीद",
-                    points: "सर्विस पॉइंट्स", active: "सक्रियण", expiry: "समाप्ति", left: "शेष दिन", draw: "लकी ड्रा तिथि",
-                    winnerTitle: "बधाई हो! आप विजेता हैं", prizeLabel: "आपका भाग्यशाली इनाम",
-                    print: "डिजिटल रसीद प्रिंट करें", auth: "एडमिन मास्टर वेरिफिकेशन",
-                    terms: "नियम व शर्तें",
-                    t1: "पंजीकरण शुल्क (Non-Refundable): केवल परामर्श हेतु, वापस नहीं होगी।",
-                    t2: "सेवा की सीमाः सदस्यता का अर्थ छूट और प्राथमिकता है, मुफ्त सेवा नहीं।",
-                    t3: "सदस्यता शुल्कः यह केवल सदस्यता शुल्क है, किसी वस्तु का अग्रिम भुगतान नहीं।",
-                    t4: "वैधता नियमः लाभ केवल सक्रिय कार्ड वैधता अवधि के दौरान ही मिलेगा।",
-                    t5: "डिलीवरी नियमः सामग्री की होम डिलीवरी न्यूनतम चार्ज के भुगतान पर ही प्रदान की जाएगी।"
-                },
-                en: {
-                    brand: "Digital Problem Solution Group", service: "Digital Seva",
-                    slogan: "Your Problem, Our Solution!", subSlogan: "Best Price, Excellent Service!",
-                    idLabel: "Enter Membership ID", receipt: "OFFICIAL DIGITAL RECEIPT",
-                    points: "Service Points", active: "Activation", expiry: "Expiry", left: "Days Left", draw: "Lucky Draw Date",
-                    winnerTitle: "CONGRATULATIONS! YOU WON", prizeLabel: "Your Lucky Reward",
-                    print: "Print Official Receipt", auth: "Admin Master Authorization",
-                    terms: "Terms & Conditions",
-                    t1: "Registration Fee: Non-refundable, strictly for consultation only.",
-                    t2: "Scope of Service: Membership means priority & discounts, not free service.",
-                    t3: "Membership Fee: Strictly a fee, not a prepayment for goods.",
-                    t4: "Validity: Privileges valid only during the active card period.",
-                    t5: "Delivery: Home delivery will be provided at minimum charges only."
-                }
-            };
+<script>
 
-            const cardSpecs = {
-                VIP: {
-                    hi: ["कीमत: ₹500 (वैधता: 6 महीने)", "उपयोग: संपूर्ण परिवार हेतु", "कोटा: 150 प्रिंट + 80 फोटो", "लैमिनेशन: 5 फ्री", "ई-मित्र: 100% फ्री सेवा", "डिलीवरी: 2 बार FREE", "इनाम: ₹100 तुरंत वापस!"],
-                    en: ["Price: ₹500 (6 Months)", "Usage: Full Family", "Quota: 150 Prints + 80 Photos", "Lamination: 5 Free", "E-Mitra: 100% Free", "Delivery: 2 FREE", "Reward: ₹100 Cashback"]
-                },
-                Gold: {
-                    hi: ["कीमत: ₹100 (वैधता: 3 महीने)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 40 प्रिंट + 24 फोटो", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट", "डिलीवरी: 1 बार", "इनाम: 100% गारंटी उपहार!"],
-                    en: ["Price: ₹100 (3 Months)", "Usage: Individual", "Quota: 40 Prints + 24 Photos", "Lamination: 1 Free", "E-Mitra: 50% Off", "Delivery: 1 Time", "Reward: 100% Gift"]
-                },
-                Silver: {
-                    hi: ["कीमत: ₹50 (वैधता: 1 महीना)", "उपयोगः केवल 1 व्यक्ति हेतु", "कोटा: 15 प्रिंट + 12 फोटो", "ई-मित्रः सीमित सेवा", "डिलीवरी: 1 बार", "इनाम: लकी ड्रा का अवसर !"],
-                    en: ["Price: ₹50 (1 Month)", "Usage: Individual", "Quota: 15 Prints + 12 Photos", "E-Mitra: Limited", "Delivery: 1 Time", "Reward: Luck in Draw"]
-                }
-            };
+const SHEET_ID="1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo";
 
-            const t = vocab[lang];
+const CSV=
+`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
-            // --- स्मार्ट इनाम मैपिंग ---
-            const processPrize = useCallback((userRow, maps) => {
-                const mID = (userRow[1] || "").toString().toLowerCase().trim();
-                const pName = (userRow[3] || "").toString().trim();
-                const dDateStr = (userRow[36] || "").toString().trim();
-                const status = (userRow[38] || "").toString().toLowerCase().trim();
+const params=new URLSearchParams(window.location.search);
 
-                const today = new Date();
-                const drawDate = dDateStr ? new Date(dDateStr) : null;
-                
-                if (!dDateStr || drawDate > today) {
-                    setPrizeDisplay({ 
-                        img: "", 
-                        msg: dDateStr ? `परिणाम ${dDateStr} को खुलेगा` : "परिणाम जल्द ही घोषित होगा", 
-                        isLocked: true 
-                    });
-                    return;
-                }
+const id=params.get("id");
 
-                const isWinner = ["win", "winner", "विजेता", "जीत"].some(k => status.includes(k));
-                const isGift = ["gift", "गिफ्ट", "उपहार"].some(k => status.includes(k));
-                const isCashback = ["cashback", "कैशबैक"].includes(status);
+fetch(CSV)
 
-                if (isWinner) {
-                    const match = maps.find(m => 
-                        m.Inam_Name?.toLowerCase().trim() === pName.toLowerCase() &&
-                        m.Membership_ID?.toLowerCase().trim() === mID
-                    );
-                    if (match) {
-                        setPrizeDisplay({ img: match.Image_Link, msg: pName, isLocked: false });
-                        confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
-                    } else setPrizeDisplay({ img: "", msg: "विजेता सत्यापन लंबित...", isLocked: false });
-                } else if (isGift) {
-                    const g = maps.find(m => m.Match_Name === "Common_Gift");
-                    setPrizeDisplay({ img: g?.Image_Link, msg: "डिजिटल सेवा उपहार इनाम !", isLocked: false });
-                } else if (isCashback) {
-                    const c = maps.find(m => m.Match_Name === "Cashback_Reward");
-                    setPrizeDisplay({ img: c?.Image_Link, msg: "नकद कैशबैक इनाम !", isLocked: false });
-                } else {
-                    const l = maps.find(m => m.Match_Name === "Better_Luck");
-                    setPrizeDisplay({ img: l?.Image_Link, msg: "अगली बार बड़ा धमाका आपका होगा !", isLocked: false });
-                }
-            }, []);
+.then(res=>res.text())
 
-            // --- डेटा लोडिंग इंजन (वही पुराना Auto-Open लॉजिक) ---
-            useEffect(() => {
-                const clock = setInterval(() => setTime(new Date()), 1000);
-                const loadData = async () => {
-                    try {
-                        const [mainRes, mapRes] = await Promise.all([
-                            fetch(`${MAIN_CSV}?v=${Date.now()}`),
-                            fetch(MAPPING_CSV)
-                        ]);
-                        const mainTxt = await mainRes.text();
-                        const mapTxt = await mapRes.text();
+.then(data=>{
 
-                        Papa.parse(mainTxt, {
-                            complete: (res) => {
-                                const rows = res.data;
-                                setHeaders(rows[0] || []);
-                                
-                                // यही वह हिस्सा है जो URL से ID ढूँढकर सीधे खोलता है (PDF पेज 13-14)
-                                const params = new URLSearchParams(window.location.search);
-                                const queryId = params.get('id');
+Papa.parse(data,{
 
-                                if (queryId) {
-                                    // member[1] पर आपकी आईडी है
-                                    const match = rows.find(r => r[1]?.toString().toLowerCase().trim() === queryId.toLowerCase().trim());
-                                    if (match) {
-                                        setMember(match);
-                                        Papa.parse(mapTxt, {
-                                            header: true,
-                                            complete: (mResults) => {
-                                                processPrize(match, mResults.data);
-                                                setStatus("view"); // सीधे रसीद पर ले जाओ
-                                            }
-                                        });
-                                    } else setStatus("search");
-                                } else setStatus("search");
-                            }
-                        });
-                    } catch (e) { setStatus("search"); }
-                };
-                loadData();
-                return () => clearInterval(clock);
-            }, [processPrize]);
+complete:function(res){
 
-            const mask = (v) => v?.length > 4 ? v.slice(0, 2) + "******" + v.slice(-2) : v;
-            const clean = (v) => (v && v !== "#REF!") ? v : "";
+let rows=res.data;
 
-            if (status === "loading") return <div className="h-screen bg-[#010413] flex items-center justify-center text-yellow-500 font-black tracking-widest italic">लोड हो रहा है...</div>;
+let found=null;
 
-            return (
-                <div className="min-h-screen p-4 sm:p-8 text-center overflow-x-hidden">
-                    
-                    {/* Header Nav - 100% Original */}
-                    <div className="max-w-md mx-auto no-print flex justify-between items-center mb-8 border-b border-white/10 pb-4 text-[10px] font-black uppercase">
-                        <div className="leading-tight text-left">{time.toLocaleDateString()} <br/><span className="text-blue-500 italic">{time.toLocaleTimeString()}</span></div>
-                        <div className="flex bg-white/5 p-1 rounded-xl">
-                            <button onClick={() => setLang('hi')} className={`px-4 py-1.5 rounded-lg ${lang === 'hi' ? 'bg-white text-black' : 'text-gray-500'}`}>हिन्दी</button>
-                            <button onClick={() => setLang('en')} className={`px-4 py-1.5 rounded-lg ${lang === 'en' ? 'bg-white text-black' : 'text-gray-500'}`}>ENGLISH</button>
-                        </div>
-                    </div>
 
-                    <div className="max-w-md mx-auto">
-                        {status === "search" && (
-                            <div className="bg-white/5 border border-white/10 p-10 rounded-[3.5rem] shadow-2xl text-center">
-                                <i className="fa-solid fa-qrcode text-6xl text-blue-500 mb-8 animate-pulse"></i>
-                                <h2 className="text-xl font-black mb-10 tracking-widest uppercase italic">{t.idLabel}</h2>
-                                <input id="sid" type="text" placeholder="आईडी लिखें" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center text-xl font-bold mb-10 text-white outline-none" />
-                                <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-white active:scale-95">विवरण देखें</button>
-                            </div>
-                        )}
+rows.forEach(r=>{
 
-                        {status === "view" && member && (
-                            <div className="space-y-12 animate-in zoom-in duration-700">
-                                {/* Branding */}
-                                <div className="text-center">
-                                    <h1 className="text-2xl font-black uppercase tracking-tighter italic leading-none">{t.brand}</h1>
-                                    <p className="text-yellow-500 font-bold tracking-widest mt-2 uppercase">{t.service}</p>
-                                    <p className="text-[13px] text-blue-400 font-bold mt-4 uppercase italic underline underline-offset-4 decoration-blue-500/20">{t.slogan}</p>
-                                    <p className="text-[10px] text-gray-500 font-black uppercase mt-1 tracking-widest leading-none">{t.subSlogan}</p>
-                                </div>
+if(r.join("").toLowerCase().includes(id.toLowerCase())){
 
-                                {/* Reward Logic */}
-                                <div className={`text-center ${!prizeDisplay.isLocked && prizeDisplay.img ? 'winner-peela-glow' : 'bg-white/5 border border-white/10 p-8 rounded-[3rem]'}`}>
-                                    {prizeDisplay.isLocked ? (
-                                        <div className="py-6">
-                                            <i className="fa-solid fa-lock text-4xl text-yellow-500 mb-4"></i>
-                                            <h2 className="text-blue-500 font-black text-xl italic mb-4 uppercase tracking-widest">प्रतीक्षित</h2>
-                                            <p className="text-white font-bold opacity-80 leading-relaxed">{prizeDisplay.msg}</p>
-                                        </div>
-                                    ) : (
-                                        <div className="p-4">
-                                            <h2 className="text-yellow-500 font-black text-2xl uppercase tracking-tighter mb-4 italic">{t.winner}</h2>
-                                            <div className="bg-white/5 rounded-[2.5rem] p-6 border border-yellow-500/20 mb-6">
-                                                <p className="text-gray-400 text-[10px] uppercase font-black mb-2">आपका घोषित इनाम</p>
-                                                <p className="text-white text-3xl font-black italic underline decoration-yellow-500 underline-offset-8 uppercase leading-tight">{prizeDisplay.msg}</p>
-                                            </div>
-                                            {prizeDisplay.img && (
-                                                <div className="prize-image-display">
-                                                    <img src={prizeDisplay.img} alt="Digital Reward" />
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
+found=r;
 
-                                {/* Official Receipt - वही पुराने ३९ कॉलम्स */}
-                                <div id="receipt" className="receipt-card bg-white text-slate-900 rounded-[3.5rem] p-10 shadow-2xl relative text-left">
-                                    <div className="text-center border-b-2 border-dashed border-slate-200 pb-8 mb-10">
-                                        <h3 className="font-black text-3xl text-blue-700 italic uppercase tracking-tighter">{t.receipt}</h3>
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em] mt-3">NIMBAHERA, RAJASTHAN</p>
-                                    </div>
+}
 
-                                    <div className="space-y-12 leading-none">
-                                        <div className="flex justify-between items-start border-b pb-8">
-                                            <div><p className="text-[10px] text-slate-400 font-black uppercase italic">Identity (ID)</p><p className="text-2xl font-black text-slate-950 uppercase mt-1">{clean(member[1])}</p></div>
-                                            <div className="text-right"><p className="text-[10px] text-slate-400 font-black uppercase italic">Category</p><p className="text-[11px] font-black text-blue-700 uppercase mt-1 italic leading-none">{clean(member[3])}</p></div>
-                                        </div>
+});
 
-                                        {/* Blue Points Circle */}
-                                        <div className="bg-blue-600 rounded-[3.5rem] p-10 text-center text-white shadow-2xl relative overflow-hidden">
-                                            <p className="text-[11px] font-black uppercase opacity-70 mb-2 italic tracking-widest">{t.points}</p>
-                                            <span className="text-8xl font-black tracking-tighter leading-none">{clean(member[21])}</span>
-                                            <div className="grid grid-cols-2 gap-4 mt-12 pt-10 border-t border-white/10 text-[10px] font-black uppercase">
-                                                <div className="text-center">कुल आवंटित<p className="text-xl font-black mt-1 leading-none">{clean(member[18])}</p></div>
-                                                <div className="border-l border-white/10 text-center">कुल उपयोग<p className="text-xl font-black mt-1 leading-none">{(parseInt(member[19]) || 0) + (parseInt(member[20]) || 0)}</p></div>
-                                            </div>
-                                        </div>
 
-                                        <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 shadow-inner">
-                                            <p className="text-[10px] font-black text-blue-700 uppercase mb-4 italic flex items-center leading-none italic"><i className="fa-solid fa-crown mr-2 text-xs"></i> विशेष कार्ड सुविधायें</p>
-                                            <div className="space-y-1">
-                                                {(() => {
-                                                    const s = clean(member[3]).toLowerCase();
-                                                    let bKey = (s.includes("vip") || s.includes("500")) ? "VIP" : (s.includes("gold") || s.includes("100")) ? "Gold" : "Silver";
-                                                    return cardSpecs[bKey][lang].map((ben, i) => (
-                                                        <div key={i} className="flex items-start text-[11px] font-bold italic py-2 border-b border-slate-200/50 last:border-0 leading-tight">
-                                                            <i className="fa-solid fa-circle-check text-green-500 mt-1 mr-3 text-[10px]"></i>{ben}
-                                                        </div>
-                                                    ));
-                                                })()}
-                                            </div>
-                                        </div>
+if(found){
 
-                                        <div className="grid grid-cols-3 gap-3 bg-slate-100 p-8 rounded-[3rem] text-center font-black leading-none text-[10px]">
-                                            <div><p className="text-slate-400 uppercase italic mb-1">{t.active}</p><p className="text-slate-950 font-black">{clean(member[15])}</p></div>
-                                            <div className="border-x border-slate-200"><p className="text-red-500 uppercase italic mb-1">{t.expiry}</p><p className="text-red-600 font-black">{clean(member[16])}</p></div>
-                                            <div><p className="text-green-600 uppercase italic mb-1">{t.left}</p><p className="text-green-600 font-black">{clean(member[17])}</p></div>
-                                        </div>
+document.getElementById("result").innerHTML=`
 
-                                        <div className="grid grid-cols-2 gap-y-12 py-10 border-y border-slate-100 leading-none">
-                                            <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Customer Name</p><p className="text-[18px] font-black uppercase italic text-slate-900 leading-tight">{clean(member[8])}</p></div>
-                                            <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Village</p><p className="text-[18px] font-black uppercase italic text-slate-900 leading-tight">{clean(member[5])}</p></div>
-                                            <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Mobile (Secure)</p><p className="text-[15px] font-bold tracking-widest mt-1 uppercase">{mask(member[9])}</p></div>
-                                            <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Aadhar (Secure)</p><p className="text-[15px] font-bold tracking-widest mt-1 uppercase">{mask(member[11])}</p></div>
-                                        </div>
+<div class="box">
 
-                                        <div className="bg-slate-950 text-white p-8 rounded-[2.5rem] text-center shadow-2xl relative leading-none">
-                                            <p className="text-[11px] font-black uppercase opacity-50 tracking-widest mb-3 italic leading-none">{t.draw}</p>
-                                            <p className="text-3xl font-black text-yellow-500 italic uppercase tracking-tighter leading-none">{clean(member[36])}</p>
-                                        </div>
+<h3>Member Found</h3>
 
-                                        {/* TERMS (No Change) */}
-                                        <div className="bg-slate-50 p-10 rounded-[3rem] border border-slate-200 text-left shadow-inner">
-                                            <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-6 border-b border-slate-200 pb-3 flex items-center leading-none italic"><i className="fa-solid fa-scale-balanced mr-3 text-blue-600"></i> {t.terms}</h4>
-                                            <div className="space-y-6 text-slate-600 font-bold italic text-[10px] leading-relaxed">
-                                                <p>०१. {t.t1}</p><p>०२. {t.t2}</p><p>०३. {t.t3}</p><p>०४. {t.t4}</p><p>०५. {t.t5}</p>
-                                            </div>
-                                        </div>
+<p><b>ID:</b> ${id}</p>
 
-                                        <button onClick={()=>window.print()} className="no-print w-full bg-slate-900 text-white py-6 rounded-full text-[12px] font-black uppercase shadow-2xl active:scale-95 transition-all">प्रिंट रसीद</button>
-                                    </div>
-                                </div>
+<p><b>Name:</b> ${found[8]}</p>
 
-                                {/* मास्टर एडमिन - ३९ कॉलम्स */}
-                                <div className="no-print pt-32 pb-20 flex flex-col items-center">
-                                    {!isAdmin && <button onClick={()=>setShowAdminPanel(!showAdminPanel)} className="opacity-10 hover:opacity-40 transition-all p-8 bg-white/5 rounded-full"><i className="fa-solid fa-fingerprint text-4xl"></i></button>}
-                                    {showAdminPanel && !isAdmin && (
-                                        <form onSubmit={(e)=>{e.preventDefault(); pinInput === MASTER_PIN ? setIsAdmin(true) : alert("WRONG PIN!");}} className="mt-8 bg-white/5 p-10 rounded-[3.5rem] border border-white/10 w-full animate-in zoom-in shadow-2xl">
-                                            <p className="text-[11px] font-black text-blue-400 uppercase tracking-widest mb-6 text-center italic leading-none">{t.auth}</p>
-                                            <input type="password" onChange={(e)=>setPinInput(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-2xl px-8 py-5 text-xl font-bold tracking-[1em] text-white text-center outline-none mb-4" placeholder="PIN" />
-                                            <button type="submit" className="w-full bg-blue-600 py-6 rounded-2xl text-[12px] font-black uppercase text-white shadow-xl">एडमिन पैनल खोलें</button>
-                                        </form>
-                                    )}
-                                    {isAdmin && (
-                                        <div className="w-full mt-10 bg-white/5 border border-white/10 rounded-[3.5rem] p-12 shadow-2xl text-left animate-in fade-in">
-                                            <div className="flex justify-between items-center mb-12 pb-8 border-b border-white/10 text-white uppercase italic leading-none">
-                                                <h3 className="text-[13px] font-black text-blue-400 tracking-widest italic leading-none uppercase">Master Data (39 Columns)</h3>
-                                                <button onClick={()=>setIsAdmin(false)} className="bg-red-500/10 text-red-500 px-6 py-2 rounded-full font-black text-[10px] border border-red-500/20 active:scale-95">LOGOUT</button>
-                                            </div>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[800px] overflow-y-auto pr-4 custom-scroll">
-                                                {member.map((val, i) => (
-                                                    <div key={i} className="p-5 rounded-2xl bg-white/5 border border-white/10 group transition-all">
-                                                        <p className="text-[9px] text-blue-400 uppercase font-black tracking-widest mb-2 opacity-70 leading-none">{headers[i] || `Col Index ${i}`}</p>
-                                                        <p className="text-[15px] font-bold italic leading-relaxed text-white">{val || "---"}</p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            );
-        };
+<p><b>Village:</b> ${found[5]}</p>
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+<p><b>Mobile:</b> ${found[9]}</p>
+
+</div>
+
+`;
+
+}else{
+
+document.getElementById("result").innerHTML="Member Not Found";
+
+}
+
+}
+
+})
+
+});
+
+</script>
+
 </body>
+
 </html>
