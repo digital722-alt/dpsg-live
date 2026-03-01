@@ -24,7 +24,7 @@
             .receipt-card { border: none !important; box-shadow: none !important; margin: 0 !important; width: 100% !important; }
         }
 
-        /* विजेता पीला ग्लो */
+        /* विजेता पीला ग्लो स्टाइल */
         .winner-peela-glow { 
             border: 4px solid #fbbf24; 
             box-shadow: 0 0 70px rgba(251, 191, 36, 0.45); 
@@ -40,7 +40,10 @@
             100% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.3); }
         }
 
-        /* फोटो फ्रेम */
+        .spinner { border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #fbbf24; border-radius: 50%; width: 45px; height: 45px; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* फोटो डिस्प्ले फ्रेम */
         .prize-image-display { 
             width: 100%; 
             max-width: 800px; 
@@ -50,15 +53,12 @@
             overflow: hidden; 
             border: 5px solid #fbbf24; 
             box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            min-height: 200px;
+            min-height: 250px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .prize-image-display img { width: 100%; height: auto; display: block; object-fit: contain; }
-
-        .spinner { border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #fbbf24; border-radius: 50%; width: 45px; height: 45px; animation: spin 0.8s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .custom-scroll::-webkit-scrollbar { width: 5px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
@@ -70,21 +70,24 @@
     <script type="text/babel">
         const { useState, useEffect, useCallback } = React;
 
-        // --- मास्टर सेटिंग्स ---
+        // --- मास्टर सेटिंग्स (Digital problem solution wali Sheet) ---
         const SHEET_ID = "1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo";
         const MAIN_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
         const MAPPING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";
         const MASTER_PIN = "Chanchal@6375"; 
 
-        // --- REPLACED WITH NEW LH3 DIRECT LINK FUNCTION ---
+        // --- REPLACED WITH YOUR THUMBNAIL LOGIC ---
         const toDirectLink = (url) => {
             if (!url) return "";
-            const match = url.match(/\/d\/([-\w]+)/) || url.match(/id=([-\w]+)/);
-            if (match) {
-                // Using the more stable lh3.googleusercontent.com format
-                return "https://lh3.googleusercontent.com/d/" + match[1];
+            let id = "";
+            if (url.includes("/d/")) {
+                id = url.split("/d/")[1].split("/")[0];
             }
-            return url;
+            if (url.includes("id=")) {
+                id = url.split("id=")[1].split("&")[0];
+            }
+            if (!id) return url;
+            return "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000";
         };
 
         const App = () => {
@@ -105,7 +108,7 @@
                     brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", service: "डिजिटल सेवा",
                     slogan: "समस्या आपकी, समाधान हमारा !", subSlogan: "उचित मूल्य, बेहतरीन सेवा !",
                     idLabel: "मेंबरशिप आईडी दर्ज करें", receipt: "प्रोफेशनल डिजिटल रसीद",
-                    winnerTitle: "बधाई हो! आप विजेता हैं", giftTitle: "मुबारक हो! आपको उपहार मिला है", cashbackTitle: "बधाई हो! आपको कैशबैक मिला है",
+                    winnerTitle: "बधाई हो! आप विजेता हैं", giftTitle: "मुबारक हो! आपको उपहार मिला है", cashbackTitle: "खुशखबरी! आपको कैशबैक मिला है",
                     prizeLabel: "घोषित इनाम", print: "प्रिंट रसीद", auth: "एडमिन मास्टर वेरिफिकेशन", terms: "नियम व शर्तें",
                     points: "सर्विस पॉइंट्स", active: "सक्रियण", expiry: "समाप्ति", left: "शेष दिन", draw: "लकी ड्रा तिथि"
                 },
@@ -120,14 +123,14 @@
             };
 
             const cardSpecs = {
-                VIP: { hi: ["कीमत: ₹500 (वैधता: 6 महीने)", "उपयोग: परिवार हेतु", "कोटा: 150 प्रिंट + 80 फोटो", "लैमिनेशन: 5 फ्री", "ई-मित्र: 100% फ्री", "डिलीवरी: 2 FREE", "इनाम: ₹100 वापस!"], en: ["Price: ₹500 (6 Months)", "Usage: Family", "Quota: 150 Prints + 80 Photos", "Lamination: 5 Free", "E-Mitra: 100% Free", "Delivery: 2 FREE", "Reward: ₹100 Cashback"] },
-                Gold: { hi: ["कीमत: ₹100 (वैधता: 3 महीने)", "उपयोग: केवल 1 व्यक्ति", "कोटा: 40 प्रिंट + 24 फोटो", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट", "डिलीवरी: 1 बार", "इनाम: 100% उपहार!"], en: ["Price: ₹100 (3 Months)", "Usage: Individual", "Quota: 40 Prints + 24 Photos", "Lamination: 1 Free", "E-Mitra: 50% Off", "Delivery: 1 Time", "Reward: 100% Gift"] },
-                Silver: { hi: ["कीमत: ₹50 (वैधता: 1 महीना)", "उपयोगः केवल 1 व्यक्ति", "कोटा: 15 प्रिंट + 12 फोटो", "ई-मित्रः सीमित", "डिलीवरी: 1 बार", "इनाम: लकी ड्रा अवसर!"], en: ["Price: ₹50 (1 Month)", "Usage: Individual", "Quota: 15 Prints + 12 Photos", "E-Mitra: Limited", "Delivery: 1 Time", "Reward: Luck Draw"] }
+                VIP: { hi: ["₹500 (6 महीने)", "परिवार हेतु", "150 प्रिंट + 80 फोटो", "5 फ्री लैमिनेशन", "100% फ्री ई-मित्र", "2 फ्री डिलीवरी", "₹100 वापस!"], en: ["₹500 (6 Months)", "Family", "150 Prints + 80 Photos", "5 Lamination", "100% Free Mitra", "2 Delivery", "₹100 Cashback"] },
+                Gold: { hi: ["₹100 (3 महीने)", "1 व्यक्ति हेतु", "40 प्रिंट + 24 फोटो", "1 फ्री लैमिनेशन", "50% छूट ई-मित्र", "1 फ्री डिलीवरी", "100% उपहार!"], en: ["₹100 (3 Months)", "Individual", "40 Prints + 24 Photos", "1 Lamination", "50% Off Mitra", "1 Delivery", "100% Gift"] },
+                Silver: { hi: ["₹50 (1 महीना)", "1 व्यक्ति हेतु", "15 प्रिंट + 12 फोटो", "सीमित ई-मित्र सेवा", "1 फ्री डिलीवरी", "लकी ड्रा अवसर!"], en: ["₹50 (1 Month)", "Individual", "15 Prints + 12 Photos", "Limited Mitra", "1 Delivery", "Luck Draw"] }
             };
 
             const t = vocab[lang];
 
-            // रिवॉर्ड मैपिंग - FIXED TO USE toDirectLink()
+            // रिवॉर्ड मैपिंग - Using the fixed thumbnail converter
             const mapPrizeDetails = useCallback((userRow, maps) => {
                 const mID = (userRow[1] || "").toString().toLowerCase().trim();
                 const pName = (userRow[3] || "").toString().trim();
@@ -138,7 +141,7 @@
                 const drawDate = dDateStr ? new Date(dDateStr) : null;
                 
                 if (!dDateStr || drawDate > today) {
-                    setPrizeDisplay({ img: "", msg: dDateStr ? `धैर्य रखें! परिणाम ${dDateStr} को घोषित होगा` : "परिणाम जल्द घोषित होगा", isLocked: true, type: "normal" });
+                    setPrizeDisplay({ img: "", msg: dDateStr ? `परिणाम ${dDateStr} को खुलेगा` : "परिणाम जल्द घोषित होगा", isLocked: true, type: "normal" });
                     return;
                 }
 
@@ -182,7 +185,7 @@
                 }
             }, []);
 
-            // तेज़ ऑटो-ओपन इंजन (The code you provided that works)
+            // --- STABLE LOADING LOGIC ---
             useEffect(() => {
                 const clock = setInterval(() => setTime(new Date()), 1000);
                 async function startSystem(){
@@ -244,7 +247,7 @@
                         {status === "search" ? (
                             <div className="bg-white/5 border border-white/10 p-10 rounded-[3.5rem] shadow-2xl text-center">
                                 <i className="fa-solid fa-qrcode text-6xl text-blue-500 mb-8 animate-pulse"></i>
-                                <h2 className="text-xl font-black mb-10 tracking-widest uppercase italic">{t.idLabel}</h2>
+                                <h2 className="text-xl font-black mb-10 tracking-widest uppercase italic leading-none">{t.idLabel}</h2>
                                 <input id="sid" type="text" placeholder="ID दर्ज करें" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center text-xl font-bold mb-10 text-white outline-none focus:border-blue-500" />
                                 <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-white shadow-xl active:scale-95 transition-all">विवरण देखें</button>
                             </div>
@@ -271,7 +274,7 @@
                                                 <p className="text-white text-3xl font-black italic underline decoration-yellow-500 underline-offset-8 uppercase leading-tight">{prizeDisplay.msg}</p>
                                             </div>
                                             
-                                            {/* इमेज डिस्प्ले विद lh3.googleusercontent.com */}
+                                            {/* IMAGE DISPLAY WITH THUMBNAIL LOGIC */}
                                             {prizeDisplay.img && (
                                                 <div className="prize-image-display">
                                                     {!imgError ? (
@@ -310,7 +313,7 @@
                                                 <div className="border-l border-white/10 text-center">कुल उपयोग<p className="text-xl font-black mt-1 leading-none">{(parseInt(member[19]) || 0) + (parseInt(member[20]) || 0)}</p></div>
                                             </div>
                                         </div>
-                                        <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 shadow-inner">
+                                        <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 shadow-inner text-left">
                                             <p className="text-[10px] font-black text-blue-700 uppercase mb-4 italic flex items-center leading-none italic"><i className="fa-solid fa-crown mr-2 text-xs"></i> विशेष कार्ड सुविधायें</p>
                                             <div className="space-y-1">
                                                 {(() => {
@@ -347,10 +350,11 @@
                                     </div>
                                 </div>
 
+                                {/* मास्टर एडमिन - ३९ कॉलम्स */}
                                 <div className="no-print pt-32 pb-20 flex flex-col items-center">
                                     {!isAdmin && <button onClick={()=>setShowAdminPanel(!showAdminPanel)} className="opacity-10 hover:opacity-40 transition-all p-8 bg-white/5 rounded-full shadow-2xl"><i className="fa-solid fa-fingerprint text-4xl"></i></button>}
                                     {showAdminPanel && !isAdmin && (
-                                        <form onSubmit={(e)=>{e.preventDefault(); pinInput === MASTER_PIN ? setIsAdmin(true) : alert("WRONG PIN!");}} className="mt-8 bg-white/5 p-10 rounded-[3.5rem] border border-white/10 w-full animate-in zoom-in shadow-2xl">
+                                        <form onSubmit={(e)=>{e.preventDefault(); pinInput === MASTER_PIN ? setIsAdmin(true) : alert("पासवर्ड गलत है!");}} className="mt-8 bg-white/5 p-10 rounded-[3.5rem] border border-white/10 w-full animate-in zoom-in shadow-2xl">
                                             <p className="text-[11px] font-black text-blue-400 uppercase tracking-widest mb-6 text-center italic leading-none">{t.auth}</p>
                                             <input type="password" onChange={(e)=>setPinInput(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-2xl px-8 py-5 text-xl font-bold tracking-[1em] text-white text-center outline-none mb-4 focus:border-blue-500 transition-all" placeholder="PIN" />
                                             <button type="submit" className="w-full bg-blue-600 py-6 rounded-2xl text-[12px] font-black uppercase text-white shadow-xl">UNLOCK MASTER DASHBOARD</button>
