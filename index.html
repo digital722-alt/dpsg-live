@@ -83,6 +83,7 @@
             id = url.split("id=")[1].split("&")[0];  
         }  
         if (!id) return url;  
+        // थंबनेल का उपयोग
         return "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000";  
     };  
 
@@ -126,7 +127,7 @@
 
         const t = vocab[lang];  
 
-        // रिवॉर्ड मैपिंग - Final Logic with Win Priority
+        // रिवॉर्ड मैपिंग - Bulletproof Logic (ID First, Status Later)
         const mapPrizeDetails = useCallback((userRow, maps) => {  
             const mID = (userRow[1] || "").toString().toLowerCase().trim();  
             const pName = (userRow[3] || "").toString().trim();  
@@ -141,28 +142,40 @@
                 return;  
             }  
 
-            const isWinner = ["win", "winner", "विजेता", "जीत"].some(k => statusStr.includes(k));  
-            const isGift = ["gift", "गिफ्ट", "उपहार"].some(k => statusStr.includes(k));  
-            const isCashback = ["cash", "back", "कैश", "कैशबैक"].some(k => statusStr.includes(k));  
-
-            // सुरक्षित तरीके से डिफ़ॉल्ट इमेजेस ढूँढने का फंक्शन
+            // सुरक्षित तरीके से डिफ़ॉल्ट इमेजेस ढूँढने का फंक्शन
             const findFallback = (keyword) => {
                 const key = keyword.toLowerCase().trim();
                 return maps.find(m => Object.values(m).some(v => (v || "").toString().toLowerCase().includes(key)));
             };
 
-            // प्राथमिकता 1: अगर 'Win' लिखा है
-            if (isWinner) {  
-                const match = maps.find(m => (m.Membership_ID || "").toString().trim().toLowerCase() === mID);  
+            // 🌟 स्टेप 1: सबसे पहले चेक करें कि क्या यह ID 51 विनर्स की लिस्ट (MAPPING_CSV) में है?
+            const exactWinnerMatch = maps.find(m => Object.values(m).some(v => (v || "").toString().trim().toLowerCase() === mID));
+
+            if (exactWinnerMatch && exactWinnerMatch.Image_Link) {  
+                // अगर ID मिल गई, तो यह महा-विजेता है! (चाहे 39वें कॉलम में कुछ भी लिखा हो)
                 setPrizeDisplay({   
-                    img: toDirectLink(match?.Image_Link),   
-                    msg: pName,   
+                    img: toDirectLink(exactWinnerMatch.Image_Link),   
+                    msg: exactWinnerMatch.Inam_Name || pName, // शीट से असली इनाम का नाम उठाएगा  
                     isLocked: false,   
                     type: "winner"   
                 });  
-                if(match && match.Image_Link) confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });  
+                confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });  
+                return; // कोड यहीं रुक जाएगा, नीचे कैशबैक/गिफ्ट पर जाएगा ही नहीं!
+            }
 
-            // प्राथमिकता 2: अगर 'Gift' लिखा है
+            // 🌟 स्टेप 2: अगर ID 51 विनर्स में नहीं है, तब चेक करें कि उसे गिफ्ट मिला है या कैशबैक
+            const isGift = ["gift", "गिफ्ट", "उपहार"].some(k => statusStr.includes(k));  
+            const isCashback = ["cash", "back", "कैश", "कैशबैक"].some(k => statusStr.includes(k));  
+
+            if (isCashback) {  
+                const c = findFallback("Cashback_Reward");  
+                setPrizeDisplay({   
+                    img: toDirectLink(c?.Image_Link),   
+                    msg: "नकद कैशबैक इनाम",   
+                    isLocked: false,   
+                    type: "cashback"   
+                });  
+
             } else if (isGift) {  
                 const g = findFallback("Common_Gift");  
                 setPrizeDisplay({   
@@ -172,18 +185,8 @@
                     type: "gift"   
                 });  
 
-            // प्राथमिकता 3: अगर 'Cash' लिखा है
-            } else if (isCashback) {  
-                const c = findFallback("Cashback_Reward");  
-                setPrizeDisplay({   
-                    img: toDirectLink(c?.Image_Link),   
-                    msg: "नकद कैशबैक इनाम",   
-                    isLocked: false,   
-                    type: "cashback"   
-                });  
-
-            // प्राथमिकता 4: बाकी सब
             } else {  
+                // अगर कुछ नहीं मिला तो सांत्वना पुरस्कार (Better luck)
                 const l = findFallback("Better luck next time") || findFallback("Better_Luck");  
                 setPrizeDisplay({   
                     img: toDirectLink(l?.Image_Link),   
