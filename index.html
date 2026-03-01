@@ -14,13 +14,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
         body { font-family: 'Inter', sans-serif; background-color: #010413; color: white; margin: 0; overflow-x: hidden; }
         .receipt-card { border: 1px solid #e2e8f0; color: #0f172a; border-radius: 1.5rem; background: white; }
+        
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; color: black !important; }
             .receipt-card { border: none !important; box-shadow: none !important; margin: 0 !important; width: 100% !important; }
         }
+
+        /* विजेता पीला ग्लो */
         .winner-peela-glow { 
             border: 4px solid #fbbf24; 
             box-shadow: 0 0 70px rgba(251, 191, 36, 0.45); 
@@ -29,13 +33,14 @@
             padding: 2rem;
             animation: pulse-glow 2s infinite;
         }
+
         @keyframes pulse-glow {
             0% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.3); }
             50% { box-shadow: 0 0 80px rgba(251, 191, 36, 0.6); }
             100% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.3); }
         }
-        .spinner { border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #fbbf24; border-radius: 50%; width: 45px; height: 45px; animation: spin 0.8s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* फोटो फ्रेम */
         .prize-image-display { 
             width: 100%; 
             max-width: 800px; 
@@ -51,6 +56,10 @@
             justify-content: center;
         }
         .prize-image-display img { width: 100%; height: auto; display: block; object-fit: contain; }
+
+        .spinner { border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #fbbf24; border-radius: 50%; width: 45px; height: 45px; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         .custom-scroll::-webkit-scrollbar { width: 5px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
@@ -67,12 +76,13 @@
         const MAPPING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";
         const MASTER_PIN = "Chanchal@6375"; 
 
-        // गूगल ड्राइव लिंक कनवर्टर फंक्शन
+        // --- REPLACED WITH NEW LH3 DIRECT LINK FUNCTION ---
         const toDirectLink = (url) => {
             if (!url) return "";
             const match = url.match(/\/d\/([-\w]+)/) || url.match(/id=([-\w]+)/);
             if (match) {
-                return "https://drive.google.com/uc?export=view&id=" + match[1];
+                // Using the more stable lh3.googleusercontent.com format
+                return "https://lh3.googleusercontent.com/d/" + match[1];
             }
             return url;
         };
@@ -117,7 +127,7 @@
 
             const t = vocab[lang];
 
-            // रिवॉर्ड मैपिंग इंजन - फिक्स्ड इमेज कनवर्टर के साथ
+            // रिवॉर्ड मैपिंग - FIXED TO USE toDirectLink()
             const mapPrizeDetails = useCallback((userRow, maps) => {
                 const mID = (userRow[1] || "").toString().toLowerCase().trim();
                 const pName = (userRow[3] || "").toString().trim();
@@ -128,7 +138,7 @@
                 const drawDate = dDateStr ? new Date(dDateStr) : null;
                 
                 if (!dDateStr || drawDate > today) {
-                    setPrizeDisplay({ img: "", msg: dDateStr ? `परिणाम ${dDateStr} को घोषित होगा` : "परिणाम जल्द घोषित होगा", isLocked: true, type: "normal" });
+                    setPrizeDisplay({ img: "", msg: dDateStr ? `धैर्य रखें! परिणाम ${dDateStr} को घोषित होगा` : "परिणाम जल्द घोषित होगा", isLocked: true, type: "normal" });
                     return;
                 }
 
@@ -139,7 +149,7 @@
                 if (isWinner) {
                     const match = maps.find(m => m.Inam_Name?.toLowerCase().trim() === pName.toLowerCase() && m.Membership_ID?.toLowerCase().trim() === mID);
                     setPrizeDisplay({ 
-                        img: toDirectLink(match?.Image_Link), // FIXED HERE
+                        img: toDirectLink(match?.Image_Link), 
                         msg: pName, 
                         isLocked: false, 
                         type: "winner" 
@@ -148,7 +158,7 @@
                 } else if (isGift) {
                     const g = maps.find(m => m.Match_Name === "Common_Gift");
                     setPrizeDisplay({ 
-                        img: toDirectLink(g?.Image_Link), // FIXED HERE
+                        img: toDirectLink(g?.Image_Link), 
                         msg: "डिजिटल सेवा उपहार", 
                         isLocked: false, 
                         type: "gift" 
@@ -156,7 +166,7 @@
                 } else if (isCashback) {
                     const c = maps.find(m => m.Match_Name === "Cashback_Reward");
                     setPrizeDisplay({ 
-                        img: toDirectLink(c?.Image_Link), // FIXED HERE
+                        img: toDirectLink(c?.Image_Link), 
                         msg: "नकद कैशबैक इनाम", 
                         isLocked: false, 
                         type: "cashback" 
@@ -164,7 +174,7 @@
                 } else {
                     const l = maps.find(m => m.Match_Name === "Better_Luck");
                     setPrizeDisplay({ 
-                        img: toDirectLink(l?.Image_Link), // FIXED HERE
+                        img: toDirectLink(l?.Image_Link), 
                         msg: "हौसला रखें! अगली बार पक्का बड़ा इनाम आपका होगा।", 
                         isLocked: false, 
                         type: "loss" 
@@ -172,7 +182,7 @@
                 }
             }, []);
 
-            // तेज़ ऑटो-ओपन इंजन (The code that worked perfectly)
+            // तेज़ ऑटो-ओपन इंजन (The code you provided that works)
             useEffect(() => {
                 const clock = setInterval(() => setTime(new Date()), 1000);
                 async function startSystem(){
@@ -235,8 +245,8 @@
                             <div className="bg-white/5 border border-white/10 p-10 rounded-[3.5rem] shadow-2xl text-center">
                                 <i className="fa-solid fa-qrcode text-6xl text-blue-500 mb-8 animate-pulse"></i>
                                 <h2 className="text-xl font-black mb-10 tracking-widest uppercase italic">{t.idLabel}</h2>
-                                <input id="sid" type="text" placeholder="ID दर्ज करें" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center text-xl font-bold mb-10 text-white outline-none" />
-                                <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-white shadow-xl">विवरण देखें</button>
+                                <input id="sid" type="text" placeholder="ID दर्ज करें" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center text-xl font-bold mb-10 text-white outline-none focus:border-blue-500" />
+                                <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-white shadow-xl active:scale-95 transition-all">विवरण देखें</button>
                             </div>
                         ) : (
                             <div className="space-y-12 animate-in zoom-in duration-700">
@@ -261,7 +271,7 @@
                                                 <p className="text-white text-3xl font-black italic underline decoration-yellow-500 underline-offset-8 uppercase leading-tight">{prizeDisplay.msg}</p>
                                             </div>
                                             
-                                            {/* इमेज डिस्प्ले विद एरर हैंडलिंग */}
+                                            {/* इमेज डिस्प्ले विद lh3.googleusercontent.com */}
                                             {prizeDisplay.img && (
                                                 <div className="prize-image-display">
                                                     {!imgError ? (
@@ -300,7 +310,7 @@
                                                 <div className="border-l border-white/10 text-center">कुल उपयोग<p className="text-xl font-black mt-1 leading-none">{(parseInt(member[19]) || 0) + (parseInt(member[20]) || 0)}</p></div>
                                             </div>
                                         </div>
-                                        <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 shadow-inner text-left">
+                                        <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 shadow-inner">
                                             <p className="text-[10px] font-black text-blue-700 uppercase mb-4 italic flex items-center leading-none italic"><i className="fa-solid fa-crown mr-2 text-xs"></i> विशेष कार्ड सुविधायें</p>
                                             <div className="space-y-1">
                                                 {(() => {
