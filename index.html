@@ -1,391 +1,102 @@
-<!DOCTYPE html>
-<html lang="hi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPSG Digital Seva - Nimbahera Official</title>
-    <!-- आवश्यक लाइब्रेरीज़ -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        
-        body { font-family: 'Inter', sans-serif; background-color: #010413; color: white; margin: 0; overflow-x: hidden; }
-        .receipt-card { border: 1px solid #e2e8f0; color: #0f172a; border-radius: 1.5rem; background: white; }
-        
-        @media print {
-            .no-print { display: none !important; }
-            body { background: white !important; color: black !important; }
-            .receipt-card { border: none !important; box-shadow: none !important; margin: 0 !important; width: 100% !important; }
-        }
+const mapPrizeDetails = useCallback((userRow, maps) => {
 
-        /* विजेता पीला ग्लो स्टाइल */
-        .winner-peela-glow { 
-            border: 4px solid #fbbf24; 
-            box-shadow: 0 0 70px rgba(251, 191, 36, 0.45); 
-            border-radius: 2rem; 
-            background: rgba(2, 6, 23, 0.95); 
-            padding: 2rem;
-            animation: pulse-glow 2s infinite;
-        }
+    const mID = (userRow[1] || "").toString().trim().toLowerCase();
+    const pName = (userRow[3] || "").toString().trim();
+    const dDateStr = (userRow[36] || "").toString().trim();
+    const statusStr = (userRow[38] || "").toString().toLowerCase().trim();
 
-        @keyframes pulse-glow {
-            0% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.3); }
-            50% { box-shadow: 0 0 80px rgba(251, 191, 36, 0.6); }
-            100% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.3); }
-        }
+    const today = new Date();
+    const drawDate = dDateStr ? new Date(dDateStr) : null;
 
-        .spinner { border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #fbbf24; border-radius: 50%; width: 45px; height: 45px; animation: spin 0.8s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    // Result Locked
+    if (!dDateStr || drawDate > today) {
+        setPrizeDisplay({
+            img: "",
+            msg: dDateStr
+                ? `Result ${dDateStr} को खुलेगा`
+                : "Result Coming Soon",
+            isLocked: true,
+            type: "normal"
+        });
+        return;
+    }
 
-        /* फोटो डिस्प्ले फ्रेम */
-        .prize-image-display { 
-            width: 100%; 
-            max-width: 800px; 
-            margin: 0 auto; 
-            background: #000; 
-            border-radius: 1.5rem; 
-            overflow: hidden; 
-            border: 5px solid #fbbf24; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            min-height: 250px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .prize-image-display img { width: 100%; height: auto; display: block; object-fit: contain; }
+    // Winner check
+    const isWinner =
+        statusStr.includes("win") ||
+        statusStr.includes("winner") ||
+        statusStr.includes("विजेता");
 
-        .custom-scroll::-webkit-scrollbar { width: 5px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-    </style>
-</head>
-<body>
-    <div id="root"></div>
+    const isGift =
+        statusStr.includes("gift") ||
+        statusStr.includes("उपहार");
 
-    <script type="text/babel">
-        const { useState, useEffect, useCallback } = React;
+    const isCashback =
+        statusStr.includes("cash") ||
+        statusStr.includes("cashback");
 
-        // --- मास्टर सेटिंग्स (Digital problem solution wali Sheet) ---
-        const SHEET_ID = "1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo";
-        const MAIN_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
-        const MAPPING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";
-        const MASTER_PIN = "Chanchal@6375"; 
 
-        // --- REPLACED WITH YOUR THUMBNAIL LOGIC ---
-        const toDirectLink = (url) => {
-            if (!url) return "";
-            let id = "";
-            if (url.includes("/d/")) {
-                id = url.split("/d/")[1].split("/")[0];
-            }
-            if (url.includes("id=")) {
-                id = url.split("id=")[1].split("&")[0];
-            }
-            if (!id) return url;
-            return "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000";
-        };
 
-        const App = () => {
-            const [lang, setLang] = useState('hi');
-            const [status, setStatus] = useState("loading");
-            const [member, setMember] = useState(null);
-            const [headers, setHeaders] = useState([]);
-            const [prizeDisplay, setPrizeDisplay] = useState({ img: "", msg: "", isLocked: true, type: "normal" });
-            const [imgError, setImgError] = useState(false);
-            const [time, setTime] = useState(new Date());
-            
-            const [isAdmin, setIsAdmin] = useState(false);
-            const [pinInput, setPinInput] = useState("");
-            const [showAdminPanel, setShowAdminPanel] = useState(false);
+    // 🔥 FIXED MATCHING (Membership ID only)
+    const match = maps.find(m =>
+        (m.Membership_ID || "")
+            .toString()
+            .trim()
+            .toLowerCase() === mID
+    );
 
-            const vocab = {
-                hi: {
-                    brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", service: "डिजिटल सेवा",
-                    slogan: "समस्या आपकी, समाधान हमारा !", subSlogan: "उचित मूल्य, बेहतरीन सेवा !",
-                    idLabel: "मेंबरशिप आईडी दर्ज करें", receipt: "प्रोफेशनल डिजिटल रसीद",
-                    winnerTitle: "बधाई हो! आप विजेता हैं", giftTitle: "मुबारक हो! आपको उपहार मिला है", cashbackTitle: "खुशखबरी! आपको कैशबैक मिला है",
-                    prizeLabel: "घोषित इनाम", print: "प्रिंट रसीद", auth: "एडमिन मास्टर वेरिफिकेशन", terms: "नियम व शर्तें",
-                    points: "सर्विस पॉइंट्स", active: "सक्रियण", expiry: "समाप्ति", left: "शेष दिन", draw: "लकी ड्रा तिथि"
-                },
-                en: {
-                    brand: "Digital Problem Solution Group", service: "Digital Seva",
-                    slogan: "Your Problem, Our Solution!", subSlogan: "Best Price, Excellent Service!",
-                    idLabel: "Enter Membership ID", receipt: "Professional Receipt",
-                    winnerTitle: "CONGRATULATIONS! YOU WON", giftTitle: "CONGRATS! YOU GOT A GIFT", cashbackTitle: "CONGRATS! YOU GOT CASHBACK",
-                    prizeLabel: "Announced Prize", print: "Print Receipt", auth: "Admin Verification", terms: "Terms & Conditions",
-                    points: "Service Points", active: "Activation", expiry: "Expiry", left: "Days Left", draw: "Lucky Draw Date"
-                }
-            };
+    const imgLink = toDirectLink(match?.Image_Link);
 
-            const cardSpecs = {
-                VIP: { hi: ["₹500 (6 महीने)", "परिवार हेतु", "150 प्रिंट + 80 फोटो", "5 फ्री लैमिनेशन", "100% फ्री ई-मित्र", "2 फ्री डिलीवरी", "₹100 वापस!"], en: ["₹500 (6 Months)", "Family", "150 Prints + 80 Photos", "5 Lamination", "100% Free Mitra", "2 Delivery", "₹100 Cashback"] },
-                Gold: { hi: ["₹100 (3 महीने)", "1 व्यक्ति हेतु", "40 प्रिंट + 24 फोटो", "1 फ्री लैमिनेशन", "50% छूट ई-मित्र", "1 फ्री डिलीवरी", "100% उपहार!"], en: ["₹100 (3 Months)", "Individual", "40 Prints + 24 Photos", "1 Lamination", "50% Off Mitra", "1 Delivery", "100% Gift"] },
-                Silver: { hi: ["₹50 (1 महीना)", "1 व्यक्ति हेतु", "15 प्रिंट + 12 फोटो", "सीमित ई-मित्र सेवा", "1 फ्री डिलीवरी", "लकी ड्रा अवसर!"], en: ["₹50 (1 Month)", "Individual", "15 Prints + 12 Photos", "Limited Mitra", "1 Delivery", "Luck Draw"] }
-            };
 
-            const t = vocab[lang];
 
-            // रिवॉर्ड मैपिंग - Using the fixed thumbnail converter
-            const mapPrizeDetails = useCallback((userRow, maps) => {
-                const mID = (userRow[1] || "").toString().toLowerCase().trim();
-                const pName = (userRow[3] || "").toString().trim();
-                const dDateStr = (userRow[36] || "").toString().trim();
-                const statusStr = (userRow[38] || "").toString().toLowerCase().trim();
+    if (isWinner) {
 
-                const today = new Date();
-                const drawDate = dDateStr ? new Date(dDateStr) : null;
-                
-                if (!dDateStr || drawDate > today) {
-                    setPrizeDisplay({ img: "", msg: dDateStr ? `परिणाम ${dDateStr} को खुलेगा` : "परिणाम जल्द घोषित होगा", isLocked: true, type: "normal" });
-                    return;
-                }
+        setPrizeDisplay({
+            img: imgLink,
+            msg: pName,
+            isLocked: false,
+            type: "winner"
+        });
 
-                const isWinner = ["win", "winner", "विजेता", "जीत"].some(k => statusStr.includes(k));
-                const isGift = ["gift", "गिफ्ट", "उपहार"].some(k => statusStr.includes(k));
-                const isCashback = ["cash", "cashback", "कैश", "कैशबैक"].some(k => statusStr.includes(k));
+        confetti({
+            particleCount:200,
+            spread:80,
+            origin:{y:0.6}
+        });
 
-                if (isWinner) {
-                    const match = maps.find(m => m.Inam_Name?.toLowerCase().trim() === pName.toLowerCase() && m.Membership_ID?.toLowerCase().trim() === mID);
-                    setPrizeDisplay({ 
-                        img: toDirectLink(match?.Image_Link), 
-                        msg: pName, 
-                        isLocked: false, 
-                        type: "winner" 
-                    });
-                    if(match) confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
-                } else if (isGift) {
-                    const g = maps.find(m => m.Match_Name === "Common_Gift");
-                    setPrizeDisplay({ 
-                        img: toDirectLink(g?.Image_Link), 
-                        msg: "डिजिटल सेवा उपहार", 
-                        isLocked: false, 
-                        type: "gift" 
-                    });
-                } else if (isCashback) {
-                    const c = maps.find(m => m.Match_Name === "Cashback_Reward");
-                    setPrizeDisplay({ 
-                        img: toDirectLink(c?.Image_Link), 
-                        msg: "नकद कैशबैक इनाम", 
-                        isLocked: false, 
-                        type: "cashback" 
-                    });
-                } else {
-                    const l = maps.find(m => m.Match_Name === "Better_Luck");
-                    setPrizeDisplay({ 
-                        img: toDirectLink(l?.Image_Link), 
-                        msg: "हौसला रखें! अगली बार पक्का बड़ा इनाम आपका होगा।", 
-                        isLocked: false, 
-                        type: "loss" 
-                    });
-                }
-            }, []);
+    }
 
-            // --- STABLE LOADING LOGIC ---
-            useEffect(() => {
-                const clock = setInterval(() => setTime(new Date()), 1000);
-                async function startSystem(){
-                    try{
-                        const mainResponse = await fetch(MAIN_CSV + "&t=" + Date.now());
-                        const mainText = await mainResponse.text();
-                        const mapResponse = await fetch(MAPPING_CSV);
-                        const mapText = await mapResponse.text();
+    else if (isGift) {
 
-                        Papa.parse(mainText,{
-                            complete:(results)=>{
-                                const rows = results.data;
-                                setHeaders(rows[0] || []);
-                                const params = new URLSearchParams(window.location.search);
-                                const queryId = params.get('id');
+        setPrizeDisplay({
+            img: imgLink,
+            msg:"Digital Seva Gift",
+            isLocked:false,
+            type:"gift"
+        });
 
-                                if(queryId){
-                                    const cleanQId = queryId.trim().toLowerCase();
-                                    const matchRow = rows.slice(1).find(r=>
-                                        r[1] &&
-                                        r[1].toString().trim().toLowerCase()===cleanQId
-                                    );
-                                    if(matchRow){
-                                        setMember(matchRow);
-                                        Papa.parse(mapText,{
-                                            header:true,
-                                            complete:(mResults)=>{
-                                                mapPrizeDetails(matchRow,mResults.data);
-                                                setStatus("view");
-                                            }
-                                        });
-                                    } else setStatus("search");
-                                } else setStatus("search");
-                            }
-                        });
-                    }
-                    catch(e){ setStatus("search"); }
-                }
-                startSystem();
-                return ()=>clearInterval(clock);
-            },[mapPrizeDetails]);
+    }
 
-            const mask = (v) => v?.length > 4 ? v.slice(0, 2) + "******" + v.slice(-2) : v;
-            const clean = (v) => (v && v !== "#REF!") ? v : "";
+    else if (isCashback) {
 
-            if (status === "loading") return <div className="h-screen bg-[#010413] flex items-center justify-center text-yellow-500 font-black italic tracking-widest uppercase">DPSG LOADING...</div>;
+        setPrizeDisplay({
+            img: imgLink,
+            msg:"Cashback Reward",
+            isLocked:false,
+            type:"cashback"
+        });
 
-            return (
-                <div className="min-h-screen p-4 sm:p-8 text-center overflow-x-hidden">
-                    <div className="max-w-md mx-auto no-print flex justify-between items-center mb-8 border-b border-white/10 pb-4 text-[10px] font-black uppercase tracking-widest">
-                        <div className="leading-tight text-left">{time.toLocaleDateString()} <br/><span className="text-blue-500 italic">{time.toLocaleTimeString()}</span></div>
-                        <div className="flex bg-white/5 p-1 rounded-xl">
-                            <button onClick={() => setLang('hi')} className={`px-4 py-1.5 rounded-lg ${lang === 'hi' ? 'bg-white text-black' : 'text-gray-500'}`}>हिन्दी</button>
-                            <button onClick={() => setLang('en')} className={`px-4 py-1.5 rounded-lg ${lang === 'en' ? 'bg-white text-black' : 'text-gray-500'}`}>ENGLISH</button>
-                        </div>
-                    </div>
+    }
 
-                    <div className="max-w-md mx-auto">
-                        {status === "search" ? (
-                            <div className="bg-white/5 border border-white/10 p-10 rounded-[3.5rem] shadow-2xl text-center">
-                                <i className="fa-solid fa-qrcode text-6xl text-blue-500 mb-8 animate-pulse"></i>
-                                <h2 className="text-xl font-black mb-10 tracking-widest uppercase italic leading-none">{t.idLabel}</h2>
-                                <input id="sid" type="text" placeholder="ID दर्ज करें" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center text-xl font-bold mb-10 text-white outline-none focus:border-blue-500" />
-                                <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-white shadow-xl active:scale-95 transition-all">विवरण देखें</button>
-                            </div>
-                        ) : (
-                            <div className="space-y-12 animate-in zoom-in duration-700">
-                                <div className="text-center">
-                                    <h1 className="text-2xl font-black uppercase tracking-tighter italic leading-none">{t.brand}</h1>
-                                    <p className="text-yellow-500 font-bold tracking-widest mt-2 uppercase">{t.service}</p>
-                                    <p className="text-[13px] text-blue-400 font-bold mt-4 uppercase italic underline underline-offset-4 decoration-blue-500/30">{t.slogan}</p>
-                                    <p className="text-[10px] text-gray-500 font-black uppercase mt-1 tracking-widest leading-none">{t.subSlogan}</p>
-                                </div>
+    else {
 
-                                <div className={`text-center ${prizeDisplay.type !== 'loss' && !prizeDisplay.isLocked ? 'winner-peela-glow' : 'bg-white/5 border border-white/10 p-8 rounded-[3rem]'}`}>
-                                    {prizeDisplay.isLocked ? (
-                                        <div className="py-6"><i className="fa-solid fa-lock text-4xl text-[#fbbf24] mb-4"></i><h2 className="text-2xl font-bold italic">{prizeDisplay.msg}</h2></div>
-                                    ) : (
-                                        <div className="p-4">
-                                            {prizeDisplay.type === 'winner' && <h2 className="text-yellow-500 font-black text-2xl uppercase tracking-tighter mb-4 italic">{t.winnerTitle}</h2>}
-                                            {prizeDisplay.type === 'gift' && <h2 className="text-blue-400 font-black text-2xl uppercase tracking-tighter mb-4 italic">{t.giftTitle}</h2>}
-                                            {prizeDisplay.type === 'cashback' && <h2 className="text-green-400 font-black text-2xl uppercase tracking-tighter mb-4 italic">{t.cashbackTitle}</h2>}
-                                            
-                                            <div className="bg-white/5 rounded-[2.5rem] p-6 border border-white/10 mb-6 shadow-inner">
-                                                <p className="text-gray-400 text-[10px] uppercase font-black mb-2 tracking-widest">{t.prizeLabel}</p>
-                                                <p className="text-white text-3xl font-black italic underline decoration-yellow-500 underline-offset-8 uppercase leading-tight">{prizeDisplay.msg}</p>
-                                            </div>
-                                            
-                                            {/* IMAGE DISPLAY WITH THUMBNAIL LOGIC */}
-                                            {prizeDisplay.img && (
-                                                <div className="prize-image-display">
-                                                    {!imgError ? (
-                                                        <img 
-                                                            src={prizeDisplay.img} 
-                                                            alt="Prize Photo" 
-                                                            onError={() => setImgError(true)}
-                                                        />
-                                                    ) : (
-                                                        <div className="p-10 text-gray-500 font-bold italic border border-dashed border-gray-700 rounded-xl">
-                                                            <i className="fa-solid fa-image-slash text-3xl mb-2"></i><br/>
-                                                            Image Not Available
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
+        setPrizeDisplay({
+            img: imgLink,
+            msg:"Better Luck Next Time",
+            isLocked:false,
+            type:"loss"
+        });
 
-                                <div id="receipt" className="receipt-card bg-white text-slate-900 rounded-[3.5rem] p-10 shadow-2xl relative text-left">
-                                    <div className="text-center border-b-2 border-dashed border-slate-200 pb-8 mb-10 text-slate-900 leading-none">
-                                        <h3 className="font-black text-3xl text-blue-700 italic uppercase tracking-tighter">{t.receipt}</h3>
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em] mt-3 italic text-center">NIMBAHERA, RAJASTHAN</p>
-                                    </div>
-                                    <div className="space-y-12 leading-none">
-                                        <div className="flex justify-between items-start border-b pb-8">
-                                            <div><p className="text-[10px] text-slate-400 font-black uppercase italic">ID (Identity)</p><p className="text-2xl font-black text-slate-950 uppercase mt-1">{clean(member[1])}</p></div>
-                                            <div className="text-right"><p className="text-[10px] text-slate-400 font-black uppercase italic">Category</p><p className="text-[11px] font-black text-blue-700 uppercase mt-1 italic leading-none">{clean(member[3])}</p></div>
-                                        </div>
-                                        <div className="bg-blue-600 rounded-[3.5rem] p-10 text-center text-white shadow-2xl relative overflow-hidden">
-                                            <p className="text-[11px] font-black uppercase opacity-70 mb-2 italic tracking-widest">{t.points}</p>
-                                            <span className="text-8xl font-black tracking-tighter leading-none">{clean(member[21])}</span>
-                                            <div className="grid grid-cols-2 gap-4 mt-12 pt-10 border-t border-white/10 text-[10px] font-black uppercase">
-                                                <div className="text-center">कुल आवंटित<p className="text-xl font-black mt-1 leading-none">{clean(member[18])}</p></div>
-                                                <div className="border-l border-white/10 text-center">कुल उपयोग<p className="text-xl font-black mt-1 leading-none">{(parseInt(member[19]) || 0) + (parseInt(member[20]) || 0)}</p></div>
-                                            </div>
-                                        </div>
-                                        <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 shadow-inner text-left">
-                                            <p className="text-[10px] font-black text-blue-700 uppercase mb-4 italic flex items-center leading-none italic"><i className="fa-solid fa-crown mr-2 text-xs"></i> विशेष कार्ड सुविधायें</p>
-                                            <div className="space-y-1">
-                                                {(() => {
-                                                    const s = clean(member[3]).toLowerCase();
-                                                    let bKey = (s.includes("vip") || s.includes("500")) ? "VIP" : (s.includes("gold") || s.includes("100")) ? "Gold" : "Silver";
-                                                    return cardSpecs[bKey][lang].map((ben, i) => (
-                                                        <div key={i} className="flex items-start text-[11px] font-bold italic py-2 border-b border-slate-200/50 last:border-0 leading-tight"><i className="fa-solid fa-circle-check text-green-500 mt-1 mr-3 text-[10px]"></i>{ben}</div>
-                                                    ));
-                                                })()}
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-3 bg-slate-100 p-8 rounded-[3rem] text-center font-black leading-none text-[10px]">
-                                            <div><p className="text-slate-400 uppercase italic mb-1">{t.active}</p><p className="text-slate-950 font-black">{clean(member[15])}</p></div>
-                                            <div className="border-x border-slate-200"><p className="text-red-500 uppercase italic mb-1">{t.expiry}</p><p className="text-red-600 font-black">{clean(member[16])}</p></div>
-                                            <div><p className="text-green-600 uppercase italic mb-1">{t.left}</p><p className="text-green-600 font-black">{clean(member[17])}</p></div>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-y-12 py-10 border-y border-slate-100 leading-none">
-                                            <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic text-left">Customer Name</p><p className="text-[18px] font-black uppercase italic text-slate-900 leading-tight">{clean(member[8])}</p></div>
-                                            <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Village</p><p className="text-[18px] font-black uppercase italic text-slate-900 leading-tight">{clean(member[5])}</p></div>
-                                            <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic text-left">Mobile (Secure)</p><p className="text-[15px] font-bold tracking-widest mt-1 uppercase">{mask(member[9])}</p></div>
-                                            <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Aadhar (Secure)</p><p className="text-[15px] font-bold tracking-widest mt-1 uppercase">{mask(member[11])}</p></div>
-                                        </div>
-                                        <div className="bg-slate-950 text-white p-8 rounded-[2.5rem] text-center shadow-2xl relative leading-none">
-                                            <p className="text-[11px] font-black uppercase opacity-50 tracking-widest mb-3 italic leading-none">{t.draw}</p>
-                                            <p className="text-3xl font-black text-yellow-500 italic uppercase tracking-tighter leading-none">{clean(member[36])}</p>
-                                        </div>
-                                        <div className="bg-slate-50 p-10 rounded-[3rem] border border-slate-200 text-left shadow-inner">
-                                            <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-6 border-b border-slate-200 pb-3 flex items-center leading-none italic"><i className="fa-solid fa-scale-balanced mr-3 text-blue-600"></i> {t.terms}</h4>
-                                            <div className="space-y-6 text-slate-600 font-bold italic text-[10px] leading-relaxed">
-                                                <p>०१. {t.t1}</p><p>०२. {t.t2}</p><p>०३. {t.t3}</p><p>०४. {t.t4}</p><p>०५. {t.t5}</p>
-                                            </div>
-                                        </div>
-                                        <button onClick={()=>window.print()} className="no-print w-full bg-slate-900 text-white py-6 rounded-full text-[12px] font-black uppercase shadow-2xl active:scale-95 transition-all">PRINT OFFICIAL RECEIPT</button>
-                                    </div>
-                                </div>
+    }
 
-                                {/* मास्टर एडमिन - ३९ कॉलम्स */}
-                                <div className="no-print pt-32 pb-20 flex flex-col items-center">
-                                    {!isAdmin && <button onClick={()=>setShowAdminPanel(!showAdminPanel)} className="opacity-10 hover:opacity-40 transition-all p-8 bg-white/5 rounded-full shadow-2xl"><i className="fa-solid fa-fingerprint text-4xl"></i></button>}
-                                    {showAdminPanel && !isAdmin && (
-                                        <form onSubmit={(e)=>{e.preventDefault(); pinInput === MASTER_PIN ? setIsAdmin(true) : alert("पासवर्ड गलत है!");}} className="mt-8 bg-white/5 p-10 rounded-[3.5rem] border border-white/10 w-full animate-in zoom-in shadow-2xl">
-                                            <p className="text-[11px] font-black text-blue-400 uppercase tracking-widest mb-6 text-center italic leading-none">{t.auth}</p>
-                                            <input type="password" onChange={(e)=>setPinInput(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-2xl px-8 py-5 text-xl font-bold tracking-[1em] text-white text-center outline-none mb-4 focus:border-blue-500 transition-all" placeholder="PIN" />
-                                            <button type="submit" className="w-full bg-blue-600 py-6 rounded-2xl text-[12px] font-black uppercase text-white shadow-xl">UNLOCK MASTER DASHBOARD</button>
-                                        </form>
-                                    )}
-                                    {isAdmin && (
-                                        <div className="w-full mt-10 bg-white/5 border border-white/10 rounded-[3.5rem] p-12 shadow-2xl text-left animate-in fade-in">
-                                            <div className="flex justify-between items-center mb-12 pb-8 border-b border-white/10 text-white uppercase italic leading-none text-center">
-                                                <h3 className="text-[13px] font-black text-blue-400 tracking-widest italic leading-none uppercase">Master Data (39 Columns)</h3>
-                                                <button onClick={()=>setIsAdmin(false)} className="bg-red-500/10 text-red-500 px-6 py-2 rounded-full font-black text-[10px] border border-red-500/20 active:scale-95">LOGOUT</button>
-                                            </div>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[800px] overflow-y-auto pr-4 custom-scroll">
-                                                {member.map((val, i) => (
-                                                    <div key={i} className="p-5 rounded-2xl bg-white/5 border border-white/10 group transition-all hover:bg-white/10">
-                                                        <p className="text-[9px] text-blue-400 uppercase font-black tracking-widest mb-2 opacity-70 leading-none">{headers[i] || `Col Index ${i}`}</p>
-                                                        <p className="text-[15px] font-bold italic leading-relaxed text-white">{val || "---"}</p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-</body>
-</html>
+},[]);
