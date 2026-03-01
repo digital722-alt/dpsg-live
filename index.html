@@ -24,37 +24,37 @@
             .receipt-card { border: none !important; box-shadow: none !important; margin: 0 !important; width: 100% !important; }
         }
 
-        /* पीला ग्लो - विजेताओं के लिए */
+        /* विजेता पीला ग्लो स्टाइल */
         .winner-peela-glow { 
-            border: 4px solid #fbbf24; 
-            box-shadow: 0 0 80px rgba(251, 191, 36, 0.5); 
-            border-radius: 2rem; 
+            border: 5px solid #fbbf24; 
+            box-shadow: 0 0 100px rgba(251, 191, 36, 0.6); 
+            border-radius: 2.5rem; 
             background: rgba(2, 6, 23, 0.98); 
             padding: 2.5rem;
             animation: pulse-glow 2s infinite;
         }
 
         @keyframes pulse-glow {
-            0% { box-shadow: 0 0 50px rgba(251, 191, 36, 0.3); }
-            50% { box-shadow: 0 0 100px rgba(251, 191, 36, 0.6); }
-            100% { box-shadow: 0 0 50px rgba(251, 191, 36, 0.3); }
+            0% { box-shadow: 0 0 60px rgba(251, 191, 36, 0.4); }
+            50% { box-shadow: 0 0 120px rgba(251, 191, 36, 0.7); }
+            100% { box-shadow: 0 0 60px rgba(251, 191, 36, 0.4); }
         }
 
-        .spinner { border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #fbbf24; border-radius: 50%; width: 45px; height: 45px; animation: spin 0.8s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* फोटो फ्रेम - ओरिजिनल और फुल साइज */
+        /* ओरिजिनल फोटो फ्रेम */
         .prize-image-display { 
             width: 100%; 
-            max-width: 850px; 
-            margin: 0 auto; 
+            max-width: 1000px; 
+            margin: 20px auto; 
             background: #000; 
-            border-radius: 1.5rem; 
+            border-radius: 2rem; 
             overflow: hidden; 
-            border: 6px solid #fbbf24; 
-            box-shadow: 0 30px 60px rgba(0,0,0,0.9);
+            border: 8px solid #fbbf24; 
+            box-shadow: 0 40px 80px rgba(0,0,0,0.9);
         }
         .prize-image-display img { width: 100%; height: auto; display: block; object-fit: contain; }
+
+        .spinner { border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #fbbf24; border-radius: 50%; width: 50px; height: 50px; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .custom-scroll::-webkit-scrollbar { width: 5px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
@@ -66,11 +66,26 @@
     <script type="text/babel">
         const { useState, useEffect, useCallback } = React;
 
-        // --- मास्टर डेटा ---
+        // --- मास्टर सेटिंग्स ---
         const SHEET_ID = "1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo";
         const MAIN_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
         const MAPPING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";
         const MASTER_PIN = "Chanchal@6375"; 
+
+        // गूगल ड्राइव लिंक को डायरेक्ट फोटो लिंक में बदलने वाला जादू (Helper)
+        const toDirectLink = (url) => {
+            if (!url) return "";
+            if (url.includes("drive.google.com")) {
+                let id = "";
+                if (url.includes("id=")) {
+                    id = url.split("id=")[1].split("&")[0];
+                } else {
+                    id = url.split("/d/")[1].split("/")[0];
+                }
+                return `https://drive.google.com/uc?export=view&id=${id}`;
+            }
+            return url;
+        };
 
         const App = () => {
             const [lang, setLang] = useState('hi');
@@ -84,13 +99,12 @@
             const [pinInput, setPinInput] = useState("");
             const [showAdminPanel, setShowAdminPanel] = useState(false);
 
-            // वोकैबुलरी (100% Original)
             const vocab = {
                 hi: {
                     brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", service: "डिजिटल सेवा",
                     slogan: "समस्या आपकी, समाधान हमारा !", subSlogan: "उचित मूल्य, बेहतरीन सेवा !",
                     idLabel: "मेंबरशिप आईडी दर्ज करें", receipt: "प्रोफेशनल डिजिटल रसीद",
-                    winnerTitle: "बधाई हो! आप विजेता हैं", giftTitle: "मुबारक हो! आपको उपहार मिला है", cashbackTitle: "खुशखबरी! आपको कैशबैक मिला है",
+                    winnerTitle: "बधाई हो! आप विजेता हैं", giftTitle: "मुबारक हो! आपको उपहार मिला है", cashbackTitle: "बधाई हो! आपको कैशबैक मिला है",
                     prizeLabel: "घोषित इनाम", print: "प्रिंट रसीद", auth: "एडमिन मास्टर वेरिफिकेशन", terms: "नियम व शर्तें",
                     points: "सर्विस पॉइंट्स", active: "सक्रियण", expiry: "समाप्ति", left: "शेष दिन", draw: "लकी ड्रा तिथि"
                 },
@@ -105,53 +119,52 @@
             };
 
             const cardSpecs = {
-                VIP: { hi: ["कीमत: ₹500 (वैधता: 6 महीने)", "उपयोग: परिवार हेतु", "कोटा: 150 प्रिंट + 80 फोटो", "लैमिनेशन: 5 फ्री", "ई-मित्र: 100% फ्री", "डिलीवरी: 2 FREE", "इनाम: ₹100 वापस!"], en: ["Price: ₹500 (6 Months)", "Usage: Family", "Quota: 150 Prints + 80 Photos", "Lamination: 5 Free", "E-Mitra: 100% Free", "Delivery: 2 FREE", "Reward: ₹100 Cashback"] },
-                Gold: { hi: ["कीमत: ₹100 (वैधता: 3 महीने)", "उपयोग: केवल 1 व्यक्ति", "कोटा: 40 प्रिंट + 24 फोटो", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट", "डिलीवरी: 1 बार", "इनाम: 100% उपहार!"], en: ["Price: ₹100 (3 Months)", "Usage: Individual", "Quota: 40 Prints + 24 Photos", "Lamination: 1 Free", "E-Mitra: 50% Off", "Delivery: 1 Time", "Reward: 100% Gift"] },
-                Silver: { hi: ["कीमत: ₹50 (वैधता: 1 महीना)", "उपयोगः केवल 1 व्यक्ति", "कोटा: 15 प्रिंट + 12 फोटो", "ई-मित्रः सीमित", "डिलीवरी: 1 बार", "इनाम: लकी ड्रा अवसर!"], en: ["Price: ₹50 (1 Month)", "Usage: Individual", "Quota: 15 Prints + 12 Photos", "E-Mitra: Limited", "Delivery: 1 Time", "Reward: Luck Draw"] }
+                VIP: { hi: ["₹500 (6 महीने)", "परिवार हेतु", "150 प्रिंट + 80 फोटो", "5 फ्री लैमिनेशन", "100% फ्री ई-मित्र", "2 फ्री डिलीवरी", "₹100 वापस!"], en: ["₹500 (6 Months)", "Family", "150 Prints + 80 Photos", "5 Lamination", "100% Free Mitra", "2 Delivery", "₹100 Cashback"] },
+                Gold: { hi: ["₹100 (3 महीने)", "1 व्यक्ति हेतु", "40 प्रिंट + 24 फोटो", "1 फ्री लैमिनेशन", "50% छूट ई-मित्र", "1 फ्री डिलीवरी", "100% उपहार!"], en: ["₹100 (3 Months)", "Individual", "40 Prints + 24 Photos", "1 Lamination", "50% Off Mitra", "1 Delivery", "100% Gift"] },
+                Silver: { hi: ["₹50 (1 महीना)", "1 व्यक्ति हेतु", "15 प्रिंट + 12 फोटो", "सीमित ई-मित्र सेवा", "1 फ्री डिलीवरी", "लकी ड्रा अवसर!"], en: ["₹50 (1 Month)", "Individual", "15 Prints + 12 Photos", "Limited Mitra", "1 Delivery", "Luck Draw"] }
             };
 
             const t = vocab[lang];
 
-            // --- स्मार्ट इनाम मैपिंग - STRICT & POWERFUL LOGIC ---
+            // रिवॉर्ड मैपिंग - STRICT AND FIXED FOR CASHBACK/PHOTOS
             const mapPrizeDetails = useCallback((userRow, maps) => {
                 const mID = (userRow[1] || "").toString().toLowerCase().trim();
                 const pNameExcel = (userRow[3] || "").toString().trim();
                 const dDateStr = (userRow[36] || "").toString().trim();
-                const statusExcel = (userRow[38] || "").toString().toLowerCase().trim();
+                const statusStr = (userRow[38] || "").toString().toLowerCase().trim();
 
                 const today = new Date();
                 const drawDate = dDateStr ? new Date(dDateStr) : null;
                 
-                // ड्रा की तारीख का ताला
                 if (!dDateStr || drawDate > today) {
-                    setPrizeDisplay({ img: "", msg: dDateStr ? `धैर्य रखें! परिणाम ${dDateStr} को घोषित होगा` : "परिणाम जल्द घोषित होगा", isLocked: true, type: "normal" });
+                    setPrizeDisplay({ img: "", msg: dDateStr ? `परिणाम ${dDateStr} को खुलेगा` : "परिणाम जल्द घोषित होगा", isLocked: true, type: "normal" });
                     return;
                 }
 
-                // सटीक कीवर्ड मिलान
-                const isWinner = ["win", "winner", "विजेता", "जीत"].some(k => statusExcel.includes(k));
-                const isGift = ["gift", "गिफ्ट", "उपहार"].some(k => statusExcel.includes(k));
-                const isCashback = ["cash", "cashback", "कैश", "कैशबैक"].some(k => statusExcel.includes(k));
+                // सटीक मिलान
+                const isWinner = ["win", "winner", "विजेता", "जीत"].some(k => statusStr.includes(k));
+                const isGift = ["gift", "गिफ्ट", "उपहार"].some(k => statusStr.includes(k));
+                const isCashback = ["cash", "cashback", "कैश", "कैशबैक"].some(k => statusStr.includes(k));
 
                 if (isWinner) {
                     const match = maps.find(m => m.Inam_Name?.toLowerCase().trim() === pNameExcel.toLowerCase() && m.Membership_ID?.toLowerCase().trim() === mID);
-                    setPrizeDisplay({ img: match?.Image_Link || "", msg: pNameExcel, isLocked: false, type: "winner" });
-                    if(match) confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 }, colors: ['#fbbf24', '#ffffff'] });
+                    setPrizeDisplay({ img: toDirectLink(match?.Image_Link), msg: pNameExcel, isLocked: false, type: "winner" });
+                    if(match) confetti({ particleCount: 250, spread: 100, origin: { y: 0.6 } });
                 } else if (isGift) {
                     const g = maps.find(m => m.Match_Name === "Common_Gift");
-                    setPrizeDisplay({ img: g?.Image_Link || "", msg: pNameExcel || "डिजिटल सेवा उपहार", isLocked: false, type: "gift" });
+                    setPrizeDisplay({ img: toDirectLink(g?.Image_Link), msg: pNameExcel || "डिजिटल सेवा उपहार", isLocked: false, type: "gift" });
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.7 }, colors: ['#3b82f6', '#ffffff'] });
                 } else if (isCashback) {
                     const c = maps.find(m => m.Match_Name === "Cashback_Reward");
-                    setPrizeDisplay({ img: c?.Image_Link || "", msg: pNameExcel || "नकद कैशबैक इनाम", isLocked: false, type: "cashback" });
+                    setPrizeDisplay({ img: toDirectLink(c?.Image_Link), msg: pNameExcel || "नकद कैशबैक इनाम", isLocked: false, type: "cashback" });
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.7 }, colors: ['#10b981', '#ffffff'] });
                 } else {
                     const l = maps.find(m => m.Match_Name === "Better_Luck");
-                    setPrizeDisplay({ img: l?.Image_Link || "", msg: "हौसला रखें! अगली बार पक्का बड़ा इनाम आपका होगा।", isLocked: false, type: "loss" });
+                    setPrizeDisplay({ img: toDirectLink(l?.Image_Link), msg: "हौसला रखें! अगली बार पक्का बड़ा इनाम आपका होगा।", isLocked: false, type: "loss" });
                 }
             }, []);
 
-            // --- आपके द्वारा दिया गया 'स्टेबल लोडिंग' इंजन ---
+            // तेज़ ऑटो-ओपन इंजन (The code that worked)
             useEffect(() => {
                 const clock = setInterval(() => setTime(new Date()), 1000);
                 async function startSystem(){
@@ -211,16 +224,14 @@
                     </div>
 
                     <div className="max-w-md mx-auto">
-                        {status === "search" && (
-                            <div className="bg-white/5 border border-white/10 p-10 rounded-[3.5rem] shadow-2xl text-center animate-in zoom-in">
+                        {status === "search" ? (
+                            <div className="bg-white/5 border border-white/10 p-10 rounded-[3.5rem] shadow-2xl text-center">
                                 <i className="fa-solid fa-qrcode text-6xl text-blue-500 mb-8 animate-pulse"></i>
-                                <h2 className="text-xl font-black mb-10 tracking-widest uppercase italic leading-none">{t.idLabel}</h2>
+                                <h2 className="text-xl font-black mb-10 tracking-widest uppercase italic">{t.idLabel}</h2>
                                 <input id="sid" type="text" placeholder="ID दर्ज करें" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center text-xl font-bold mb-10 text-white outline-none focus:border-blue-500" />
-                                <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-white shadow-xl active:scale-95 transition-all">विवरण देखें</button>
+                                <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-white shadow-xl active:scale-95 transition-all">SEARCH</button>
                             </div>
-                        )}
-
-                        {status === "view" && member && (
+                        ) : (
                             <div className="space-y-12 animate-in zoom-in duration-700">
                                 <div className="text-center">
                                     <h1 className="text-2xl font-black uppercase tracking-tighter italic leading-none">{t.brand}</h1>
@@ -229,21 +240,29 @@
                                     <p className="text-[10px] text-gray-500 font-black uppercase mt-1 tracking-widest leading-none">{t.subSlogan}</p>
                                 </div>
 
-                                {/* इनाम सेक्शन - अब मज़बूत संदेशों के साथ */}
+                                {/* इनाम सेक्शन - बड़ी फोटो और सही संदेश */}
                                 <div className={`text-center ${prizeDisplay.type !== 'loss' && !prizeDisplay.isLocked ? 'winner-peela-glow' : 'bg-white/5 border border-white/10 p-8 rounded-[3rem]'}`}>
                                     {prizeDisplay.isLocked ? (
                                         <div className="py-6"><i className="fa-solid fa-lock text-4xl text-[#fbbf24] mb-4"></i><h2 className="text-2xl font-bold italic">{prizeDisplay.msg}</h2></div>
                                     ) : (
-                                        <div className="p-4">
-                                            {prizeDisplay.type === 'winner' && <h2 className="text-yellow-500 font-black text-2xl uppercase tracking-tighter mb-4 italic">{t.winnerTitle}</h2>}
-                                            {prizeDisplay.type === 'gift' && <h2 className="text-blue-400 font-black text-2xl uppercase tracking-tighter mb-4 italic">{t.giftTitle}</h2>}
-                                            {prizeDisplay.type === 'cashback' && <h2 className="text-green-400 font-black text-2xl uppercase tracking-tighter mb-4 italic">{t.cashbackTitle}</h2>}
+                                        <div className="p-2">
+                                            {prizeDisplay.type === 'winner' && <h2 className="text-yellow-500 font-black text-3xl uppercase tracking-tighter mb-4 italic">{t.winnerTitle}</h2>}
+                                            {prizeDisplay.type === 'gift' && <h2 className="text-blue-400 font-black text-3xl uppercase tracking-tighter mb-4 italic">{t.giftTitle}</h2>}
+                                            {prizeDisplay.type === 'cashback' && <h2 className="text-green-400 font-black text-3xl uppercase tracking-tighter mb-4 italic">{t.cashbackTitle}</h2>}
                                             
                                             <div className="bg-white/5 rounded-[2.5rem] p-6 border border-white/10 mb-6 shadow-inner">
                                                 <p className="text-gray-400 text-[10px] uppercase font-black mb-2 tracking-widest">{t.prizeLabel}</p>
-                                                <p className="text-white text-3xl font-black italic underline decoration-yellow-500 underline-offset-8 uppercase leading-tight">{prizeDisplay.msg}</p>
+                                                <p className="text-white text-4xl font-black italic underline decoration-yellow-500 underline-offset-8 uppercase leading-tight">{prizeDisplay.msg}</p>
                                             </div>
-                                            {prizeDisplay.img && <div className="prize-image-display"><img src={prizeDisplay.img} alt="Drive Prize Photo" /></div>}
+                                            {prizeDisplay.img && (
+                                                <div className="prize-image-display">
+                                                    <img 
+                                                        src={prizeDisplay.img} 
+                                                        alt="Original Prize Photo" 
+                                                        onError={(e) => { e.target.style.display = 'none'; }}
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -259,9 +278,8 @@
                                             <div><p className="text-[10px] text-slate-400 font-black uppercase italic">ID (Identity)</p><p className="text-2xl font-black text-slate-950 uppercase mt-1">{clean(member[1])}</p></div>
                                             <div className="text-right"><p className="text-[10px] text-slate-400 font-black uppercase italic">Category</p><p className="text-[11px] font-black text-blue-700 uppercase mt-1 italic leading-none">{clean(member[3])}</p></div>
                                         </div>
-                                        {/* पॉइंट्स घेरा */}
                                         <div className="bg-blue-600 rounded-[3.5rem] p-10 text-center text-white shadow-2xl relative overflow-hidden">
-                                            <p className="text-[11px] font-black uppercase opacity-70 mb-2 italic tracking-widest">{t.points}</p>
+                                            <p className="text-[11px] font-black uppercase opacity-80 mb-2 italic tracking-widest">{t.points}</p>
                                             <span className="text-8xl font-black tracking-tighter leading-none">{clean(member[21])}</span>
                                             <div className="grid grid-cols-2 gap-4 mt-12 pt-10 border-t border-white/10 text-[10px] font-black uppercase">
                                                 <div className="text-center">कुल आवंटित<p className="text-xl font-black mt-1 leading-none">{clean(member[18])}</p></div>
@@ -305,11 +323,11 @@
                                     </div>
                                 </div>
 
-                                {/* एडमिन कंट्रोल - ३९ कॉलम्स */}
+                                {/* मास्टर एडमिन */}
                                 <div className="no-print pt-32 pb-20 flex flex-col items-center">
                                     {!isAdmin && <button onClick={()=>setShowAdminPanel(!showAdminPanel)} className="opacity-10 hover:opacity-40 transition-all p-8 bg-white/5 rounded-full shadow-2xl"><i className="fa-solid fa-fingerprint text-4xl"></i></button>}
                                     {showAdminPanel && !isAdmin && (
-                                        <form onSubmit={(e)=>{e.preventDefault(); pinInput === MASTER_PIN ? setIsAdmin(true) : alert("पासवर्ड गलत है!");}} className="mt-8 bg-white/5 p-10 rounded-[3.5rem] border border-white/10 w-full animate-in zoom-in shadow-2xl">
+                                        <form onSubmit={(e)=>{e.preventDefault(); pinInput === MASTER_PIN ? setIsAdmin(true) : alert("पासवर्ड गलत है!");}} className="mt-8 bg-white/5 p-10 rounded-[3.5rem] border border-white/10 w-full animate-in zoom-in shadow-2xl backdrop-blur-md">
                                             <p className="text-[11px] font-black text-blue-400 uppercase tracking-widest mb-6 text-center italic leading-none">{t.auth}</p>
                                             <input type="password" onChange={(e)=>setPinInput(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-2xl px-8 py-5 text-xl font-bold tracking-[1em] text-white text-center outline-none mb-4 focus:border-blue-500 transition-all" placeholder="PIN" />
                                             <button type="submit" className="w-full bg-blue-600 py-6 rounded-2xl text-[12px] font-black uppercase text-white shadow-xl">UNLOCK MASTER DASHBOARD</button>
@@ -317,7 +335,7 @@
                                     )}
                                     {isAdmin && (
                                         <div className="w-full mt-10 bg-white/5 border border-white/10 rounded-[3.5rem] p-12 shadow-2xl text-left animate-in fade-in">
-                                            <div className="flex justify-between items-center mb-12 pb-8 border-b border-white/10 text-white uppercase italic leading-none">
+                                            <div className="flex justify-between items-center mb-12 pb-8 border-b border-white/10 text-white uppercase italic leading-none text-center">
                                                 <h3 className="text-[13px] font-black text-blue-400 tracking-widest italic leading-none uppercase">Master Data (39 Columns)</h3>
                                                 <button onClick={()=>setIsAdmin(false)} className="bg-red-500/10 text-red-500 px-6 py-2 rounded-full font-black text-[10px] border border-red-500/20 active:scale-95">LOGOUT</button>
                                             </div>
