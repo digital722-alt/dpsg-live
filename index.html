@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DPSG Digital Seva - Nimbahera Official</title>
-    <!-- आवश्यक लाइब्रेरीज़ -->
+    <!-- Essential Libraries -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -14,48 +14,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        
         body { font-family: 'Inter', sans-serif; background-color: #010413; color: white; margin: 0; overflow-x: hidden; }
         .receipt-card { border: 1px solid #e2e8f0; color: #0f172a; }
-        
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; color: black !important; }
             .receipt-card { border: none !important; box-shadow: none !important; margin: 0 !important; width: 100% !important; }
         }
-
-        /* विजेता पीला ग्लो स्टाइल */
+        /* Peela Wala Winner Highlight - 100% Original Style */
         .winner-peela-glow { 
             border: 4px solid #fbbf24; 
-            box-shadow: 0 0 70px rgba(251, 191, 36, 0.45); 
+            box-shadow: 0 0 50px rgba(251, 191, 36, 0.5); 
             border-radius: 2rem; 
-            background: rgba(2, 6, 23, 0.95); 
-            padding: 2rem;
-            animation: pulse-glow 2s infinite;
+            background: #020617; 
         }
-
-        @keyframes pulse-glow {
-            0% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.3); }
-            50% { box-shadow: 0 0 80px rgba(251, 191, 36, 0.6); }
-            100% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.3); }
-        }
-
         .spinner { border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #fbbf24; border-radius: 50%; width: 45px; height: 45px; animation: spin 0.8s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* फोटो डिस्प्ले फ्रेम */
-        .prize-image-frame { 
-            width: 100%; 
-            max-width: 700px; 
-            margin: 0 auto; 
-            background: #000; 
-            border-radius: 1.5rem; 
-            overflow: hidden; 
-            border: 5px solid #fbbf24; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-        }
-        .prize-image-frame img { width: 100%; height: auto; display: block; object-fit: contain; }
-
+        .prize-image-box { width: 100%; max-width: 600px; margin: 0 auto; aspect-ratio: 4/3; background: #000; border-radius: 1.5rem; overflow: hidden; position: relative; border: 2px solid rgba(251, 191, 36, 0.3); display: flex; align-items: center; justify-content: center; }
+        .prize-image-box img { width: 100%; height: 100%; object-fit: contain; }
         .custom-scroll::-webkit-scrollbar { width: 5px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
@@ -66,10 +42,10 @@
     <script type="text/babel">
         const { useState, useEffect, useCallback } = React;
 
-        // मास्टर सेटिंग्स
+        // --- मास्टर सेटिंग्स (Hukum Zorawar Singh Ji - Based on Old Code) ---
         const SHEET_ID = "1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo";
-        const MAIN_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
-        const MAPPING_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";
+        const MAIN_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+        const MAPPING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";
         const MASTER_PIN = "Chanchal@6375"; 
 
         const App = () => {
@@ -77,14 +53,14 @@
             const [status, setStatus] = useState("loading");
             const [member, setMember] = useState(null);
             const [headers, setHeaders] = useState([]);
-            const [prizeData, setPrizeData] = useState({ img: "", msg: "", isLocked: true });
+            const [prizeDisplay, setPrizeDisplay] = useState({ img: "", msg: "", isLocked: true });
             
             const [isAdmin, setIsAdmin] = useState(false);
             const [pinInput, setPinInput] = useState("");
             const [showAdminPanel, setShowAdminPanel] = useState(false);
             const [time, setTime] = useState(new Date());
 
-            // मूल शब्दावली (Vocab)
+            // मूल शब्दावली (Vocab) - 100% Same as Old Code
             const vocab = {
                 hi: {
                     brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", service: "डिजिटल सेवा",
@@ -131,111 +107,107 @@
                 }
             };
 
-            // स्मार्ट इनाम मिलान इंजन
-            const calculatePrize = useCallback((userRow, mapping) => {
-                const membershipId = (userRow[1] || "").toString().toLowerCase().trim();
-                const currentPrizeName = (userRow[3] || "").toString().trim();
-                const drawDateStr = (userRow[36] || "").toString().trim();
-                const statusStr = (userRow[38] || "").toString().toLowerCase().trim();
+            // --- स्मार्ट इनाम मैपिंग इंजन ---
+            const processSmartReward = useCallback((userRow, maps) => {
+                const mID = (userRow[1] || "").toString().toLowerCase().trim();
+                const pNameExcel = (userRow[3] || "").toString().trim();
+                const drawDateExcel = (userRow[36] || "").toString().trim();
+                const statusExcel = (userRow[38] || "").toString().toLowerCase().trim();
 
                 const today = new Date();
-                const drawDate = drawDateStr ? new Date(drawDateStr) : null;
+                const drawDate = drawDateExcel ? new Date(drawDateExcel) : null;
                 
-                // ड्रा तारीख का ताला
-                if (!drawDateStr || drawDate > today) {
-                    setPrizeData({ 
+                // तारीख का ताला (Hukum ki Shart)
+                if (!drawDateExcel || drawDate > today) {
+                    setPrizeDisplay({ 
                         img: "", 
-                        msg: drawDateStr ? `परिणाम ${drawDateStr} को घोषित किया जाएगा` : "परिणाम जल्द ही घोषित होगा", 
+                        msg: drawDateExcel ? `परिणाम ${drawDateExcel} को घोषित होगा` : "परिणाम जल्द ही घोषित होगा", 
                         isLocked: true 
                     });
                     return;
                 }
 
-                const winTypes = ["win", "winner", "विजेता", "जीत"];
-                const giftTypes = ["gift", "गिफ्ट", "उपहार"];
-                const cashbackTypes = ["cashback", "कैशबैक"];
+                const winKeys = ["win", "winner", "विजेता", "जीत"];
+                const giftKeys = ["gift", "गिफ्ट", "उपहार"];
+                const cashbackKeys = ["cashback", "कैशबैक"];
 
-                if (winTypes.some(k => statusStr.includes(k))) {
-                    const match = mapping.find(m => 
-                        m.Inam_Name?.toLowerCase().trim() === currentPrizeName.toLowerCase() &&
-                        m.Membership_ID?.toLowerCase().trim() === membershipId
+                if (winKeys.some(k => statusExcel.includes(k))) {
+                    const match = maps.find(m => 
+                        m.Inam_Name?.toLowerCase().trim() === pNameExcel.toLowerCase() &&
+                        m.Membership_ID?.toLowerCase().trim() === mID
                     );
                     if (match) {
-                        setPrizeData({ img: match.Image_Link, msg: "बधाई हो! आप हमारे गौरवशाली विजेता हैं।", isLocked: false });
+                        setPrizeDisplay({ img: match.Image_Link, msg: "बधाई हो! आप विजेता हैं।", isLocked: false });
                         confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
                     } else {
-                        setPrizeData({ img: "", msg: "विजेता डेटा सत्यापन की प्रक्रिया में है...", isLocked: false });
+                        setPrizeDisplay({ img: "", msg: "विजेता डेटा सत्यापन प्रक्रिया में है...", isLocked: false });
                     }
-                } else if (giftTypes.some(k => statusStr.includes(k))) {
-                    const giftMatch = mapping.find(m => m.Match_Name === "Common_Gift");
-                    setPrizeData({ img: giftMatch?.Image_Link, msg: "डिजिटल सेवा की ओर से आपको यह विशेष उपहार मिलता है।", isLocked: false });
-                } else if (cashbackTypes.some(k => statusStr.includes(k))) {
-                    const cbMatch = mapping.find(m => m.Match_Name === "Cashback_Reward");
-                    setPrizeData({ img: cbMatch?.Image_Link, msg: "मुबारक हो! आपको डिजिटल सेवा पर कैशबैक इनाम मिला है।", isLocked: false });
+                } else if (giftKeys.some(k => statusExcel.includes(k))) {
+                    const g = maps.find(m => m.Match_Name === "Common_Gift");
+                    setPrizeDisplay({ img: g?.Image_Link, msg: "डिजिटल सेवा की ओर से आपको यह उपहार मिलता है।", isLocked: false });
+                } else if (cashbackKeys.some(k => statusExcel.includes(k))) {
+                    const c = maps.find(m => m.Match_Name === "Cashback_Reward");
+                    setPrizeDisplay({ img: c?.Image_Link, msg: "मुबारक हो! आपको कैशबैक इनाम मिला है।", isLocked: false });
                 } else {
-                    const lossMatch = mapping.find(m => m.Match_Name === "Better_Luck");
-                    setPrizeData({ img: lossMatch?.Image_Link, msg: "हौसला रखें! इस बार किस्मत थोड़ी दूर रह गई, अगली बार पक्का बड़ा इनाम आपका होगा।", isLocked: false });
+                    const l = maps.find(m => m.Match_Name === "Better_Luck");
+                    setPrizeDisplay({ img: l?.Image_Link, msg: "हौसला रखें! अगली बार पक्का बड़ा इनाम आपका होगा।", isLocked: false });
                 }
             }, []);
 
-            // मुख्य डेटा इंजन (ऑटो-ओपन लॉजिक के साथ)
+            // --- डेटा लोडिंग इंजन (Auto-Open Logic) ---
             useEffect(() => {
-                const clock = setInterval(() => setTime(new Date()), 1000);
+                const timer = setInterval(() => setTime(new Date()), 1000);
                 const loadSystem = async () => {
                     try {
                         const [res1, res2] = await Promise.all([
-                            fetch(`${MAIN_CSV_URL}?cache=${Date.now()}`),
-                            fetch(MAPPING_CSV_URL)
+                            fetch(`${MAIN_CSV}?v=${Date.now()}`),
+                            fetch(MAPPING_CSV)
                         ]);
-                        const text1 = await res1.text();
-                        const text2 = await res2.text();
+                        const mainTxt = await res1.text();
+                        const mapTxt = await res2.text();
 
-                        Papa.parse(text1, {
+                        Papa.parse(mainTxt, {
                             complete: (results) => {
                                 const rows = results.data;
                                 setHeaders(rows[0] || []);
                                 
                                 // ऑटो-ओपन लॉजिक: URL से ID की पहचान
                                 const urlParams = new URLSearchParams(window.location.search);
-                                const queryId = urlParams.get('id');
+                                const qId = urlParams.get('id');
 
-                                if (queryId) {
-                                    const matchRow = rows.find(r => r[1]?.toString().toLowerCase().trim() === queryId.toLowerCase().trim());
+                                if (qId) {
+                                    const matchRow = rows.find(r => r[1]?.toString().toLowerCase().trim() === qId.toLowerCase().trim());
                                     if (matchRow) {
                                         setMember(matchRow);
-                                        Papa.parse(text2, {
+                                        Papa.parse(mapTxt, {
                                             header: true,
                                             complete: (mapResults) => {
-                                                calculatePrize(matchRow, mapResults.data);
-                                                setStatus("view"); // सीधे रसीद दिखाओ
+                                                processSmartReward(matchRow, mapResults.data);
+                                                setStatus("view"); // सीधे रसीद खोलना
                                             }
                                         });
                                     } else setStatus("search");
                                 } else setStatus("search");
                             }
                         });
-                    } catch (err) { setStatus("search"); }
+                    } catch (e) { setStatus("search"); }
                 };
                 loadSystem();
-                return () => clearInterval(clock);
-            }, [calculatePrize]);
+                return () => clearInterval(timer);
+            }, [processSmartReward]);
 
-            const maskInfo = (val) => val?.length > 4 ? val.slice(0, 2) + "******" + val.slice(-2) : val;
-            const cleanVal = (v) => (v && v !== "#REF!") ? v : "";
+            const mask = (val) => val?.length > 4 ? val.slice(0, 2) + "******" + val.slice(-2) : val;
+            const clean = (v) => (v && v !== "#REF!") ? v : "";
 
-            if (status === "loading") return <div className="h-screen bg-[#010413] flex items-center justify-center text-yellow-500 font-black tracking-widest italic">DPSG LOADING...</div>;
+            if (status === "loading") return <div className="h-screen bg-[#010413] flex items-center justify-center text-yellow-500 font-black italic">DPSG LOADING...</div>;
 
             const t = vocab[lang];
 
             return (
                 <div className="min-h-screen p-4 sm:p-8 text-center overflow-x-hidden">
-                    
-                    {/* नेविगेशन बार */}
-                    <div className="max-w-md mx-auto no-print flex justify-between items-center mb-8 border-b border-white/10 pb-4 text-[10px] font-black uppercase tracking-widest">
-                        <div className="leading-tight text-left">
-                            {time.toLocaleDateString()}
-                            <br/><span className="text-blue-500 italic">{time.toLocaleTimeString()}</span>
-                        </div>
+                    {/* Header Nav - 100% Original */}
+                    <div className="max-w-md mx-auto no-print flex justify-between items-center mb-8 border-b border-white/10 pb-4 text-[10px] font-black uppercase">
+                        <div className="leading-tight text-left">{time.toLocaleDateString()} <br/><span className="text-blue-500 italic">{time.toLocaleTimeString()}</span></div>
                         <div className="flex bg-white/5 p-1 rounded-xl">
                             <button onClick={() => setLang('hi')} className={`px-4 py-1.5 rounded-lg ${lang === 'hi' ? 'bg-white text-black' : 'text-gray-500'}`}>हिन्दी</button>
                             <button onClick={() => setLang('en')} className={`px-4 py-1.5 rounded-lg ${lang === 'en' ? 'bg-white text-black' : 'text-gray-500'}`}>ENGLISH</button>
@@ -247,47 +219,46 @@
                             <div className="bg-white/5 border border-white/10 p-10 rounded-[3.5rem] shadow-2xl text-center animate-in zoom-in">
                                 <i className="fa-solid fa-qrcode text-6xl text-blue-500 mb-8 animate-pulse"></i>
                                 <h2 className="text-xl font-black mb-10 tracking-widest uppercase italic leading-none">{t.idLabel}</h2>
-                                <input id="sid" type="text" placeholder="ID दर्ज करें" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center text-xl font-bold mb-10 text-white outline-none" />
-                                <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-white shadow-xl active:scale-95">विवरण देखें</button>
+                                <input id="sid" type="text" placeholder="ID यहाँ लिखें" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center text-xl font-bold mb-10 text-white outline-none" />
+                                <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-white shadow-xl active:scale-95 transition-all">SEARCH</button>
                             </div>
                         )}
 
                         {status === "view" && member && (
                             <div className="space-y-12 animate-in zoom-in fade-in duration-700">
-                                
-                                {/* ब्रांडिंग सेक्शन */}
+                                {/* Branding - 100% Wahi Design */}
                                 <div className="text-center">
                                     <h1 className="text-2xl font-black uppercase tracking-tighter italic leading-none">{t.brand}</h1>
                                     <p className="text-yellow-500 font-bold tracking-widest mt-2 uppercase">{t.service}</p>
-                                    <p className="text-[13px] text-blue-400 font-bold mt-4 uppercase italic underline underline-offset-4 decoration-blue-500/30">{t.slogan}</p>
+                                    <p className="text-[13px] text-blue-400 font-bold mt-4 uppercase italic underline underline-offset-4 decoration-blue-500/20">{t.slogan}</p>
                                     <p className="text-[10px] text-gray-500 font-black uppercase mt-1 tracking-widest leading-none">{t.subSlogan}</p>
                                 </div>
 
-                                {/* इनाम और ताला सेक्शन */}
-                                <div className={`text-center ${!prizeData.isLocked && prizeData.img ? 'winner-peela-glow' : 'bg-white/5 border border-white/10 p-8 rounded-[3rem]'}`}>
-                                    {prizeData.isLocked ? (
+                                {/* Winner Section - Smart Logic */}
+                                <div className={`text-center ${!prizeDisplay.isLocked && prizeDisplay.img ? 'winner-peela-glow' : 'bg-white/5 border border-white/10 p-8 rounded-[3rem]'}`}>
+                                    {prizeDisplay.isLocked ? (
                                         <div className="py-6">
                                             <i className="fa-solid fa-lock text-4xl text-yellow-500 mb-4"></i>
                                             <h2 className="text-blue-500 font-black text-xl italic mb-4 uppercase">प्रतीक्षित</h2>
-                                            <p className="text-white font-bold opacity-80 leading-relaxed">{prizeData.msg}</p>
+                                            <p className="text-white font-bold opacity-80">{prizeDisplay.msg}</p>
                                         </div>
                                     ) : (
-                                        <div className="p-4 relative">
+                                        <div className="p-4">
                                             <h2 className="text-yellow-500 font-black text-2xl uppercase tracking-tighter mb-4 italic">{t.winner}</h2>
                                             <div className="bg-white/5 rounded-[2.5rem] p-6 border border-yellow-500/20 mb-6">
-                                                <p className="text-gray-400 text-[10px] uppercase font-black mb-2 tracking-widest">{t.prizeLabel}</p>
-                                                <p className="text-white text-3xl font-black italic underline decoration-yellow-500 underline-offset-8 uppercase leading-tight">{prizeData.msg}</p>
+                                                <p className="text-gray-400 text-[10px] uppercase font-black mb-2">आपका इनाम</p>
+                                                <p className="text-white text-3xl font-black italic underline decoration-yellow-500 underline-offset-8 uppercase leading-tight">{prizeDisplay.msg}</p>
                                             </div>
-                                            {prizeData.img && (
-                                                <div className="prize-image-frame">
-                                                    <img src={prizeData.img} alt="Drive Image" />
+                                            {prizeDisplay.img && (
+                                                <div className="prize-image-box shadow-inner">
+                                                    <img src={prizeDisplay.img} alt="Reward" />
                                                 </div>
                                             )}
                                         </div>
                                     )}
                                 </div>
 
-                                {/* प्रोफेशनल रसीद (३९ कॉलम आधारित) */}
+                                {/* Official Receipt - 100% Original Columns */}
                                 <div id="receipt" className="receipt-card bg-white text-slate-900 rounded-[3.5rem] p-10 shadow-2xl relative text-left">
                                     <div className="text-center border-b-2 border-dashed border-slate-200 pb-8 mb-10 text-slate-900">
                                         <h3 className="font-black text-3xl text-blue-700 italic uppercase tracking-tighter">{t.receipt}</h3>
@@ -296,16 +267,16 @@
 
                                     <div className="space-y-12 leading-none">
                                         <div className="flex justify-between items-start border-b pb-8">
-                                            <div><p className="text-[10px] text-slate-400 font-black uppercase italic">ID (Identity)</p><p className="text-2xl font-black text-slate-950 uppercase mt-1">{cleanVal(member[1])}</p></div>
-                                            <div className="text-right"><p className="text-[10px] text-slate-400 font-black uppercase italic">Category</p><p className="text-[11px] font-black text-blue-700 uppercase mt-1 italic leading-none">{cleanVal(member[3])}</p></div>
+                                            <div><p className="text-[10px] text-slate-400 font-black uppercase italic">Identity (ID)</p><p className="text-2xl font-black text-slate-950 uppercase mt-1">{clean(member[1])}</p></div>
+                                            <div className="text-right"><p className="text-[10px] text-slate-400 font-black uppercase italic">Category</p><p className="text-[11px] font-black text-blue-700 uppercase mt-1 italic leading-none">{clean(member[3])}</p></div>
                                         </div>
 
-                                        {/* सर्विस पॉइंट्स घेरा */}
+                                        {/* Points Circle - Wahi Purana Design */}
                                         <div className="bg-blue-600 rounded-[3.5rem] p-10 text-center text-white shadow-2xl relative overflow-hidden">
                                             <p className="text-[11px] font-black uppercase opacity-70 mb-2 italic tracking-widest">{t.points}</p>
-                                            <span className="text-8xl font-black tracking-tighter leading-none">{cleanVal(member[21])}</span>
+                                            <span className="text-8xl font-black tracking-tighter leading-none">{clean(member[21])}</span>
                                             <div className="grid grid-cols-2 gap-4 mt-12 pt-10 border-t border-white/10 text-[10px] font-black uppercase">
-                                                <div className="text-center">कुल आवंटित<p className="text-xl font-black mt-1 leading-none">{cleanVal(member[18])}</p></div>
+                                                <div className="text-center">कुल आवंटित<p className="text-xl font-black mt-1 leading-none">{clean(member[18])}</p></div>
                                                 <div className="border-l border-white/10 text-center">कुल उपयोग<p className="text-xl font-black mt-1 leading-none">{(parseInt(member[19]) || 0) + (parseInt(member[20]) || 0)}</p></div>
                                             </div>
                                         </div>
@@ -314,7 +285,7 @@
                                             <p className="text-[10px] font-black text-blue-700 uppercase mb-4 italic flex items-center leading-none italic"><i className="fa-solid fa-crown mr-2 text-xs"></i> विशेष कार्ड सुविधायें</p>
                                             <div className="space-y-1">
                                                 {(() => {
-                                                    const s = cleanVal(member[3]).toLowerCase();
+                                                    const s = clean(member[3]).toLowerCase();
                                                     let bKey = (s.includes("vip") || s.includes("500")) ? "VIP" : (s.includes("gold") || s.includes("100")) ? "Gold" : "Silver";
                                                     return cardSpecs[bKey][lang].map((ben, i) => (
                                                         <div key={i} className="flex items-start text-[11px] font-bold italic py-2 border-b border-slate-200/50 last:border-0 leading-tight">
@@ -326,24 +297,24 @@
                                         </div>
 
                                         <div className="grid grid-cols-3 gap-3 bg-slate-100 p-8 rounded-[3rem] text-center font-black leading-none text-[10px]">
-                                            <div><p className="text-slate-400 uppercase italic mb-1">{t.active}</p><p className="text-slate-950 font-black">{cleanVal(member[15])}</p></div>
-                                            <div className="border-x border-slate-200"><p className="text-red-500 uppercase italic mb-1">{t.expiry}</p><p className="text-red-600 font-black">{cleanVal(member[16])}</p></div>
-                                            <div><p className="text-green-600 uppercase italic mb-1">{t.left}</p><p className="text-green-600 font-black">{cleanVal(member[17])}</p></div>
+                                            <div><p className="text-slate-400 uppercase italic mb-1">{t.active}</p><p className="text-slate-950 font-black">{clean(member[15])}</p></div>
+                                            <div className="border-x border-slate-200"><p className="text-red-500 uppercase italic mb-1">{t.expiry}</p><p className="text-red-600 font-black">{clean(member[16])}</p></div>
+                                            <div><p className="text-green-600 uppercase italic mb-1">{t.left}</p><p className="text-green-600 font-black">{clean(member[17])}</p></div>
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-y-12 py-10 border-y border-slate-100 leading-none">
-                                            <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Customer Name</p><p className="text-[18px] font-black uppercase italic text-slate-900 leading-tight">{cleanVal(member[8])}</p></div>
-                                            <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Village</p><p className="text-[18px] font-black uppercase italic text-slate-900 leading-tight">{cleanVal(member[5])}</p></div>
-                                            <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Mobile (Secure)</p><p className="text-[15px] font-bold tracking-widest mt-1 uppercase">{maskInfo(member[9])}</p></div>
-                                            <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Aadhar (Secure)</p><p className="text-[15px] font-bold tracking-widest mt-1 uppercase">{maskInfo(member[11])}</p></div>
+                                            <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Customer Name</p><p className="text-[18px] font-black uppercase italic text-slate-900 leading-tight">{clean(member[8])}</p></div>
+                                            <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Village</p><p className="text-[18px] font-black uppercase italic text-slate-900 leading-tight">{clean(member[5])}</p></div>
+                                            <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Mobile (Secure)</p><p className="text-[15px] font-bold tracking-widest mt-1 uppercase">{mask(member[9])}</p></div>
+                                            <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Aadhar (Secure)</p><p className="text-[15px] font-bold tracking-widest mt-1 uppercase">{mask(member[11])}</p></div>
                                         </div>
 
                                         <div className="bg-slate-950 text-white p-8 rounded-[2.5rem] text-center shadow-2xl relative leading-none">
                                             <p className="text-[11px] font-black uppercase opacity-50 tracking-widest mb-3 italic leading-none">{t.draw}</p>
-                                            <p className="text-3xl font-black text-yellow-500 italic uppercase tracking-tighter leading-none">{cleanVal(member[36])}</p>
+                                            <p className="text-3xl font-black text-yellow-500 italic uppercase tracking-tighter leading-none">{clean(member[36])}</p>
                                         </div>
 
-                                        {/* नियम व शर्तें */}
+                                        {/* TERMS - Exact Copy */}
                                         <div className="bg-slate-50 p-10 rounded-[3rem] border border-slate-200 text-left shadow-inner">
                                             <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-6 border-b border-slate-200 pb-3 flex items-center leading-none italic"><i className="fa-solid fa-scale-balanced mr-3 text-blue-600"></i> {t.terms}</h4>
                                             <div className="space-y-6 text-slate-600 font-bold italic text-[10px] leading-relaxed">
@@ -351,11 +322,11 @@
                                             </div>
                                         </div>
 
-                                        <button onClick={()=>window.print()} className="no-print w-full bg-slate-900 text-white py-6 rounded-full text-[12px] font-black uppercase shadow-2xl active:scale-95 transition-all">प्रिंट रसीद</button>
+                                        <button onClick={()=>window.print()} className="no-print w-full bg-slate-900 text-white py-6 rounded-full text-[12px] font-black uppercase shadow-2xl active:scale-95 transition-all">PRINT OFFICIAL RECEIPT</button>
                                     </div>
                                 </div>
 
-                                {/* एडमिन मास्टर कंट्रोल */}
+                                {/* मास्टर एडमिन कंट्रोल - 39 Columns */}
                                 <div className="no-print pt-32 pb-20 flex flex-col items-center">
                                     {!isAdmin && <button onClick={()=>setShowAdminPanel(!showAdminPanel)} className="opacity-10 hover:opacity-40 transition-all p-8 bg-white/5 rounded-full"><i className="fa-solid fa-fingerprint text-4xl"></i></button>}
                                     {showAdminPanel && !isAdmin && (
