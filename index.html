@@ -21,7 +21,6 @@
             .receipt-card { border: none !important; box-shadow: none !important; margin: 0 !important; width: 100% !important; }  
         }  
 
-        /* विजेता पीला ग्लो स्टाइल */  
         .winner-peela-glow {   
             border: 4px solid #fbbf24;   
             box-shadow: 0 0 70px rgba(251, 191, 36, 0.45);   
@@ -37,10 +36,6 @@
             100% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.3); }  
         }  
 
-        .spinner { border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #fbbf24; border-radius: 50%; width: 45px; height: 45px; animation: spin 0.8s linear infinite; }  
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }  
-
-        /* फोटो डिस्प्ले फ्रेम */  
         .prize-image-display {   
             width: 100%;   
             max-width: 800px;   
@@ -56,7 +51,6 @@
             justify-content: center;  
         }  
         .prize-image-display img { width: 100%; height: auto; display: block; object-fit: contain; }  
-
         .custom-scroll::-webkit-scrollbar { width: 5px; }  
         .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }  
     </style>
@@ -72,18 +66,12 @@
     const MAPPING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";  
     const MASTER_PIN = "Admin@6375";   
 
-    // --- Google Drive Thumbnail Converter ---  
     const toDirectLink = (url) => {  
         if (!url) return "";  
         let id = "";  
-        if (url.includes("/d/")) {  
-            id = url.split("/d/")[1].split("/")[0];  
-        }  
-        if (url.includes("id=")) {  
-            id = url.split("id=")[1].split("&")[0];  
-        }  
+        if (url.includes("/d/")) id = url.split("/d/")[1].split("/")[0];  
+        if (url.includes("id=")) id = url.split("id=")[1].split("&")[0];  
         if (!id) return url;  
-        // थंबनेल का उपयोग
         return "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000";  
     };  
 
@@ -95,28 +83,13 @@
         const [prizeDisplay, setPrizeDisplay] = useState({ img: "", msg: "", isLocked: true, type: "normal" });  
         const [imgError, setImgError] = useState(false);  
         const [time, setTime] = useState(new Date());  
-          
         const [isAdmin, setIsAdmin] = useState(false);  
         const [pinInput, setPinInput] = useState("");  
         const [showAdminPanel, setShowAdminPanel] = useState(false);  
 
         const vocab = {  
-            hi: {  
-                brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", service: "डिजिटल सेवा",  
-                slogan: "समस्या आपकी, समाधान हमारा !", subSlogan: "उचित मूल्य, बेहतरीन सेवा !",  
-                idLabel: "मेंबरशिप आईडी दर्ज करें", receipt: "प्रोफेशनल डिजिटल रसीद",  
-                winnerTitle: "बधाई हो! आप विजेता हैं", giftTitle: "मुबारक हो! आपको उपहार मिला है", cashbackTitle: "खुशखबरी! आपको कैशबैक मिला है",  
-                prizeLabel: "घोषित इनाम", print: "प्रिंट रसीद", auth: "एडमिन मास्टर वेरिफिकेशन", terms: "नियम व शर्तें",  
-                points: "सर्विस पॉइंट्स", active: "सक्रियण", expiry: "समाप्ति", left: "शेष दिन", draw: "लकी ड्रा तिथि"  
-            },  
-            en: {  
-                brand: "Digital Problem Solution Group", service: "Digital Seva",  
-                slogan: "Your Problem, Our Solution!", subSlogan: "Best Price, Excellent Service!",  
-                idLabel: "Enter Membership ID", receipt: "Professional Receipt",  
-                winnerTitle: "CONGRATULATIONS! YOU WON", giftTitle: "CONGRATS! YOU GOT A GIFT", cashbackTitle: "CONGRATS! YOU GOT CASHBACK",  
-                prizeLabel: "Announced Prize", print: "Print Receipt", auth: "Admin Verification", terms: "Terms & Conditions",  
-                points: "Service Points", active: "Activation", expiry: "Expiry", left: "Days Left", draw: "Lucky Draw Date"  
-            }  
+            hi: { brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", service: "डिजिटल सेवा", slogan: "समस्या आपकी, समाधान हमारा !", subSlogan: "उचित मूल्य, बेहतरीन सेवा !", idLabel: "मेंबरशिप आईडी दर्ज करें", receipt: "प्रोफेशनल डिजिटल रसीद", winnerTitle: "बधाई हो! आप विजेता हैं", giftTitle: "मुबारक हो! आपको उपहार मिला है", cashbackTitle: "खुशखबरी! आपको कैशबैक मिला है", prizeLabel: "घोषित इनाम", terms: "नियम व शर्तें", points: "सर्विस पॉइंट्स", active: "सक्रियण", expiry: "समाप्ति", left: "शेष दिन", draw: "लकी ड्रा तिथि", auth: "एडमिन मास्टर वेरिफिकेशन" },  
+            en: { brand: "Digital Problem Solution Group", service: "Digital Seva", slogan: "Your Problem, Our Solution!", subSlogan: "Best Price, Excellent Service!", idLabel: "Enter Membership ID", receipt: "Professional Receipt", winnerTitle: "CONGRATULATIONS! YOU WON", giftTitle: "CONGRATS! YOU GOT A GIFT", cashbackTitle: "CONGRATS! YOU GOT CASHBACK", prizeLabel: "Announced Prize", terms: "Terms & Conditions", points: "Service Points", active: "Activation", expiry: "Expiry", left: "Days Left", draw: "Lucky Draw Date", auth: "Admin Verification" }  
         };  
 
         const cardSpecs = {  
@@ -127,12 +100,14 @@
 
         const t = vocab[lang];  
 
-        // रिवॉर्ड मैपिंग - Bulletproof Logic (ID First, Status Later)
         const mapPrizeDetails = useCallback((userRow, maps) => {  
             const mID = (userRow[1] || "").toString().toLowerCase().trim();  
             const pName = (userRow[3] || "").toString().trim();  
             const dDateStr = (userRow[36] || "").toString().trim();  
-            const statusStr = (userRow[38] || "").toString().toLowerCase().trim();  
+            
+            // 39वें कॉलम का एग्जैक्ट डेटा (Cashback, Pen, Better Luck या खाली)
+            const exactStatusStr = (userRow[38] || "").toString().trim();  
+            const statusLower = exactStatusStr.toLowerCase();
 
             const today = new Date();  
             const drawDate = dDateStr ? new Date(dDateStr) : null;  
@@ -142,33 +117,29 @@
                 return;  
             }  
 
-            // सुरक्षित तरीके से डिफ़ॉल्ट इमेजेस ढूँढने का फंक्शन
+            // सेकंड शीट (MAPPING) में से फोटो ढूँढने का फंक्शन
             const findFallback = (keyword) => {
                 const key = keyword.toLowerCase().trim();
                 return maps.find(m => Object.values(m).some(v => (v || "").toString().toLowerCase().includes(key)));
             };
 
-            // 🌟 स्टेप 1: सबसे पहले चेक करें कि क्या यह ID 51 विनर्स की लिस्ट (MAPPING_CSV) में है?
+            // 🌟 स्टेप 1: 51 विनर्स की लिस्ट में ID चेक करें
             const exactWinnerMatch = maps.find(m => Object.values(m).some(v => (v || "").toString().trim().toLowerCase() === mID));
 
             if (exactWinnerMatch && exactWinnerMatch.Image_Link) {  
-                // अगर ID मिल गई, तो यह महा-विजेता है! (चाहे 39वें कॉलम में कुछ भी लिखा हो)
                 setPrizeDisplay({   
                     img: toDirectLink(exactWinnerMatch.Image_Link),   
-                    msg: exactWinnerMatch.Inam_Name || pName, // शीट से असली इनाम का नाम उठाएगा  
+                    msg: exactWinnerMatch.Inam_Name || pName,   
                     isLocked: false,   
                     type: "winner"   
                 });  
                 confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });  
-                return; // कोड यहीं रुक जाएगा, नीचे कैशबैक/गिफ्ट पर जाएगा ही नहीं!
+                return; 
             }
 
-            // 🌟 स्टेप 2: अगर ID 51 विनर्स में नहीं है, तब चेक करें कि उसे गिफ्ट मिला है या कैशबैक
-            const isGift = ["gift", "गिफ्ट", "उपहार"].some(k => statusStr.includes(k));  
-            const isCashback = ["cash", "back", "कैश", "कैशबैक"].some(k => statusStr.includes(k));  
-
-            if (isCashback) {  
-                const c = findFallback("Cashback_Reward");  
+            // 🌟 स्टेप 2: अगर ID 51 विनर्स में नहीं है, तो एग्जैक्ट शब्दों का मिलान करें
+            if (statusLower.includes("100 cash back") || statusLower.includes("cash back")) {  
+                const c = findFallback("cashback"); // MAPPING शीट से कैशबैक की फोटो
                 setPrizeDisplay({   
                     img: toDirectLink(c?.Image_Link),   
                     msg: "नकद कैशबैक इनाम",   
@@ -176,8 +147,8 @@
                     type: "cashback"   
                 });  
 
-            } else if (isGift) {  
-                const g = findFallback("Common_Gift");  
+            } else if (statusLower.includes("5 rs pen") || statusLower.includes("pen")) {  
+                const g = findFallback("gift") || findFallback("5 rs pen"); // MAPPING शीट से पेन/गिफ्ट की फोटो
                 setPrizeDisplay({   
                     img: toDirectLink(g?.Image_Link),   
                     msg: "डिजिटल सेवा उपहार",   
@@ -186,8 +157,8 @@
                 });  
 
             } else {  
-                // अगर कुछ नहीं मिला तो सांत्वना पुरस्कार (Better luck)
-                const l = findFallback("Better luck next time") || findFallback("Better_Luck");  
+                // 🌟 स्टेप 3: अगर 'Better Luck Next Time' लिखा है या कॉलम खाली (Blank) है!
+                const l = findFallback("better luck"); // MAPPING शीट से सांत्वना की फोटो 
                 setPrizeDisplay({   
                     img: toDirectLink(l?.Image_Link),   
                     msg: "हौसला रखें! अगली बार पक्का बड़ा इनाम आपका होगा।",   
@@ -197,7 +168,6 @@
             }  
         }, []);  
 
-        // --- STABLE LOADING LOGIC ---  
         useEffect(() => {  
             const clock = setInterval(() => setTime(new Date()), 1000);  
             async function startSystem(){  
@@ -286,15 +256,10 @@
                                             <p className="text-white text-3xl font-black italic underline decoration-yellow-500 underline-offset-8 uppercase leading-tight">{prizeDisplay.msg}</p>  
                                         </div>  
                                           
-                                        {/* IMAGE DISPLAY WITH THUMBNAIL LOGIC */}  
                                         {prizeDisplay.img && (  
                                             <div className="prize-image-display">  
                                                 {!imgError ? (  
-                                                    <img   
-                                                        src={prizeDisplay.img}   
-                                                        alt="Prize Photo"   
-                                                        onError={() => setImgError(true)}  
-                                                    />  
+                                                    <img src={prizeDisplay.img} alt="Prize Photo" onError={() => setImgError(true)} />  
                                                 ) : (  
                                                     <div className="p-10 text-gray-500 font-bold italic border border-dashed border-gray-700 rounded-xl">  
                                                         <i className="fa-solid fa-image-slash text-3xl mb-2"></i><br/>  
@@ -355,14 +320,13 @@
                                     <div className="bg-slate-50 p-10 rounded-[3rem] border border-slate-200 text-left shadow-inner">  
                                         <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-6 border-b border-slate-200 pb-3 flex items-center leading-none italic"><i className="fa-solid fa-scale-balanced mr-3 text-blue-600"></i> {t.terms}</h4>  
                                         <div className="space-y-6 text-slate-600 font-bold italic text-[10px] leading-relaxed">  
-                                            <p>०१. {t.t1 || "सदस्यता कार्ड अहस्तांतरणीय है।"}</p><p>०२. {t.t2 || "सेवाओं का उपयोग वैधता अवधि तक ही मान्य है।"}</p><p>०३. {t.t3 || "लकी ड्रा के परिणाम अंतिम व सर्वमान्य होंगे।"}</p><p>०४. {t.t4 || "इनाम या कैशबैक सिर्फ घोषित तिथि पर दिया जाएगा।"}</p><p>०५. {t.t5 || "नियम व शर्तों में बदलाव का अधिकार DPSG के पास सुरक्षित है।"}</p>  
+                                            <p>०१. सदस्यता कार्ड अहस्तांतरणीय है।</p><p>०२. सेवाओं का उपयोग वैधता अवधि तक ही मान्य है।</p><p>०३. लकी ड्रा के परिणाम अंतिम व सर्वमान्य होंगे।</p><p>०४. इनाम या कैशबैक सिर्फ घोषित तिथि पर दिया जाएगा।</p><p>०५. नियम व शर्तों में बदलाव का अधिकार DPSG के पास सुरक्षित है।</p>  
                                         </div>  
                                     </div>  
                                     <button onClick={()=>window.print()} className="no-print w-full bg-slate-900 text-white py-6 rounded-full text-[12px] font-black uppercase shadow-2xl active:scale-95 transition-all">PRINT OFFICIAL RECEIPT</button>  
                                 </div>  
                             </div>  
 
-                            {/* मास्टर एडमिन - ३९ कॉलम्स */}  
                             <div className="no-print pt-32 pb-20 flex flex-col items-center">  
                                 {!isAdmin && <button onClick={()=>setShowAdminPanel(!showAdminPanel)} className="opacity-10 hover:opacity-40 transition-all p-8 bg-white/5 rounded-full shadow-2xl"><i className="fa-solid fa-fingerprint text-4xl"></i></button>}  
                                 {showAdminPanel && !isAdmin && (  
