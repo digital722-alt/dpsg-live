@@ -2,7 +2,7 @@
 <head>  
     <meta charset="UTF-8">  
     <meta name="viewport" content="width=device-width, initial-scale=1.0">  
-    <title>DPSG Digital Seva - Nimbahera Official</title>  
+    <title>DPSG Digital Seva - Official Result Portal</title>  
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>  
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>  
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>  
@@ -16,7 +16,7 @@
         .receipt-card { border: 1px solid #e2e8f0; color: #0f172a; border-radius: 1.5rem; background: white; }  
         @media print { .no-print { display: none !important; } }  
 
-        /* SCRATCH CARD SYSTEM */
+        /* SCRATCH CARD CSS */
         .scratch-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto; user-select: none; min-height: 400px; }
         .scratch-canvas { position: absolute; top: 0; left: 0; z-index: 30; cursor: crosshair; border-radius: 1.5rem; width: 100%; height: 100%; touch-action: none; }
         .scratch-content { position: relative; z-index: 10; background: #000; border-radius: 1.5rem; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
@@ -25,7 +25,7 @@
         @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.3); } 50% { box-shadow: 0 0 80px rgba(251, 191, 36, 0.6); } }  
 
         .prize-image-display { width: 100%; display: flex; align-items: center; justify-content: center; background: #000; }
-        .prize-image-display img { width: 100%; height: auto; max-height: 70vh; object-fit: contain; }
+        .prize-image-display img { width: 100%; height: auto; max-height: 75vh; object-fit: contain; }
     </style>
 </head>  
 <body>  
@@ -57,9 +57,9 @@
             canvas.width = parent.offsetWidth;
             canvas.height = parent.offsetHeight;
 
-            // Scratch Layer Design
+            // Premium Golden Scratch Layer
             const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-            grad.addColorStop(0, '#D4AF37'); // Golden
+            grad.addColorStop(0, '#D4AF37'); 
             grad.addColorStop(0.5, '#F9F295'); 
             grad.addColorStop(1, '#B8860B');
             ctx.fillStyle = grad;
@@ -69,8 +69,6 @@
             ctx.fillStyle = "#5c4033";
             ctx.textAlign = "center";
             ctx.fillText("यहाँ स्क्रैच करें!", canvas.width / 2, canvas.height / 2);
-            ctx.font = "14px Inter";
-            ctx.fillText("DPSG DIGITAL SEVA", canvas.width / 2, canvas.height / 2 + 40);
 
             const scratch = (e) => {
                 if (isRevealed) return;
@@ -106,16 +104,15 @@
     const App = () => {  
         const [status, setStatus] = useState("loading");  
         const [member, setMember] = useState(null);  
-        const [headers, setHeaders] = useState([]);
         const [prizeDisplay, setPrizeDisplay] = useState({ img: "", msg: "", isLocked: true, type: "normal", highlight: "" });  
         const [isScratched, setIsScratched] = useState(false);
 
         const mapPrizeDetails = useCallback((userRow, maps, mainHeaders) => {  
             const mID = (userRow[1] || "").toString().toLowerCase().trim();  
             
-            const drawDateIdx = mainHeaders.findIndex(h => h.trim() === "Draw Date");
-            const inamStatusIdx = mainHeaders.findIndex(h => h.trim() === "Inam Status");
-            const prizeInamIdx = mainHeaders.findIndex(h => h.trim() === "Prize_Inam");
+            const drawDateIdx = mainHeaders.findIndex(h => h && h.trim() === "Draw Date");
+            const inamStatusIdx = mainHeaders.findIndex(h => h && h.trim() === "Inam Status");
+            const prizeInamIdx = mainHeaders.findIndex(h => h && h.trim() === "Prize_Inam");
 
             const dDateStr = drawDateIdx !== -1 ? (userRow[drawDateIdx] || "").toString().trim() : "";
             const masterLock = inamStatusIdx !== -1 ? (userRow[inamStatusIdx] || "").toString().toUpperCase().trim() : "";
@@ -124,20 +121,21 @@
             const today = new Date();  
             const drawDate = dDateStr ? new Date(dDateStr) : null;  
             
-            // STRICT TRIPLE LOCK: AL कॉलम खाली होने पर लॉक रहेगा
-            const allowedLocks = ["DPSG_WINNER", "DPSG_CASH", "DPSG_GIFT", "DPSG_NEXT", "WIN"];
-            if (!dDateStr || drawDate > today || !masterLock || !allowedLocks.includes(masterLock)) {
-                setPrizeDisplay({ img: "", msg: "परिणाम की घोषणा जल्द की जाएगी, अपना कार्ड सुरक्षित रखें!", isLocked: true, type: "normal" });
+            // 🌟 STRICT MASTER LOCK: सिर्फ इन 4 शब्दों पर ही ताला खुलेगा
+            const validKeywords = ["DPSG_WINNER", "DPSG_CASH", "DPSG_GIFT", "DPSG_NEXT"];
+            
+            if (!dDateStr || drawDate > today || !masterLock || !validKeywords.includes(masterLock)) {
+                setPrizeDisplay({ img: "", msg: "रिजल्ट की घोषणा जल्द की जाएगी, अपना कार्ड सुरक्षित रखें!", isLocked: true, type: "normal" });
                 return;
             }
 
             const exactWinnerMatch = maps.find(m => (m.Membership_ID || "").toLowerCase() === mID);
 
-            if ((masterLock === "DPSG_WINNER" || masterLock === "WIN") && exactWinnerMatch) {
+            if (masterLock === "DPSG_WINNER" && exactWinnerMatch) {
                 setPrizeDisplay({
                     img: toDirectLink(exactWinnerMatch.Image_Link),
                     highlight: prizeInam,
-                    msg: `🎉 ढेरों शुभकामनाएँ! 51 मुख्य इनामों की लिस्ट में आपने ${exactWinnerMatch.Match_Name || 'विशेष रैंक'} हासिल की है! DPSG परिवार की ओर से बधाई! 🙏`,
+                    msg: `🎉 ढेरों शुभकामनाएँ! 51 मुख्य इनामों की लिस्ट में आपने शानदार ${exactWinnerMatch.Match_Name || 'रैंक'} हासिल की है! DPSG परिवार की ओर से बहुत-बहुत बधाई! 🙏`,
                     isLocked: false, type: "winner"
                 });
             } 
@@ -145,7 +143,7 @@
                 setPrizeDisplay({
                     img: toDirectLink("https://drive.google.com/file/d/1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD/view?usp=drivesdk"),
                     highlight: prizeInam,
-                    msg: "🥳 बधाई हो! आप 51 मुख्य इनामों की लिस्ट में तो नहीं आ पाए, पर DPSG की तरफ से आपको यह कैशबैक दिया जा रहा है। धन्यवाद! 🙏",
+                    msg: "🥳 बधाई हो! आप 51 इनामों की लिस्ट में तो नहीं आ पाए, पर 'डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप' की तरफ से आपको यह कैशबैक दिया जा रहा है। धन्यवाद! 🙏",
                     isLocked: false, type: "cashback"
                 });
             }
@@ -153,7 +151,7 @@
                 setPrizeDisplay({
                     img: toDirectLink("https://drive.google.com/file/d/1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z/view?usp=drivesdk"),
                     highlight: prizeInam,
-                    msg: "🎁 शुभकामनाएँ! 51 इनामों की लिस्ट में न आने पर भी निराश न हों, हमारी तरफ से आपके लिए यह उपहार है। धन्यवाद! 🙏",
+                    msg: "🎁 शुभकामनाएँ! 51 इनामों की लिस्ट में न आने पर भी निराश न हों, हमारी तरफ से आपके प्यार और सम्मान में यह उपहार दिया जा रहा है। हार्दिक धन्यवाद! 🙏",
                     isLocked: false, type: "gift"
                 });
             }
@@ -161,7 +159,7 @@
                 setPrizeDisplay({
                     img: toDirectLink("https://drive.google.com/file/d/1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh/view?usp=drivesdk"),
                     highlight: prizeInam || "Better Luck Next Time",
-                    msg: "✨ हौसला रखें! इस बार आप 51 इनामों की लिस्ट में नहीं आ पाए हैं। लेकिन निराश न हों, भविष्य में आपका भाग्य जरूर चमकेगा। धन्यवाद! 🙏",
+                    msg: "✨ हौसला रखें और मुस्कुराते रहें! इस बार आप 51 इनामों की लिस्ट में नहीं आ पाए हैं। लेकिन निराश न हों, भविष्य में आपका भाग्य जरूर चमकेगा। धन्यवाद! 🙏",
                     isLocked: false, type: "loss"
                 });
             }
@@ -176,7 +174,6 @@
                 Papa.parse(mainText,{ complete:(results)=>{  
                     const rows = results.data;  
                     const mainHeaders = rows[0] || [];
-                    setHeaders(mainHeaders);
                     const queryId = new URLSearchParams(window.location.search).get('id');  
                     if(queryId){  
                         const matchRow = rows.slice(1).find(r=> r[1] && r[1].toLowerCase()===queryId.toLowerCase());  
@@ -199,12 +196,12 @@
                         <div className="bg-white/5 border border-white/10 p-10 rounded-[3rem]">  
                             <h2 className="text-xl font-black mb-8 italic uppercase text-white">ID दर्ज करें</h2>  
                             <input id="sid" type="text" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center text-white mb-6" placeholder="DPSG-26-XXX-XXXX" />  
-                            <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-white">विवरण देखें</button>  
+                            <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-white shadow-xl">विवरण देखें</button>  
                         </div>  
                     ) : (  
                         <div className="space-y-8">  
                             <div className="text-center">  
-                                <h1 className="text-2xl font-black italic text-white uppercase">डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप</h1>  
+                                <h1 className="text-2xl font-black italic text-white uppercase leading-tight">डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप</h1>  
                                 <p className="text-yellow-500 font-bold tracking-widest mt-1">NIMBAHERA</p>  
                             </div>  
 
@@ -217,20 +214,17 @@
                                 <div className={prizeDisplay.type !== 'loss' ? 'winner-peela-glow' : 'bg-white/5 border border-white/10 p-6 rounded-[2rem]'}>
                                     
                                     <ScratchCard onComplete={() => { setIsScratched(true); confetti(); }}>
-                                        {/* 1. HIGHLIGHT BADGE - INSIDE SCRATCH NOW */}
+                                        {/* इनाम का नाम और फोटो अब स्क्रैच के पीछे हैं */}
                                         <div className="mb-4">
                                             <div className="bg-yellow-500 text-black font-black py-3 px-6 rounded-full inline-block italic uppercase shadow-lg text-sm">
                                                 {prizeDisplay.highlight}
                                             </div>
                                         </div>
-                                        
-                                        {/* 2. IMAGE DISPLAY */}
                                         <div className="prize-image-display">
                                             <img src={prizeDisplay.img} alt="Prize" />
                                         </div>
                                     </ScratchCard>
 
-                                    {/* 3. PROFESSIONAL MESSAGE - ONLY AFTER SCRATCH */}
                                     {isScratched && (
                                         <div className="p-6 mt-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 text-left animate-in fade-in duration-1000">
                                             <p className="text-[14px] leading-relaxed font-medium text-blue-100">{prizeDisplay.msg}</p>
@@ -241,7 +235,7 @@
 
                             <div id="receipt" className="receipt-card bg-white text-slate-900 rounded-[3rem] p-8 text-left shadow-2xl">
                                 <div className="text-center border-b-2 border-dashed border-slate-200 pb-4 mb-6">
-                                    <h3 className="font-black text-2xl text-blue-700 italic">प्रोफेशनल डिजिटल रसीद</h3>
+                                    <h3 className="font-black text-2xl text-blue-700 italic text-center w-full">प्रोफेशनल डिजिटल रसीद</h3>
                                 </div>
                                 <div className="space-y-4">
                                     <div className="flex justify-between border-b pb-4">
