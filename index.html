@@ -1,223 +1,479 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>GPS Digital Seva - DPSG</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPSG Smart Dashboard</title>
+    
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: {} }
+        }
+    </script>
 
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; margin: 0; overflow-x: hidden; }
+        
+        /* App Style Dashboard Base */
+        .app-container { max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        
+        /* Marquee Sliding Banner */
+        .marquee-container { white-space: nowrap; overflow: hidden; position: relative; font-weight: 800; font-size: 13px; text-transform: uppercase; padding: 8px 0; }
+        .marquee-content { display: inline-block; padding-left: 100%; animation: marquee 20s linear infinite; }
+        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+        
+        /* Scratch Card System */
+        .scratch-container { position: relative; width: 100%; max-width: 350px; margin: 0 auto; height: 250px; }
+        .scratch-canvas { position: absolute; top: 0; left: 0; z-index: 30; border-radius: 1rem; cursor: pointer; touch-action: none; width: 100%; height: 100%; }
+        .scratch-content { border-radius: 1rem; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; border: 3px solid #334155; }
+        
+        /* Glow Effects based on Prize (Index 38 logic) */
+        .glow-yellow { box-shadow: 0 0 25px rgba(251, 191, 36, 0.6); border: 3px solid #fbbf24; }
+        .glow-green { box-shadow: 0 0 25px rgba(34, 197, 94, 0.6); border: 3px solid #22c55e; }
+        .glow-blue { box-shadow: 0 0 25px rgba(59, 130, 246, 0.6); border: 3px solid #3b82f6; }
 
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Noto Sans Devanagari',sans-serif;}
-body{background:#f2f4f8;}
-
-header{
-background:#0b3d91;
-color:#fff;
-padding:15px;
-text-align:center;
-position:sticky;
-top:0;
-z-index:1000;
-}
-header h1{font-size:18px;}
-header p{font-size:12px;opacity:.8;}
-
-.container{padding:15px 15px 80px;}
-
-.card{
-background:#fff;
-padding:15px;
-border-radius:12px;
-box-shadow:0 4px 10px rgba(0,0,0,.08);
-margin-bottom:15px;
-}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:12px;
-}
-
-.service{
-text-align:center;
-padding:15px;
-border-radius:12px;
-background:#ffffff;
-box-shadow:0 3px 8px rgba(0,0,0,.06);
-cursor:pointer;
-transition:.3s;
-}
-.service:hover{transform:translateY(-3px);}
-.service span{font-size:28px;display:block;margin-bottom:5px;}
-
-.wallet-box{
-text-align:center;
-padding:20px;
-}
-.wallet-box h2{color:#0b3d91;margin-bottom:10px;}
-.progress{
-height:10px;
-background:#ddd;
-border-radius:10px;
-overflow:hidden;
-}
-.progress-bar{
-height:100%;
-background:#ff8c00;
-width:60%;
-}
-
-.bottom-nav{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-background:#fff;
-display:flex;
-justify-content:space-around;
-padding:8px 0;
-box-shadow:0 -3px 10px rgba(0,0,0,.1);
-}
-.nav-item{
-text-align:center;
-font-size:12px;
-color:#555;
-cursor:pointer;
-}
-.nav-item span{display:block;font-size:20px;}
-.nav-item.active{color:#0b3d91;font-weight:bold;}
-
-.hidden{display:none;}
-
-button{
-padding:10px 15px;
-border:none;
-border-radius:8px;
-background:#0b3d91;
-color:#fff;
-cursor:pointer;
-}
-
-input{
-width:100%;
-padding:10px;
-margin:8px 0;
-border-radius:8px;
-border:1px solid #ccc;
-}
-
-.notice{
-background:#ffefc2;
-padding:8px;
-border-radius:8px;
-margin-bottom:10px;
-font-size:13px;
-}
-
-</style>
+        /* Progress Bar Animation */
+        .progress-bar { transition: width 1s ease-in-out; }
+        
+        /* Custom Scroll for Admin */
+        .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+    </style>
 </head>
-<body>
+<body class="bg-gray-100">
+    <div id="root"></div>
 
-<header>
-<h1>GPS Digital Seva</h1>
-<p>Digital Problem Solution Group (DPSG)</p>
-</header>
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
 
-<div class="container">
+        // --- Database Links & Constants ---
+        const SHEET_ID = "1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo"; 
+        const MAIN_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+        const MAPPING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";
+        const MASTER_PIN = "Chanchal@6375";
 
-<!-- HOME -->
-<div id="home">
-<div class="notice">📢 महत्वपूर्ण सूचना: सभी सेवाएं डिजिटल माध्यम से उपलब्ध हैं।</div>
+        // --- Multi-Language Vocab ---
+        const vocab = {
+            hi: {
+                brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप",
+                searchLabel: "मेंबरशिप आईडी सर्च करें",
+                wallet: "डिजिटल वॉलेट",
+                used: "उपयोग",
+                balance: "शेष",
+                services: "हमारी सेवाएँ",
+                rewardTitle: "रिवॉर्ड सेक्शन",
+                warningMsg: "⚠️ आधिकारिक घोषणा होने तक कृपया कार्ड को स्क्रैच न करें",
+                helpdesk: "सहायता केंद्र",
+                pending: "परिणाम की घोषणा जल्द की जाएगी।"
+            },
+            en: {
+                brand: "Digital Problem Solution Group",
+                searchLabel: "Search Membership ID",
+                wallet: "Digital Wallet",
+                used: "Used",
+                balance: "Balance",
+                services: "Our Services",
+                rewardTitle: "Reward Section",
+                warningMsg: "⚠️ Do not scratch the card until official announcement",
+                helpdesk: "Help Desk",
+                pending: "Results will be announced soon."
+            }
+        };
 
-<div class="card">
-<h3>सदस्य आईडी से लॉगिन</h3>
-<input type="text" placeholder="अपना सदस्य आईडी दर्ज करें">
-<button>लोड करें</button>
-</div>
+        // --- Helpers ---
+        const toDirectLink = (url) => { 
+            if (!url) return ""; 
+            let id = ""; 
+            if (url.includes("/d/")) id = url.split("/d/")[1].split("/")[0]; 
+            if (url.includes("id=")) id = url.split("id=")[1].split("&")[0]; 
+            return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000" : url; 
+        };
 
-<div class="grid">
-<div class="service"><span>🏛</span>ई-मित्र</div>
-<div class="service"><span>🚦</span>ट्रैफिक चालान</div>
-<div class="service"><span>💳</span>बैंकिंग</div>
-<div class="service"><span>📱</span>मोबाइल सेवाएं</div>
-</div>
-</div>
+                // --- Scratch Card Component ---
+        const ScratchCard = ({ onComplete, children }) => {
+            const canvasRef = useRef(null);
+            const [isRevealed, setIsRevealed] = useState(false);
+            
+            useEffect(() => {
+                const canvas = canvasRef.current; 
+                if(!canvas) return; 
+                const ctx = canvas.getContext('2d');
+                canvas.width = canvas.parentElement.offsetWidth; 
+                canvas.height = canvas.parentElement.offsetHeight;
+                
+                // Silver/Grey Scratch Layer
+                ctx.fillStyle = '#94a3b8'; 
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Text on Scratch Card
+                ctx.font = "bold 20px Inter"; 
+                ctx.fillStyle = "#334155"; 
+                ctx.textAlign = "center";
+                ctx.fillText("SCRATCH HERE", canvas.width / 2, canvas.height / 2);
+                
+                const scratch = (e) => {
+                    if (isRevealed) return; 
+                    const rect = canvas.getBoundingClientRect();
+                    const x = (e.pageX || (e.touches && e.touches[0].pageX)) - rect.left;
+                    const y = (e.pageY || (e.touches && e.touches[0].pageY)) - rect.top;
+                    
+                    ctx.globalCompositeOperation = 'destination-out'; 
+                    ctx.beginPath(); 
+                    ctx.arc(x, y, 35, 0, Math.PI * 2); 
+                    ctx.fill();
+                    
+                    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                    let count = 0; 
+                    for (let i = 0; i < pixels.length; i += 40) if (pixels[i + 3] === 0) count++;
+                    
+                    // Reveal if 50% is scratched
+                    if (count > (pixels.length / 40) * 0.5) { 
+                        setIsRevealed(true); 
+                        onComplete(); 
+                    }
+                };
+                
+                canvas.addEventListener('mousemove', scratch); 
+                canvas.addEventListener('touchmove', scratch, {passive: true});
+            }, [isRevealed]);
+            
+            return ( 
+                <div className="scratch-container"> 
+                    {!isRevealed && <canvas ref={canvasRef} className="scratch-canvas" />} 
+                    <div className="scratch-content bg-white dark:bg-gray-800">{children}</div> 
+                </div> 
+            );
+        };
 
-<!-- SERVICES -->
-<div id="services" class="hidden">
-<div class="card">
-<h3>सभी सेवाएं</h3>
-<div class="grid">
-<div class="service"><span>💾</span>डेटा रिकवरी</div>
-<div class="service"><span>📄</span>सरकारी योजनाएं</div>
-<div class="service"><span>🧾</span>पैन / आधार अपडेट</div>
-<div class="service"><span>📦</span>दस्तावेज़ अपलोड</div>
-</div>
-</div>
-</div>
+        // --- Main App Component ---
+        const App = () => {
+            // States
+            const [lang, setLang] = useState('hi'); 
+            const [theme, setTheme] = useState('light');
+            const [status, setStatus] = useState("search"); // "search", "loading", "view"
+            const [member, setMember] = useState(null); 
+            const [headers, setHeaders] = useState([]);
+            const [prize, setPrize] = useState({ img: "", msg: "", isLocked: true, type: "normal", highlight: "", colorClass: "" });
+            const [isScratched, setIsScratched] = useState(false); 
+            const [isAdmin, setIsAdmin] = useState(false);
+            const [showPin, setShowPin] = useState(false);
+            const [showServiceForm, setShowServiceForm] = useState({ show: false, serviceName: "" });
 
-<!-- WALLET -->
-<div id="wallet" class="hidden">
-<div class="card wallet-box">
-<h2>मेरा वॉलेट</h2>
-<p>कुल पॉइंट: 600 / 1000</p>
-<div class="progress">
-<div class="progress-bar"></div>
-</div>
-</div>
-</div>
+            const t = vocab[lang];
 
-<!-- REWARDS -->
-<div id="rewards" class="hidden">
-<div class="card" style="text-align:center;">
-<h3>🎁 स्क्रैच कार्ड</h3>
-<p>अपना इनाम जीतें</p>
-<button onclick="alert('🎉 बधाई हो! आपने 50 पॉइंट जीते')">स्क्रैच करें</button>
-</div>
-</div>
+            // Dark Mode Toggle Logic
+            useEffect(() => {
+                if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.body.classList.add('bg-gray-900', 'text-white');
+                    document.body.classList.remove('bg-gray-100', 'text-black');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.body.classList.remove('bg-gray-900', 'text-white');
+                    document.body.classList.add('bg-gray-100', 'text-black');
+                }
+            }, [theme]);
 
-<!-- PROFILE -->
-<div id="profile" class="hidden">
-<div class="card">
-<h3>प्रोफाइल विवरण</h3>
-<p><strong>नाम:</strong> सदस्य नाम</p>
-<p><strong>मोबाइल:</strong> 98XXXXXX45</p>
-<p><strong>सदस्य आईडी:</strong> DPSG1001</p>
-<p><strong>श्रेणी:</strong> Gold Member</p>
-</div>
+            // Prize Logic based on Index 38 (Column 39)
+            const mapPrize = useCallback((row, maps) => {
+                const mID = (row[1] || "").toString().toLowerCase().trim();
+                const dDate = (row[36] || "").toString().trim();
+                const lock = (row[38] || "").toString().toUpperCase().trim(); // Index 38 logic
+                const inamName = (row[4] || "").toString().trim();
+                
+                const today = new Date(); 
+                const draw = dDate ? new Date(dDate) : null;
+                const keys = ["DPSG_WINNER", "DPSG_CASH", "DPSG_GIFT", "DPSG_NEXT"];
 
-<div class="card">
-<h3>नियम एवं शर्तें</h3>
-<p style="font-size:13px;line-height:1.6;">
-1. सभी सेवाएं नियम अनुसार दी जाएंगी। <br>
-2. पॉइंट्स केवल अधिकृत उपयोग पर मिलेंगे। <br>
-3. गलत जानकारी पर सदस्यता रद्द हो सकती है। <br>
-4. प्रशासन का निर्णय अंतिम होगा।
-</p>
-</div>
-</div>
+                if (!dDate || draw > today || !keys.includes(lock)) {
+                    setPrize({ msg: t.pending, isLocked: true }); 
+                    return;
+                }
+                
+                const match = maps.find(m => m.Membership_ID.toLowerCase() === mID);
+                
+                // Color Logic based on prize type
+                if (lock === "DPSG_WINNER" && match) {
+                    setPrize({ img: toDirectLink(match.Image_Link), highlight: inamName, msg: `🎉 Congratulations!`, isLocked: false, type: "winner", colorClass: "glow-yellow bg-yellow-100" });
+                } else if (lock === "DPSG_CASH") {
+                    setPrize({ img: "https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000", highlight: inamName, msg: "🥳 Cashback!", isLocked: false, type: "cash", colorClass: "glow-green bg-green-100" });
+                } else if (lock === "DPSG_GIFT") {
+                    setPrize({ img: "https://drive.google.com/thumbnail?id=1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z&sz=w1000", highlight: inamName, msg: "🎁 Gift!", isLocked: false, type: "gift", colorClass: "glow-blue bg-blue-100" });
+                } else {
+                    setPrize({ img: "https://drive.google.com/thumbnail?id=1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh&sz=w1000", highlight: inamName || "Better Luck", msg: "✨ Try Again!", isLocked: false, type: "loss", colorClass: "border-gray-400 bg-gray-200" });
+                }
+            }, [t.pending]);
 
-</div>
+            // Data Fetching Function
+            const fetchData = (searchId) => {
+                setStatus("loading");
+                fetch(MAIN_CSV + "&t=" + Date.now()).then(r => r.text()).then(txt => {
+                    Papa.parse(txt, { complete: (res) => {
+                        const rows = res.data; 
+                        setHeaders(rows[0] || []);
+                        const match = rows.slice(1).find(r => r[1] && r[1].toLowerCase() === searchId.toLowerCase());
+                        
+                        if (match) { 
+                            setMember(match); 
+                            fetch(MAPPING_CSV).then(r => r.text()).then(mTxt => { 
+                                Papa.parse(mTxt, { header: true, complete: (mRes) => { 
+                                    mapPrize(match, mRes.data); 
+                                    setStatus("view"); 
+                                }}); 
+                            }); 
+                        } else { 
+                            alert("ID Not Found! / आईडी नहीं मिली!");
+                            setStatus("search"); 
+                        }
+                    }});
+                }).catch(() => {
+                    alert("Network Error!");
+                    setStatus("search");
+                });
+            };
 
-<!-- BOTTOM NAV -->
-<div class="bottom-nav">
-<div class="nav-item active" onclick="showScreen('home',this)"><span>🏠</span>होम</div>
-<div class="nav-item" onclick="showScreen('services',this)"><span>🛠</span>सेवाएं</div>
-<div class="nav-item" onclick="showScreen('wallet',this)"><span>💼</span>वॉलेट</div>
-<div class="nav-item" onclick="showScreen('rewards',this)"><span>🎁</span>रिवॉर्ड</div>
-<div class="nav-item" onclick="showScreen('profile',this)"><span>👤</span>प्रोफाइल</div>
-</div>
+            const clean = (val) => (val && val !== "#REF!" && val !== "") ? val : "...";
 
-<script>
-function showScreen(id,el){
-document.querySelectorAll('.container > div').forEach(div=>div.classList.add('hidden'));
-document.getElementById(id).classList.remove('hidden');
+            // Helper for Progress Bar Math
+            const calculateProgress = (used, total) => {
+                const u = parseInt(used) || 0;
+                const t = parseInt(total) || 1;
+                let percent = (u / t) * 100;
+                return percent > 100 ? 100 : percent;
+            };
+                      return (
+                <div className="app-container bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300">
+                    
+                    {/* Top Controls: Language & Theme */}
+                    <div className="flex justify-between items-center p-4 border-b dark:border-gray-800">
+                        <div className="flex bg-gray-200 dark:bg-gray-700 p-1 rounded-lg">
+                            <button onClick={() => setLang('hi')} className={`px-4 py-1.5 rounded-md text-sm font-bold ${lang === 'hi' ? 'bg-white dark:bg-gray-600 shadow' : 'text-gray-500 dark:text-gray-400'}`}>हिन्दी</button>
+                            <button onClick={() => setLang('en')} className={`px-4 py-1.5 rounded-md text-sm font-bold ${lang === 'en' ? 'bg-white dark:bg-gray-600 shadow' : 'text-gray-500 dark:text-gray-400'}`}>ENG</button>
+                        </div>
+                        <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} className="text-xl p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-yellow-500 dark:text-yellow-400 shadow-inner">
+                            {theme === 'light' ? <i className="fa-solid fa-moon"></i> : <i className="fa-solid fa-sun"></i>}
+                        </button>
+                    </div>
 
-document.querySelectorAll('.nav-item').forEach(nav=>nav.classList.remove('active'));
-el.classList.add('active');
-}
-</script>
+                    {/* Sliding Banners */}
+                    <div className="marquee-container bg-blue-600 dark:bg-blue-800 text-white">
+                        <div className="marquee-content flex gap-8 items-center">
+                            <span>🔥 VIP (100) & Gold (400) कार्ड उपलब्ध!</span>
+                            <span>🎯 30 दिन का लक्ष्य | 30 दिन में 100% रिफंड गारंटी!</span>
+                            <span>🔥 VIP (100) & Gold (400) कार्ड उपलब्ध!</span>
+                            <span>🎯 30 दिन का लक्ष्य | 30 दिन में 100% रिफंड गारंटी!</span>
+                        </div>
+                    </div>
 
+                    <div className="p-4 sm:p-6 pb-24">
+                        
+                        {/* Status Check: Search, Loading, or View */}
+                        {status === "search" ? (
+                            <div className="mt-12 bg-gray-50 dark:bg-gray-800 p-8 rounded-3xl shadow-sm text-center border dark:border-gray-700">
+                                <div className="w-20 h-20 mx-auto bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mb-6">
+                                    <i className="fa-solid fa-id-badge text-4xl text-blue-600 dark:text-blue-400"></i>
+                                </div>
+                                <h2 className="text-xl font-black mb-8 dark:text-white uppercase tracking-wide">{t.searchLabel}</h2>
+                                <input id="sid" type="text" className="w-full bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl py-4 px-4 text-center mb-6 text-lg font-bold focus:border-blue-500 outline-none dark:text-white uppercase placeholder-gray-400" placeholder="DPSG-26-XXXX" />
+                                <button onClick={() => fetchData(document.getElementById('sid').value)} className="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-lg shadow-lg hover:bg-blue-700 transition-all active:scale-95">SEARCH ID</button>
+                            </div>
+                        ) : status === "loading" ? (
+                            <div className="mt-32 text-center font-black text-xl text-blue-600 dark:text-blue-400 animate-pulse flex flex-col items-center">
+                                <i className="fa-solid fa-spinner fa-spin text-4xl mb-4"></i>
+                                Loading DPSG Database...
+                            </div>
+                        ) : (
+                            <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+                                
+                                {/* User Header */}
+                                <div className="text-center bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-800 p-5 rounded-2xl border border-blue-100 dark:border-gray-700 shadow-sm relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-black px-3 py-1 rounded-bl-lg uppercase">{clean(member[3])}</div>
+                                    <h1 className="text-xl font-black text-blue-900 dark:text-blue-300 uppercase mt-2">{t.brand}</h1>
+                                    <div className="mt-3 inline-block bg-white dark:bg-gray-700 px-4 py-1.5 rounded-full border border-gray-200 dark:border-gray-600">
+                                        <p className="font-black text-lg text-gray-800 dark:text-white tracking-widest">{clean(member[1])}</p>
+                                    </div>
+                                    <p className="text-sm font-bold text-gray-600 dark:text-gray-300 mt-3 uppercase">{clean(member[8])} • {clean(member[5])}</p>
+                                </div>
+
+                                {/* Digital Wallet (Progress Meter) */}
+                                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border dark:border-gray-700">
+                                    <h3 className="font-black text-gray-800 dark:text-gray-200 mb-5 flex items-center uppercase text-sm tracking-widest"><i className="fa-solid fa-wallet text-blue-500 mr-2 text-lg"></i> {t.wallet}</h3>
+                                    
+                                    <div className="mb-2 flex justify-between text-xs font-black text-gray-500 dark:text-gray-400 uppercase">
+                                        <span>Total: <span className="text-blue-600 dark:text-blue-400 text-sm">{clean(member[21])}</span></span>
+                                        <span>{t.balance}: <span className="text-green-600 dark:text-green-400 text-sm">{clean(member[23])}</span></span>
+                                    </div>
+                                    
+                                    <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-5 mb-2 overflow-hidden shadow-inner border dark:border-gray-600 relative">
+                                        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-5 rounded-full progress-bar relative flex items-center justify-end pr-2" style={{ width: `${calculateProgress(member[22], member[21])}%` }}>
+                                             {calculateProgress(member[22], member[21]) > 10 && <span className="text-[10px] text-white font-black">{Math.round(calculateProgress(member[22], member[21]))}%</span>}
+                                        </div>
+                                    </div>
+                                    <p className="text-right text-[11px] text-gray-400 dark:text-gray-500 font-bold uppercase">{t.used}: {clean(member[22])}</p>
+                                </div>
+                                {/* Services Grid (Color Icons) */}
+                                <div>
+                                    <h3 className="font-black text-gray-800 dark:text-gray-200 mb-4 uppercase text-sm tracking-widest pl-2">{t.services}</h3>
+                                    <div className="grid grid-cols-4 gap-4">
+                                        {[
+                                            { id: 'emitra', name: 'ई-मित्र', icon: 'fa-laptop-file', color: 'bg-orange-500' },
+                                            { id: 'data', name: 'डेटा रिकवरी', icon: 'fa-hard-drive', color: 'bg-blue-500' },
+                                            { id: 'unlock', name: 'मोबाइल अनलॉक', icon: 'fa-mobile-screen-button', color: 'bg-purple-500' },
+                                            { id: 'yojana', name: 'सरकारी योजनाएं', icon: 'fa-building-columns', color: 'bg-green-500' }
+                                        ].map(srv => (
+                                            <div key={srv.id} onClick={() => setShowServiceForm({ show: true, serviceName: srv.name })} className="flex flex-col items-center justify-center p-3 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border dark:border-gray-700 cursor-pointer hover:scale-105 transition-transform">
+                                                <div className={`w-12 h-12 ${srv.color} text-white rounded-full flex items-center justify-center shadow-inner mb-2`}>
+                                                    <i className={`fa-solid ${srv.icon} text-xl`}></i>
+                                                </div>
+                                                <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300 text-center leading-tight">{srv.name}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Reward Section (Scratch Card) */}
+                                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border dark:border-gray-700 relative overflow-hidden">
+                                    <h3 className="font-black text-gray-800 dark:text-gray-200 mb-4 flex items-center uppercase text-sm tracking-widest"><i className="fa-solid fa-gift text-pink-500 mr-2 text-lg"></i> {t.rewardTitle}</h3>
+                                    
+                                    {/* Strict Red Warning */}
+                                    <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 rounded-lg mb-6 shadow-sm">
+                                        <p className="text-[11px] font-black animate-pulse">{t.warningMsg}</p>
+                                    </div>
+
+                                    {/* Excel Index 38 Color Logic Integration */}
+                                    <div className={`p-2 rounded-[1.5rem] transition-all duration-700 ${prize.type !== 'normal' && isScratched ? prize.colorClass : 'bg-gray-100 dark:bg-gray-700'}`}>
+                                        {prize.isLocked ? (
+                                            <div className="bg-white dark:bg-gray-800 p-10 rounded-2xl text-center shadow-inner border dark:border-gray-700">
+                                                <i className="fa-solid fa-lock text-4xl text-gray-300 dark:text-gray-600 mb-4"></i>
+                                                <p className="text-gray-500 dark:text-gray-400 font-bold text-sm">{prize.msg}</p>
+                                            </div>
+                                        ) : (
+                                            <ScratchCard onComplete={() => { setIsScratched(true); confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); }}>
+                                                <div className="bg-white dark:bg-gray-800 p-4 text-center w-full h-full flex flex-col justify-center items-center">
+                                                    <div className="bg-gray-100 dark:bg-gray-700 px-6 py-2 rounded-full font-black text-blue-600 dark:text-blue-400 mb-4 shadow-sm text-sm uppercase">{clean(prize.highlight)}</div>
+                                                    <img src={prize.img} className="max-h-32 w-auto object-contain drop-shadow-lg" alt="Prize" />
+                                                </div>
+                                            </ScratchCard>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Help Desk Buttons */}
+                                <div className="grid grid-cols-2 gap-4 mt-6">
+                                    <a href="https://wa.me/917229874128" target="_blank" className="bg-green-500 text-white p-4 rounded-2xl shadow-sm hover:bg-green-600 transition-colors flex items-center justify-center gap-2">
+                                        <i className="fa-brands fa-whatsapp text-2xl"></i>
+                                        <span className="font-black text-sm uppercase">WhatsApp</span>
+                                    </a>
+                                    <a href="https://maps.google.com/?q=Digital+Seva+Nimbahera" target="_blank" className="bg-red-500 text-white p-4 rounded-2xl shadow-sm hover:bg-red-600 transition-colors flex items-center justify-center gap-2">
+                                        <i className="fa-solid fa-location-dot text-2xl"></i>
+                                        <span className="font-black text-sm uppercase">Location</span>
+                                    </a>
+                                </div>
+                                
+                            </div> // End of View State Space-y-6
+                        )}
+
+                        {/* Master Admin - Fingerprint Icon & 39 Columns */}
+                        {status === "view" && (
+                            <div className="mt-16 flex flex-col items-center pb-10">
+                                {!isAdmin && (
+                                    <button onClick={() => setShowPin(!showPin)} className="opacity-30 hover:opacity-100 transition-opacity p-5 bg-white dark:bg-gray-800 rounded-full shadow-lg border dark:border-gray-700">
+                                        <i className="fa-solid fa-fingerprint text-3xl text-blue-600 dark:text-blue-400"></i>
+                                    </button>
+                                )}
+                                
+                                {showPin && !isAdmin && (
+                                    <div className="mt-6 bg-white dark:bg-gray-800 p-6 rounded-[2rem] border dark:border-gray-700 shadow-xl w-full max-w-sm animate-in zoom-in">
+                                        <input type="password" id="adminPin" className="w-full bg-gray-50 dark:bg-gray-700 border-2 border-gray-100 dark:border-gray-600 rounded-xl px-6 py-4 text-center mb-4 text-lg font-bold outline-none focus:border-blue-500 dark:text-white" placeholder="MASTER PIN" />
+                                        <button onClick={() => { document.getElementById('adminPin').value === MASTER_PIN ? setIsAdmin(true) : alert("WRONG PIN!"); }} className="w-full bg-gray-900 dark:bg-gray-600 py-4 rounded-xl font-black text-white uppercase text-sm shadow-md hover:bg-black transition-colors">UNLOCK DATABASE</button>
+                                    </div>
+                                )}
+
+                                {isAdmin && (
+                                    <div className="w-full mt-8 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-3xl p-6 text-left shadow-2xl overflow-hidden relative">
+                                        <div className="flex justify-between items-center mb-6 border-b dark:border-gray-700 pb-4">
+                                            <h3 className="font-black text-blue-600 dark:text-blue-400 text-xs uppercase tracking-widest"><i className="fa-solid fa-database mr-2"></i> MASTER DB (39 COLUMNS)</h3>
+                                            <button onClick={() => setIsAdmin(false)} className="text-red-500 font-black text-[10px] uppercase bg-red-50 dark:bg-red-900/30 px-3 py-1 rounded-full">Close DB</button>
+                                        </div>
+                                        <div className="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto pr-2 custom-scroll">
+                                            {member.map((val, i) => (
+                                                <div key={i} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-600">
+                                                    <p className="text-[9px] text-gray-400 dark:text-gray-500 uppercase font-black mb-1">{headers[i] || `Col ${i+1}`}</p>
+                                                    <p className="font-bold text-gray-800 dark:text-gray-200 text-sm break-words">{val || "---"}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div> {/* End Main Content Padding */}
+
+                    {/* Formspree Service Popup Modal */}
+                    {showServiceForm.show && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+                            <div className="bg-white dark:bg-gray-800 w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden border dark:border-gray-700 relative">
+                                
+                                <button onClick={() => setShowServiceForm({ show: false, serviceName: "" })} className="absolute top-4 right-4 w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-red-100 hover:text-red-500 transition-colors z-10">
+                                    <i className="fa-solid fa-xmark"></i>
+                                </button>
+                                
+                                <div className="p-8">
+                                    <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mb-4 mx-auto shadow-inner text-blue-600 dark:text-blue-400">
+                                        <i className="fa-solid fa-cloud-arrow-up text-3xl"></i>
+                                    </div>
+                                    <h3 className="text-lg font-black text-center text-gray-800 dark:text-white uppercase mb-6 tracking-wide">{showServiceForm.serviceName}</h3>
+                                    
+                                    {/* Formspree Link Attached Here */}
+                                    <form action="https://formspree.io/f/xwvndvoe" method="POST" encType="multipart/form-data" className="space-y-4">
+                                        <input type="hidden" name="Service_Requested" value={showServiceForm.serviceName} />
+                                        <input type="hidden" name="Membership_ID" value={member ? member[1] : "Unknown"} />
+                                        
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase ml-2 mb-1 block">Full Name</label>
+                                            <input type="text" name="Client_Name" required className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-blue-500 dark:text-white" placeholder="आपका नाम" />
+                                        </div>
+                                        
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase ml-2 mb-1 block">Mobile Number</label>
+                                            <input type="tel" name="Mobile_Number" required className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-blue-500 dark:text-white" placeholder="मोबाइल नंबर" />
+                                        </div>
+
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase ml-2 mb-1 block">Upload Document/Photo</label>
+                                            <div className="w-full bg-gray-50 dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl px-4 py-4 text-center cursor-pointer hover:border-blue-500 transition-colors relative">
+                                                <i className="fa-solid fa-file-arrow-up text-gray-400 text-2xl mb-2"></i>
+                                                <p className="text-xs font-bold text-gray-500 dark:text-gray-400">Click to upload file</p>
+                                                <input type="file" name="attachment" required className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                            </div>
+                                        </div>
+
+                                        <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-sm uppercase shadow-lg hover:bg-blue-700 transition-all mt-4 active:scale-95 flex items-center justify-center gap-2">
+                                            <i className="fa-solid fa-paper-plane"></i> Submit Request
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div> // End App Container
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root')); 
+        root.render(<App />);
+    </script>
 </body>
 </html>
+
+
