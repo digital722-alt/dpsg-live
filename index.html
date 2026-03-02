@@ -38,7 +38,7 @@
         .custom-scroll::-webkit-scrollbar { width: 6px; }  
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }  
 
-        /* NEW FEATURES CSS (Progress Bar & Specific Colors) */
+        /* NEW FEATURES CSS */
         .progress-bar { transition: width 1s ease-in-out; }
         .glow-green { border: 5px solid #22c55e; box-shadow: 0 0 50px rgba(34, 197, 94, 0.5); animation: pulse-green 2s infinite; }
         .glow-blue { border: 5px solid #3b82f6; box-shadow: 0 0 50px rgba(59, 130, 246, 0.5); animation: pulse-blue 2s infinite; }
@@ -66,13 +66,13 @@
             t2: "02. कार्ड की सेवाओं का लाभ केवल कार्ड पर अंकित 'समाप्ति तिथि' तक ही लिया जा सकता है।",  
             t3: "03. लिया गया शुल्क केवल 'पंजीकरण शुल्क' है, जो किसी भी स्थिति में वापस नहीं किया जाएगा।",  
             t4: "04. सर्वर त्रुटि की स्थिति में, फिजिकल स्क्रैच कार्ड पर छपे परिणाम को ही अंतिम माना जाएगा।",  
-            t5: "05. सर्वर या इंटरनेट की खराबी होने management की कोई जिम्मेदारी नहीं होगी।",  
+            t5: "05. सर्वर या इंटरनेट की खराबी होने पर प्रबंधन की कोई जिम्मेदारी नहीं होगी।",  
             t6: "06. ई-मित्र सेवाओं के 'सरकारी टोकन शुल्क' का भुगतान ग्राहक द्वारा अलग से देय होगा।",  
             t7: "07. फ्री डिलीवरी सीमा के बाद दूरी के आधार पर 'न्यूनतम उचित शुल्क' लिया जाएगा।",  
             t8: "08. यह कार्य समाज सेवा के उद्देश्य से है, अतः कृपया कार्य होने तक धैर्य बनाए रखें।",  
             t9: "09. कार्य में लगने वाले समय के लिए अभद्र व्यवहार या तर्क-वितर्क स्वीकार्य नहीं होगा।",  
             t10: "10. मैनेजमेंट के पास नियमों में बदलाव करने का पूर्ण अधिकार सुरक्षित है।",  
-            pending: "परिणाम की घोषणा जल्द की जाएगी, कृपया ड्रा तिथि का इंतज़ार करें।",
+            pending: "परिणाम जल्द घोषित होगा।",
             warningMsg: "⚠️ आधिकारिक घोषणा होने तक कृपया कार्ड को स्क्रैच न करें",
             walletLabel: "डिजिटल वॉलेट प्रोग्रेस"
         },  
@@ -91,7 +91,7 @@
             t8: "08. This is social service work, please keep patience until work is completed.",  
             t9: "09. Misbehavior or arguments regarding time taken will not be tolerated.",  
             t10: "10. Management reserves all rights to change terms without notice.",  
-            pending: "Results will be announced soon, please wait for the draw date.",
+            pending: "Results will be announced soon.",
             warningMsg: "⚠️ Do not scratch the card until official announcement",
             walletLabel: "Digital Wallet Progress"
         }  
@@ -114,7 +114,6 @@
     const toDirectLink = (url) => { if (!url) return ""; let id = ""; if (url.includes("/d/")) id = url.split("/d/")[1].split("/")[0]; if (url.includes("id=")) id = url.split("id=")[1].split("&")[0]; return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000" : url; };  
     const mask = (v) => v?.length > 4 ? v.slice(0, 2) + "******" + v.slice(-2) : v;  
 
-    // NEW: Progress Bar Math Function
     const calculateProgress = (used, total) => {
         const u = parseInt(used) || 0;
         const t = parseInt(total) || 1;
@@ -122,7 +121,6 @@
         return percent > 100 ? 100 : percent;
     };
 
-    // ORIGINAL: Scratch Card Component
     const ScratchCard = ({ onComplete, children }) => {  
         const canvasRef = useRef(null);  
         const [isRevealed, setIsRevealed] = useState(false);  
@@ -150,7 +148,7 @@
 
     const App = () => {  
         const [lang, setLang] = useState('hi'); 
-        const [theme, setTheme] = useState('light'); // NEW: Theme State
+        const [theme, setTheme] = useState('light'); 
         const [status, setStatus] = useState("loading");  
         const [member, setMember] = useState(null); 
         const [headers, setHeaders] = useState([]);  
@@ -158,11 +156,10 @@
         const [isScratched, setIsScratched] = useState(false); 
         const [isAdmin, setIsAdmin] = useState(false);  
         const [showPin, setShowPin] = useState(false);  
-        const [showServiceForm, setShowServiceForm] = useState({ show: false, serviceName: "" }); // NEW: Formspree Pop-up State
+        const [showServiceForm, setShowServiceForm] = useState({ show: false, serviceName: "" }); 
         
         const t = vocab[lang];  
 
-        // NEW: Dark Mode Toggle Logic
         useEffect(() => {
             if (theme === 'dark') {
                 document.documentElement.classList.add('dark');
@@ -171,26 +168,58 @@
             }
         }, [theme]);
 
-        // UPDATED: Map Prize with Column 39 (Index 38) Colors
+        // 100% FINAL MAP PRIZE (WITH LIVE TRACKER & COLUMN 37 FIX)
         const mapPrize = useCallback((row, maps) => {  
             const mID = (row[1] || "").toString().toLowerCase().trim();  
-            const dDate = (row[36] || "").toString().trim();  
-            const lock = (row[38] || "").toString().toUpperCase().trim(); // Index 38  
+            const dDateStr = (row[36] || "").toString().trim(); // Index 36: Draw Date
+            const lock = (row[37] || "").toString().toUpperCase().trim(); // Index 37: Inam Status
             const inamName = (row[4] || "").toString().trim();  
-            const today = new Date(); const draw = dDate ? new Date(dDate) : null;  
+            
             const keys = ["DPSG_WINNER", "DPSG_CASH", "DPSG_GIFT", "DPSG_NEXT"];  
 
-            if (!dDate || draw > today || !keys.includes(lock)) {  
-                setPrize({ msg: t.pending, isLocked: true }); return;  
-            }  
-            const match = maps.find(m => m.Membership_ID.toLowerCase() === mID);  
-            if (lock === "DPSG_WINNER" && match) setPrize({ img: toDirectLink(match.Image_Link), highlight: inamName, msg: `🎉 Congratulations! You won ${match.Match_Name}!`, isLocked: false, type: "winner", colorClass: "winner-glow bg-yellow-400" });  
-            else if (lock === "DPSG_CASH") setPrize({ img: "https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000", highlight: inamName, msg: "🥳 Cashback Unlocked!", isLocked: false, type: "cash", colorClass: "glow-green bg-green-200" });  
-            else if (lock === "DPSG_GIFT") setPrize({ img: "https://drive.google.com/thumbnail?id=1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z&sz=w1000", highlight: inamName, msg: "🎁 Gift Unlocked!", isLocked: false, type: "gift", colorClass: "glow-blue bg-blue-200" });  
-            else setPrize({ img: "https://drive.google.com/thumbnail?id=1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh&sz=w1000", highlight: inamName || "Better Luck", msg: "✨ Try Again Next Time!", isLocked: false, type: "loss", colorClass: "border-4 border-slate-400 bg-slate-200" });  
-        }, [t.pending]);  
+            // तारीख को फिक्स करना (DD/MM/YYYY)
+            let drawDate = null;
+            if (dDateStr) {
+                let parts = dDateStr.split(/[-/]/);
+                if (parts.length === 3 && parts[0].length <= 2 && parts[2].length === 4) {
+                    drawDate = new Date(parts[2], parseInt(parts[1]) - 1, parts[0]);
+                } else {
+                    drawDate = new Date(dDateStr);
+                }
+            }
 
-        // Fetch Data Logic
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); 
+            if(drawDate) drawDate.setHours(0, 0, 0, 0);
+            
+            // अगर तारीख नहीं आई या कीवर्ड मैच नहीं हुआ
+            if (!drawDate || drawDate > today || !keys.includes(lock)) {  
+                // 🔴 LIVE TRACKER: अगर लॉक नहीं खुला, तो स्क्रीन पर बताएगा कि शीट से क्या डेटा आ रहा है
+                setPrize({ 
+                    msg: `${t.pending} (Sheet Data: Date=${dDateStr || 'Blank'}, Status=${lock || 'Blank'})`, 
+                    isLocked: true 
+                }); 
+                return;  
+            }
+
+            // अगर सब सही है, तो इनाम खुलेगा
+            const match = maps.find(m => m.Membership_ID && m.Membership_ID.toLowerCase() === mID);  
+
+            if (lock === "DPSG_WINNER") {
+                let imgLink = match ? toDirectLink(match.Image_Link) : "https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000";
+                setPrize({ img: imgLink, highlight: inamName, msg: `🎉 Congratulations!`, isLocked: false, type: "winner", colorClass: "winner-glow bg-yellow-400" });  
+            }
+            else if (lock === "DPSG_CASH") {
+                setPrize({ img: "https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000", highlight: inamName, msg: "🥳 Cashback Unlocked!", isLocked: false, type: "cash", colorClass: "glow-green bg-green-200" });  
+            }
+            else if (lock === "DPSG_GIFT") {
+                setPrize({ img: "https://drive.google.com/thumbnail?id=1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z&sz=w1000", highlight: inamName, msg: "🎁 Gift Unlocked!", isLocked: false, type: "gift", colorClass: "glow-blue bg-blue-200" });  
+            }
+            else {
+                setPrize({ img: "https://drive.google.com/thumbnail?id=1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh&sz=w1000", highlight: inamName || "Better Luck", msg: "✨ Try Again Next Time!", isLocked: false, type: "loss", colorClass: "border-4 border-slate-400 bg-slate-200" });  
+            }
+        }, [t.pending]);
+
         useEffect(() => {  
             fetch(MAIN_CSV + "&t=" + Date.now()).then(r => r.text()).then(txt => {  
                 Papa.parse(txt, { complete: (res) => {  
