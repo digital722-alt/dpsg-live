@@ -1,479 +1,469 @@
-<!DOCTYPE html>
-<html lang="hi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPSG Smart Dashboard</title>
-    
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<!DOCTYPE html>  
+<html lang="hi">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>DPSG Digital Seva - Smart Portal</title>  
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>  
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>  
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>  
+    <script src="https://cdn.tailwindcss.com"></script>  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>  
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>  
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">  
     
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: { extend: {} }
-        }
+        tailwind.config = { darkMode: 'class' }
     </script>
 
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
-        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; margin: 0; overflow-x: hidden; }
+    <style>  
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');  
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; margin: 0; overflow-x: hidden; }  
         
-        /* App Style Dashboard Base */
-        .app-container { max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        /* ORIGINAL RECEIPT CSS */
+        .receipt-card { border: 1px solid #e2e8f0; color: #0f172a; border-radius: 2rem; background: white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1); }  
+        @media print { .no-print { display: none !important; } body { background: white !important; } .receipt-card { border: none !important; box-shadow: none !important; margin: 0 !important; width: 100% !important; } }  
         
-        /* Marquee Sliding Banner */
-        .marquee-container { white-space: nowrap; overflow: hidden; position: relative; font-weight: 800; font-size: 13px; text-transform: uppercase; padding: 8px 0; }
-        .marquee-content { display: inline-block; padding-left: 100%; animation: marquee 20s linear infinite; }
-        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
-        
-        /* Scratch Card System */
-        .scratch-container { position: relative; width: 100%; max-width: 350px; margin: 0 auto; height: 250px; }
-        .scratch-canvas { position: absolute; top: 0; left: 0; z-index: 30; border-radius: 1rem; cursor: pointer; touch-action: none; width: 100%; height: 100%; }
-        .scratch-content { border-radius: 1rem; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; border: 3px solid #334155; }
-        
-        /* Glow Effects based on Prize (Index 38 logic) */
-        .glow-yellow { box-shadow: 0 0 25px rgba(251, 191, 36, 0.6); border: 3px solid #fbbf24; }
-        .glow-green { box-shadow: 0 0 25px rgba(34, 197, 94, 0.6); border: 3px solid #22c55e; }
-        .glow-blue { box-shadow: 0 0 25px rgba(59, 130, 246, 0.6); border: 3px solid #3b82f6; }
+        /* ORIGINAL SCROLLING NOTICE */  
+        .marquee { white-space: nowrap; overflow: hidden; position: relative; background: #fbbf24; color: #000; font-weight: 800; padding: 10px 0; font-size: 14px; text-transform: uppercase; border-bottom: 2px solid #000; }  
+        .marquee p { display: inline-block; padding-left: 100%; animation: marquee 25s linear infinite; }  
+        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }  
 
-        /* Progress Bar Animation */
+        /* ORIGINAL SCRATCH CARD SYSTEM */  
+        .scratch-container { position: relative; width: 100%; max-width: 450px; margin: 0 auto; min-height: 350px; }  
+        .scratch-canvas { position: absolute; top: 0; left: 0; z-index: 30; border-radius: 1.5rem; cursor: crosshair; touch-action: none; width: 100%; height: 100%; }  
+        .scratch-content { background: #000; border-radius: 1.5rem; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; border: 4px solid #334155; }  
+        .winner-glow { border: 5px solid #fbbf24; box-shadow: 0 0 50px rgba(251, 191, 36, 0.5); animation: pulse 2s infinite; }  
+        @keyframes pulse { 0% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.4); } 50% { box-shadow: 0 0 60px rgba(251, 191, 36, 0.7); } 100% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.4); } }  
+        .custom-scroll::-webkit-scrollbar { width: 6px; }  
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }  
+
+        /* NEW FEATURES CSS (Progress Bar & Specific Colors) */
         .progress-bar { transition: width 1s ease-in-out; }
-        
-        /* Custom Scroll for Admin */
-        .custom-scroll::-webkit-scrollbar { width: 5px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        .glow-green { border: 5px solid #22c55e; box-shadow: 0 0 50px rgba(34, 197, 94, 0.5); animation: pulse-green 2s infinite; }
+        .glow-blue { border: 5px solid #3b82f6; box-shadow: 0 0 50px rgba(59, 130, 246, 0.5); animation: pulse-blue 2s infinite; }
+        @keyframes pulse-green { 0% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); } 50% { box-shadow: 0 0 60px rgba(34, 197, 94, 0.7); } 100% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); } }
+        @keyframes pulse-blue { 0% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); } 50% { box-shadow: 0 0 60px rgba(59, 130, 246, 0.7); } 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); } }
     </style>
-</head>
-<body class="bg-gray-100">
-    <div id="root"></div>
+</head>  
+<body class="bg-slate-50 dark:bg-slate-900 transition-colors duration-300">  
+    <div id="root"></div>  
+    <script type="text/babel">  
+    const { useState, useEffect, useRef, useCallback } = React;  
+    
+    const SHEET_ID = "1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo";  
+    const MAIN_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;  
+    const MAPPING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";  
+    const MASTER_PIN = "Chanchal@6375";  
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef, useCallback } = React;
+    const vocab = {  
+        hi: {  
+            brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", service: "डिजिटल सेवा निम्बाहेड़ा", slogan: "समस्या आपकी, समाधान हमारा !", receipt: "प्रोफेशनल डिजिटल रसीद", idLabel: "मेंबरशिप आईडी दर्ज करें",   
+            points: "कुल सर्विस पॉइंट्स", used: "उपयोग पॉइंट्स", balance: "शेष पॉइंट्स", active: "सक्रियण तिथि", expiry: "समाप्ति तिथि", left: "शेष दिन", draw: "लकी ड्रा तिथि", fee: "रजिस्ट्रेशन शुल्क",  
+            updateMsg: "जानकारी अपडेट की जा रही है...",  
+            termsTitle: "नियम व शर्तें",  
+            t1: "01. यह डिजिटल सदस्यता कार्ड व्यक्तिगत है और पूरी तरह से अहस्तांतरणीय है।",  
+            t2: "02. कार्ड की सेवाओं का लाभ केवल कार्ड पर अंकित 'समाप्ति तिथि' तक ही लिया जा सकता है।",  
+            t3: "03. लिया गया शुल्क केवल 'पंजीकरण शुल्क' है, जो किसी भी स्थिति में वापस नहीं किया जाएगा।",  
+            t4: "04. सर्वर त्रुटि की स्थिति में, फिजिकल स्क्रैच कार्ड पर छपे परिणाम को ही अंतिम माना जाएगा।",  
+            t5: "05. सर्वर या इंटरनेट की खराबी होने management की कोई जिम्मेदारी नहीं होगी।",  
+            t6: "06. ई-मित्र सेवाओं के 'सरकारी टोकन शुल्क' का भुगतान ग्राहक द्वारा अलग से देय होगा।",  
+            t7: "07. फ्री डिलीवरी सीमा के बाद दूरी के आधार पर 'न्यूनतम उचित शुल्क' लिया जाएगा।",  
+            t8: "08. यह कार्य समाज सेवा के उद्देश्य से है, अतः कृपया कार्य होने तक धैर्य बनाए रखें।",  
+            t9: "09. कार्य में लगने वाले समय के लिए अभद्र व्यवहार या तर्क-वितर्क स्वीकार्य नहीं होगा।",  
+            t10: "10. मैनेजमेंट के पास नियमों में बदलाव करने का पूर्ण अधिकार सुरक्षित है।",  
+            pending: "परिणाम की घोषणा जल्द की जाएगी, कृपया ड्रा तिथि का इंतज़ार करें।",
+            warningMsg: "⚠️ आधिकारिक घोषणा होने तक कृपया कार्ड को स्क्रैच न करें",
+            walletLabel: "डिजिटल वॉलेट प्रोग्रेस"
+        },  
+        en: {  
+            brand: "Digital Problem Solution Group", service: "Digital Seva Nimbahera", slogan: "Your Problem, Our Solution!", receipt: "Professional Digital Receipt", idLabel: "Enter Membership ID",  
+            points: "Total Service Points", used: "Used Points", balance: "Balance Points", active: "Activation Date", expiry: "Expiry Date", left: "Days Left", draw: "Lucky Draw Date", fee: "Reg. Fee",  
+            updateMsg: "Information is being updated...",  
+            termsTitle: "Terms & Conditions",  
+            t1: "01. This membership card is personal and non-transferable.",  
+            t2: "02. Services can be availed only until the 'Expiry Date' on the card.",  
+            t3: "03. The fee taken is 'Registration Fee' only, which is non-refundable.",  
+            t4: "04. In case of server error, the result on Physical Scratch Card will be final.",  
+            t5: "05. Management is not responsible for server or internet failures.",  
+            t6: "06. Govt token charges for E-Mitra must be paid by the customer separately.",  
+            t7: "07. After free limit, a minimum fee based on distance will be charged.",  
+            t8: "08. This is social service work, please keep patience until work is completed.",  
+            t9: "09. Misbehavior or arguments regarding time taken will not be tolerated.",  
+            t10: "10. Management reserves all rights to change terms without notice.",  
+            pending: "Results will be announced soon, please wait for the draw date.",
+            warningMsg: "⚠️ Do not scratch the card until official announcement",
+            walletLabel: "Digital Wallet Progress"
+        }  
+    };  
 
-        // --- Database Links & Constants ---
-        const SHEET_ID = "1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo"; 
-        const MAIN_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
-        const MAPPING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";
-        const MASTER_PIN = "Chanchal@6375";
+    const cardSpecs = {  
+        VIP: {  
+            hi: ["कीमत: ₹500 (समय सीमा 6 महीने)", "उपयोग: पूरे परिवार के लिए मान्य", "कोटा: 150 प्रिंट + 80 फोटो (या 380 फोटो / 190 प्रिंट)", "लैमिनेशन: 2 फ्री", "ई-मित्र: 100% फ्री सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 2 बार फ्री (न्यूनतम रेट पर)", "इनाम: ₹100 Cash Back + बड़ा धमाका!"],  
+            en: ["Price: ₹500 (6 Months)", "Usage: Valid for whole family", "Quota: 150 Prints + 80 Photos (or 380 Photos / 190 Prints)", "Lamination: 2 Free", "E-Mitra: 100% Free Service (Token charge payable)", "Delivery: 2 Times Free (Min. Rate)", "Prize: ₹100 Cash Back + Big Blast!"]  
+        },  
+        Gold: {  
+            hi: ["कीमत: ₹100 (समय सीमा 3 महीने)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 40 प्रिंट + 24 फोटो (या 100 फोटो / 52 प्रिंट)", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: 100% गारंटीड उपहार!"],  
+            en: ["Price: ₹100 (3 Months)", "Usage: Valid for only 1 person", "Quota: 40 Prints + 24 Photos (or 100 Photos / 52 Prints)", "Lamination: 1 Free", "E-Mitra: 50% Off (Token charge payable)", "Delivery: 1 Time Free (Min. Rate)", "Prize: 100% Guaranteed Gift!"]  
+        },  
+        Silver: {  
+            hi: ["कीमत: ₹50 (समय सीमा 1 महीना)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 15 प्रिंट + 12 फोटो (या 40 फोटो / 21 प्रिंट)", "ई-मित्र: सीमित सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: लकी ड्रा का शानदार अवसर!"],  
+            en: ["Price: ₹50 (1 Month)", "Usage: Valid for only 1 person", "Quota: 15 Prints + 12 Photos (or 40 Photos / 21 Prints)", "E-Mitra: Limited Service (Token charge payable)", "Delivery: 1 Time Free (Min. Rate)", "Prize: Lucky Draw Opportunity!"]  
+        }  
+    };  
+    const toDirectLink = (url) => { if (!url) return ""; let id = ""; if (url.includes("/d/")) id = url.split("/d/")[1].split("/")[0]; if (url.includes("id=")) id = url.split("id=")[1].split("&")[0]; return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000" : url; };  
+    const mask = (v) => v?.length > 4 ? v.slice(0, 2) + "******" + v.slice(-2) : v;  
 
-        // --- Multi-Language Vocab ---
-        const vocab = {
-            hi: {
-                brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप",
-                searchLabel: "मेंबरशिप आईडी सर्च करें",
-                wallet: "डिजिटल वॉलेट",
-                used: "उपयोग",
-                balance: "शेष",
-                services: "हमारी सेवाएँ",
-                rewardTitle: "रिवॉर्ड सेक्शन",
-                warningMsg: "⚠️ आधिकारिक घोषणा होने तक कृपया कार्ड को स्क्रैच न करें",
-                helpdesk: "सहायता केंद्र",
-                pending: "परिणाम की घोषणा जल्द की जाएगी।"
-            },
-            en: {
-                brand: "Digital Problem Solution Group",
-                searchLabel: "Search Membership ID",
-                wallet: "Digital Wallet",
-                used: "Used",
-                balance: "Balance",
-                services: "Our Services",
-                rewardTitle: "Reward Section",
-                warningMsg: "⚠️ Do not scratch the card until official announcement",
-                helpdesk: "Help Desk",
-                pending: "Results will be announced soon."
+    // NEW: Progress Bar Math Function
+    const calculateProgress = (used, total) => {
+        const u = parseInt(used) || 0;
+        const t = parseInt(total) || 1;
+        let percent = (u / t) * 100;
+        return percent > 100 ? 100 : percent;
+    };
+
+    // ORIGINAL: Scratch Card Component
+    const ScratchCard = ({ onComplete, children }) => {  
+        const canvasRef = useRef(null);  
+        const [isRevealed, setIsRevealed] = useState(false);  
+        useEffect(() => {  
+            const canvas = canvasRef.current; if(!canvas) return; const ctx = canvas.getContext('2d');  
+            canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight;  
+            const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);  
+            grad.addColorStop(0, '#D4AF37'); grad.addColorStop(0.5, '#F9F295'); grad.addColorStop(1, '#B8860B');  
+            ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);  
+            ctx.font = "bold 22px Inter"; ctx.fillStyle = "#4a3b01"; ctx.textAlign = "center";  
+            ctx.fillText("SCRATCH HERE", canvas.width / 2, canvas.height / 2);  
+            const scratch = (e) => {  
+                if (isRevealed) return; const rect = canvas.getBoundingClientRect();  
+                const x = (e.pageX || (e.touches && e.touches[0].pageX)) - rect.left;  
+                const y = (e.pageY || (e.touches && e.touches[0].pageY)) - rect.top;  
+                ctx.globalCompositeOperation = 'destination-out'; ctx.beginPath(); ctx.arc(x, y, 40, 0, Math.PI * 2); ctx.fill();  
+                const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;  
+                let count = 0; for (let i = 0; i < pixels.length; i += 40) if (pixels[i + 3] === 0) count++;  
+                if (count > (pixels.length / 40) * 0.5) { setIsRevealed(true); onComplete(); }  
+            };  
+            canvas.addEventListener('mousemove', scratch); canvas.addEventListener('touchmove', scratch, {passive: true});  
+        }, [isRevealed]);  
+        return ( <div className="scratch-container"> {!isRevealed && <canvas ref={canvasRef} className="scratch-canvas" />} <div className="scratch-content">{children}</div> </div> );  
+    };  
+
+    const App = () => {  
+        const [lang, setLang] = useState('hi'); 
+        const [theme, setTheme] = useState('light'); // NEW: Theme State
+        const [status, setStatus] = useState("loading");  
+        const [member, setMember] = useState(null); 
+        const [headers, setHeaders] = useState([]);  
+        const [prize, setPrize] = useState({ img: "", msg: "", isLocked: true, type: "normal", highlight: "", colorClass: "" });  
+        const [isScratched, setIsScratched] = useState(false); 
+        const [isAdmin, setIsAdmin] = useState(false);  
+        const [showPin, setShowPin] = useState(false);  
+        const [showServiceForm, setShowServiceForm] = useState({ show: false, serviceName: "" }); // NEW: Formspree Pop-up State
+        
+        const t = vocab[lang];  
+
+        // NEW: Dark Mode Toggle Logic
+        useEffect(() => {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
             }
-        };
+        }, [theme]);
 
-        // --- Helpers ---
-        const toDirectLink = (url) => { 
-            if (!url) return ""; 
-            let id = ""; 
-            if (url.includes("/d/")) id = url.split("/d/")[1].split("/")[0]; 
-            if (url.includes("id=")) id = url.split("id=")[1].split("&")[0]; 
-            return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000" : url; 
-        };
+        // UPDATED: Map Prize with Column 39 (Index 38) Colors
+        const mapPrize = useCallback((row, maps) => {  
+            const mID = (row[1] || "").toString().toLowerCase().trim();  
+            const dDate = (row[36] || "").toString().trim();  
+            const lock = (row[38] || "").toString().toUpperCase().trim(); // Index 38  
+            const inamName = (row[4] || "").toString().trim();  
+            const today = new Date(); const draw = dDate ? new Date(dDate) : null;  
+            const keys = ["DPSG_WINNER", "DPSG_CASH", "DPSG_GIFT", "DPSG_NEXT"];  
 
-                // --- Scratch Card Component ---
-        const ScratchCard = ({ onComplete, children }) => {
-            const canvasRef = useRef(null);
-            const [isRevealed, setIsRevealed] = useState(false);
-            
-            useEffect(() => {
-                const canvas = canvasRef.current; 
-                if(!canvas) return; 
-                const ctx = canvas.getContext('2d');
-                canvas.width = canvas.parentElement.offsetWidth; 
-                canvas.height = canvas.parentElement.offsetHeight;
+            if (!dDate || draw > today || !keys.includes(lock)) {  
+                setPrize({ msg: t.pending, isLocked: true }); return;  
+            }  
+            const match = maps.find(m => m.Membership_ID.toLowerCase() === mID);  
+            if (lock === "DPSG_WINNER" && match) setPrize({ img: toDirectLink(match.Image_Link), highlight: inamName, msg: `🎉 Congratulations! You won ${match.Match_Name}!`, isLocked: false, type: "winner", colorClass: "winner-glow bg-yellow-400" });  
+            else if (lock === "DPSG_CASH") setPrize({ img: "https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000", highlight: inamName, msg: "🥳 Cashback Unlocked!", isLocked: false, type: "cash", colorClass: "glow-green bg-green-200" });  
+            else if (lock === "DPSG_GIFT") setPrize({ img: "https://drive.google.com/thumbnail?id=1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z&sz=w1000", highlight: inamName, msg: "🎁 Gift Unlocked!", isLocked: false, type: "gift", colorClass: "glow-blue bg-blue-200" });  
+            else setPrize({ img: "https://drive.google.com/thumbnail?id=1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh&sz=w1000", highlight: inamName || "Better Luck", msg: "✨ Try Again Next Time!", isLocked: false, type: "loss", colorClass: "border-4 border-slate-400 bg-slate-200" });  
+        }, [t.pending]);  
+
+        // Fetch Data Logic
+        useEffect(() => {  
+            fetch(MAIN_CSV + "&t=" + Date.now()).then(r => r.text()).then(txt => {  
+                Papa.parse(txt, { complete: (res) => {  
+                    const rows = res.data; setHeaders(rows[0] || []);  
+                    const qId = new URLSearchParams(window.location.search).get('id');  
+                    const match = rows.slice(1).find(r => r[1] && r[1].toLowerCase() === (qId || "").toLowerCase());  
+                    if (match) { setMember(match); fetch(MAPPING_CSV).then(r => r.text()).then(mTxt => { Papa.parse(mTxt, { header: true, complete: (mRes) => { mapPrize(match, mRes.data); setStatus("view"); } }); }); }  
+                    else setStatus("search");  
+                }});  
+            });  
+        }, [mapPrize]);  
+
+        const clean = (val) => (val && val !== "#REF!" && val !== "") ? val : t.updateMsg;  
+
+        if (status === "loading") return <div className="h-screen flex items-center justify-center font-black text-blue-600 dark:text-blue-400 text-xl">DPSG SYSTEM LOADING...</div>;  
+        return (  
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300 pb-10">  
                 
-                // Silver/Grey Scratch Layer
-                ctx.fillStyle = '#94a3b8'; 
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Text on Scratch Card
-                ctx.font = "bold 20px Inter"; 
-                ctx.fillStyle = "#334155"; 
-                ctx.textAlign = "center";
-                ctx.fillText("SCRATCH HERE", canvas.width / 2, canvas.height / 2);
-                
-                const scratch = (e) => {
-                    if (isRevealed) return; 
-                    const rect = canvas.getBoundingClientRect();
-                    const x = (e.pageX || (e.touches && e.touches[0].pageX)) - rect.left;
-                    const y = (e.pageY || (e.touches && e.touches[0].pageY)) - rect.top;
-                    
-                    ctx.globalCompositeOperation = 'destination-out'; 
-                    ctx.beginPath(); 
-                    ctx.arc(x, y, 35, 0, Math.PI * 2); 
-                    ctx.fill();
-                    
-                    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-                    let count = 0; 
-                    for (let i = 0; i < pixels.length; i += 40) if (pixels[i + 3] === 0) count++;
-                    
-                    // Reveal if 50% is scratched
-                    if (count > (pixels.length / 40) * 0.5) { 
-                        setIsRevealed(true); 
-                        onComplete(); 
-                    }
-                };
-                
-                canvas.addEventListener('mousemove', scratch); 
-                canvas.addEventListener('touchmove', scratch, {passive: true});
-            }, [isRevealed]);
-            
-            return ( 
-                <div className="scratch-container"> 
-                    {!isRevealed && <canvas ref={canvasRef} className="scratch-canvas" />} 
-                    <div className="scratch-content bg-white dark:bg-gray-800">{children}</div> 
-                </div> 
-            );
-        };
-
-        // --- Main App Component ---
-        const App = () => {
-            // States
-            const [lang, setLang] = useState('hi'); 
-            const [theme, setTheme] = useState('light');
-            const [status, setStatus] = useState("search"); // "search", "loading", "view"
-            const [member, setMember] = useState(null); 
-            const [headers, setHeaders] = useState([]);
-            const [prize, setPrize] = useState({ img: "", msg: "", isLocked: true, type: "normal", highlight: "", colorClass: "" });
-            const [isScratched, setIsScratched] = useState(false); 
-            const [isAdmin, setIsAdmin] = useState(false);
-            const [showPin, setShowPin] = useState(false);
-            const [showServiceForm, setShowServiceForm] = useState({ show: false, serviceName: "" });
-
-            const t = vocab[lang];
-
-            // Dark Mode Toggle Logic
-            useEffect(() => {
-                if (theme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                    document.body.classList.add('bg-gray-900', 'text-white');
-                    document.body.classList.remove('bg-gray-100', 'text-black');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                    document.body.classList.remove('bg-gray-900', 'text-white');
-                    document.body.classList.add('bg-gray-100', 'text-black');
-                }
-            }, [theme]);
-
-            // Prize Logic based on Index 38 (Column 39)
-            const mapPrize = useCallback((row, maps) => {
-                const mID = (row[1] || "").toString().toLowerCase().trim();
-                const dDate = (row[36] || "").toString().trim();
-                const lock = (row[38] || "").toString().toUpperCase().trim(); // Index 38 logic
-                const inamName = (row[4] || "").toString().trim();
-                
-                const today = new Date(); 
-                const draw = dDate ? new Date(dDate) : null;
-                const keys = ["DPSG_WINNER", "DPSG_CASH", "DPSG_GIFT", "DPSG_NEXT"];
-
-                if (!dDate || draw > today || !keys.includes(lock)) {
-                    setPrize({ msg: t.pending, isLocked: true }); 
-                    return;
-                }
-                
-                const match = maps.find(m => m.Membership_ID.toLowerCase() === mID);
-                
-                // Color Logic based on prize type
-                if (lock === "DPSG_WINNER" && match) {
-                    setPrize({ img: toDirectLink(match.Image_Link), highlight: inamName, msg: `🎉 Congratulations!`, isLocked: false, type: "winner", colorClass: "glow-yellow bg-yellow-100" });
-                } else if (lock === "DPSG_CASH") {
-                    setPrize({ img: "https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000", highlight: inamName, msg: "🥳 Cashback!", isLocked: false, type: "cash", colorClass: "glow-green bg-green-100" });
-                } else if (lock === "DPSG_GIFT") {
-                    setPrize({ img: "https://drive.google.com/thumbnail?id=1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z&sz=w1000", highlight: inamName, msg: "🎁 Gift!", isLocked: false, type: "gift", colorClass: "glow-blue bg-blue-100" });
-                } else {
-                    setPrize({ img: "https://drive.google.com/thumbnail?id=1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh&sz=w1000", highlight: inamName || "Better Luck", msg: "✨ Try Again!", isLocked: false, type: "loss", colorClass: "border-gray-400 bg-gray-200" });
-                }
-            }, [t.pending]);
-
-            // Data Fetching Function
-            const fetchData = (searchId) => {
-                setStatus("loading");
-                fetch(MAIN_CSV + "&t=" + Date.now()).then(r => r.text()).then(txt => {
-                    Papa.parse(txt, { complete: (res) => {
-                        const rows = res.data; 
-                        setHeaders(rows[0] || []);
-                        const match = rows.slice(1).find(r => r[1] && r[1].toLowerCase() === searchId.toLowerCase());
-                        
-                        if (match) { 
-                            setMember(match); 
-                            fetch(MAPPING_CSV).then(r => r.text()).then(mTxt => { 
-                                Papa.parse(mTxt, { header: true, complete: (mRes) => { 
-                                    mapPrize(match, mRes.data); 
-                                    setStatus("view"); 
-                                }}); 
-                            }); 
-                        } else { 
-                            alert("ID Not Found! / आईडी नहीं मिली!");
-                            setStatus("search"); 
-                        }
-                    }});
-                }).catch(() => {
-                    alert("Network Error!");
-                    setStatus("search");
-                });
-            };
-
-            const clean = (val) => (val && val !== "#REF!" && val !== "") ? val : "...";
-
-            // Helper for Progress Bar Math
-            const calculateProgress = (used, total) => {
-                const u = parseInt(used) || 0;
-                const t = parseInt(total) || 1;
-                let percent = (u / t) * 100;
-                return percent > 100 ? 100 : percent;
-            };
-                      return (
-                <div className="app-container bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300">
-                    
-                    {/* Top Controls: Language & Theme */}
-                    <div className="flex justify-between items-center p-4 border-b dark:border-gray-800">
-                        <div className="flex bg-gray-200 dark:bg-gray-700 p-1 rounded-lg">
-                            <button onClick={() => setLang('hi')} className={`px-4 py-1.5 rounded-md text-sm font-bold ${lang === 'hi' ? 'bg-white dark:bg-gray-600 shadow' : 'text-gray-500 dark:text-gray-400'}`}>हिन्दी</button>
-                            <button onClick={() => setLang('en')} className={`px-4 py-1.5 rounded-md text-sm font-bold ${lang === 'en' ? 'bg-white dark:bg-gray-600 shadow' : 'text-gray-500 dark:text-gray-400'}`}>ENG</button>
-                        </div>
-                        <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} className="text-xl p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-yellow-500 dark:text-yellow-400 shadow-inner">
+                {/* NEW: Top Bar (Language, Theme Toggle & Home Button) */}
+                <div className="no-print flex justify-between items-center p-4 bg-white dark:bg-slate-800 shadow-sm border-b dark:border-slate-700">  
+                    <div className="flex bg-slate-200 dark:bg-slate-700 p-1 rounded-xl">  
+                        <button onClick={() => setLang('hi')} className={`px-4 py-1.5 rounded-lg font-bold text-sm ${lang === 'hi' ? 'bg-white dark:bg-slate-600 shadow' : 'text-slate-500 dark:text-slate-300'}`}>हिन्दी</button>  
+                        <button onClick={() => setLang('en')} className={`px-4 py-1.5 rounded-lg font-bold text-sm ${lang === 'en' ? 'bg-white dark:bg-slate-600 shadow' : 'text-slate-500 dark:text-slate-300'}`}>English</button>  
+                    </div>  
+                    <div className="flex gap-4 items-center">
+                        <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} className="text-xl text-yellow-500 dark:text-yellow-400">
                             {theme === 'light' ? <i className="fa-solid fa-moon"></i> : <i className="fa-solid fa-sun"></i>}
                         </button>
+                        <button onClick={() => window.location.href="?"} className="text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"><i className="fa-solid fa-house-chimney text-2xl"></i></button>  
                     </div>
+                </div>  
 
-                    {/* Sliding Banners */}
-                    <div className="marquee-container bg-blue-600 dark:bg-blue-800 text-white">
-                        <div className="marquee-content flex gap-8 items-center">
-                            <span>🔥 VIP (100) & Gold (400) कार्ड उपलब्ध!</span>
-                            <span>🎯 30 दिन का लक्ष्य | 30 दिन में 100% रिफंड गारंटी!</span>
-                            <span>🔥 VIP (100) & Gold (400) कार्ड उपलब्ध!</span>
-                            <span>🎯 30 दिन का लक्ष्य | 30 दिन में 100% रिफंड गारंटी!</span>
-                        </div>
-                    </div>
+                {/* ORIGINAL + NEW: Sliding Marquee Banner */}
+                <div className="no-print marquee"><p>{member ? clean(member[38]) : "🔥 VIP (100) & Gold (400) कार्ड | 30 दिन का लक्ष्य | 100% रिफंड गारंटी! 🔥 Welcome to Digital Problem Solution Group Nimbahera"}</p></div>  
+                  
+                <div className="max-w-xl mx-auto p-4 sm:p-8">  
+                    
+                    {/* ORIGINAL: Search Screen */}
+                    {status === "search" ? (  
+                        <div className="bg-white dark:bg-slate-800 p-12 rounded-[2.5rem] shadow-xl text-center border border-slate-100 dark:border-slate-700 mt-8">  
+                            <i className="fa-solid fa-id-card text-6xl text-blue-600 dark:text-blue-400 mb-6"></i>  
+                            <h2 className="text-xl font-black mb-8 uppercase text-slate-800 dark:text-white">{t.idLabel}</h2>  
+                            <input id="sid" type="text" className="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-2xl py-5 px-6 text-center mb-6 text-xl font-bold focus:border-blue-500 outline-none dark:text-white" placeholder="DPSG-26-XXXX" />  
+                            <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-blue-600 py-5 rounded-2xl font-black text-white shadow-lg hover:bg-blue-700 transition-all">CHECK DETAILS</button>  
+                        </div>  
+                    ) : (  
+                        <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-700">  
+                            
+                            {/* ORIGINAL: Header Titles */}
+                            <div className="text-center">  
+                                <h1 className="text-2xl font-black italic uppercase text-blue-900 dark:text-blue-300 leading-none">{t.brand}</h1>  
+                                <p className="text-yellow-600 font-black tracking-widest mt-2 uppercase text-sm">{t.service}</p>  
+                                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold mt-2 italic tracking-widest uppercase">{t.slogan}</p>  
+                            </div>  
 
-                    <div className="p-4 sm:p-6 pb-24">
-                        
-                        {/* Status Check: Search, Loading, or View */}
-                        {status === "search" ? (
-                            <div className="mt-12 bg-gray-50 dark:bg-gray-800 p-8 rounded-3xl shadow-sm text-center border dark:border-gray-700">
-                                <div className="w-20 h-20 mx-auto bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mb-6">
-                                    <i className="fa-solid fa-id-badge text-4xl text-blue-600 dark:text-blue-400"></i>
+                            {/* NEW: Digital Wallet Progress Bar */}
+                            <div className="no-print bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-md border dark:border-slate-700">
+                                <h3 className="font-black text-slate-800 dark:text-white mb-4 uppercase text-sm"><i className="fa-solid fa-wallet text-blue-500 mr-2"></i> {t.walletLabel}</h3>
+                                <div className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase">
+                                    <span>Total: <span className="text-blue-600 dark:text-blue-400">{clean(member[21])}</span></span>
+                                    <span>{t.balance}: <span className="text-green-600 dark:text-green-400">{clean(member[23])}</span></span>
                                 </div>
-                                <h2 className="text-xl font-black mb-8 dark:text-white uppercase tracking-wide">{t.searchLabel}</h2>
-                                <input id="sid" type="text" className="w-full bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl py-4 px-4 text-center mb-6 text-lg font-bold focus:border-blue-500 outline-none dark:text-white uppercase placeholder-gray-400" placeholder="DPSG-26-XXXX" />
-                                <button onClick={() => fetchData(document.getElementById('sid').value)} className="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-lg shadow-lg hover:bg-blue-700 transition-all active:scale-95">SEARCH ID</button>
+                                <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-4 overflow-hidden relative shadow-inner">
+                                    <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-4 rounded-full progress-bar" style={{ width: `${calculateProgress(member[22], member[21])}%` }}></div>
+                                </div>
+                                <p className="text-right text-[10px] text-slate-400 dark:text-slate-500 font-bold mt-2 uppercase">{t.used}: {clean(member[22])}</p>
                             </div>
-                        ) : status === "loading" ? (
-                            <div className="mt-32 text-center font-black text-xl text-blue-600 dark:text-blue-400 animate-pulse flex flex-col items-center">
-                                <i className="fa-solid fa-spinner fa-spin text-4xl mb-4"></i>
-                                Loading DPSG Database...
+
+                            {/* NEW: Services Grid (Formspree Triggers) */}
+                            <div className="no-print">
+                                <div className="grid grid-cols-4 gap-3">
+                                    {[
+                                        { id: 'emitra', name: 'ई-मित्र', icon: 'fa-laptop-file', color: 'bg-orange-500' },
+                                        { id: 'data', name: 'डेटा रिकवरी', icon: 'fa-hard-drive', color: 'bg-blue-500' },
+                                        { id: 'unlock', name: 'मोबाइल अनलॉक', icon: 'fa-mobile-screen-button', color: 'bg-purple-500' },
+                                        { id: 'yojana', name: 'सरकारी योजनाएं', icon: 'fa-building-columns', color: 'bg-green-500' }
+                                    ].map(srv => (
+                                        <div key={srv.id} onClick={() => setShowServiceForm({ show: true, serviceName: srv.name })} className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border dark:border-slate-700 cursor-pointer hover:scale-105 transition-transform">
+                                            <div className={`w-12 h-12 ${srv.color} text-white rounded-full flex items-center justify-center mb-2 shadow-inner`}>
+                                                <i className={`fa-solid ${srv.icon} text-xl`}></i>
+                                            </div>
+                                            <span className="text-[9px] font-bold text-slate-700 dark:text-slate-300 text-center uppercase">{srv.name}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        ) : (
-                            <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+                            {/* NEW: Reward Section with Strict Red Warning */}
+                            <div className="no-print bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-sm border dark:border-slate-700">
+                                <h3 className="font-black text-slate-800 dark:text-white mb-4 uppercase text-sm"><i className="fa-solid fa-gift text-pink-500 mr-2"></i> {t.rewardTitle || 'Reward Section'}</h3>
                                 
-                                {/* User Header */}
-                                <div className="text-center bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-800 p-5 rounded-2xl border border-blue-100 dark:border-gray-700 shadow-sm relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-black px-3 py-1 rounded-bl-lg uppercase">{clean(member[3])}</div>
-                                    <h1 className="text-xl font-black text-blue-900 dark:text-blue-300 uppercase mt-2">{t.brand}</h1>
-                                    <div className="mt-3 inline-block bg-white dark:bg-gray-700 px-4 py-1.5 rounded-full border border-gray-200 dark:border-gray-600">
-                                        <p className="font-black text-lg text-gray-800 dark:text-white tracking-widest">{clean(member[1])}</p>
-                                    </div>
-                                    <p className="text-sm font-bold text-gray-600 dark:text-gray-300 mt-3 uppercase">{clean(member[8])} • {clean(member[5])}</p>
+                                <div className="bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500 text-red-700 dark:text-red-400 p-3 rounded-lg mb-6 shadow-sm">
+                                    <p className="text-[11px] font-black animate-pulse">{t.warningMsg}</p>
                                 </div>
 
-                                {/* Digital Wallet (Progress Meter) */}
-                                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border dark:border-gray-700">
-                                    <h3 className="font-black text-gray-800 dark:text-gray-200 mb-5 flex items-center uppercase text-sm tracking-widest"><i className="fa-solid fa-wallet text-blue-500 mr-2 text-lg"></i> {t.wallet}</h3>
+                                <div className={`p-2 rounded-[2rem] transition-all duration-700 ${prize.type !== 'normal' && isScratched ? prize.colorClass : 'bg-slate-200 dark:bg-slate-700'}`}>  
+                                    {prize.isLocked ? (  
+                                        <div className="bg-white dark:bg-slate-800 p-12 rounded-[1.8rem] text-center italic shadow-inner">  
+                                            <i className="fa-solid fa-lock text-4xl text-slate-300 dark:text-slate-600 mb-4"></i>  
+                                            <p className="text-slate-500 dark:text-slate-400 font-bold">{prize.msg}</p>  
+                                        </div>  
+                                    ) : (  
+                                        <ScratchCard onComplete={() => { setIsScratched(true); confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); }}>  
+                                            <div className="bg-white dark:bg-slate-800 p-6 text-center w-full h-full flex flex-col justify-center items-center">
+                                                <div className="bg-slate-100 dark:bg-slate-700 px-8 py-2 rounded-full font-black text-blue-600 dark:text-blue-400 mb-4 shadow-sm text-sm uppercase">{clean(prize.highlight)}</div>  
+                                                <img src={prize.img} className="max-h-60 w-auto object-contain drop-shadow-lg" alt="Prize" />  
+                                            </div>
+                                        </ScratchCard>  
+                                    )}  
+                                </div>
+                            </div>
+
+                            {/* NEW: Help Desk Buttons */}
+                            <div className="no-print grid grid-cols-2 gap-4 mt-2">
+                                <a href="https://wa.me/917229874128" target="_blank" rel="noreferrer" className="bg-green-500 text-white p-4 rounded-2xl shadow-sm hover:bg-green-600 transition-colors flex items-center justify-center gap-2">
+                                    <i className="fa-brands fa-whatsapp text-2xl"></i>
+                                    <span className="font-black text-[11px] uppercase">WhatsApp</span>
+                                </a>
+                                <a href="https://maps.google.com/?q=Digital+Seva+Nimbahera" target="_blank" rel="noreferrer" className="bg-red-500 text-white p-4 rounded-2xl shadow-sm hover:bg-red-600 transition-colors flex items-center justify-center gap-2">
+                                    <i className="fa-solid fa-location-dot text-2xl"></i>
+                                    <span className="font-black text-[11px] uppercase">Location</span>
+                                </a>
+                            </div>
+
+                            {/* ORIGINAL: 100% SAME DIGITAL RECEIPT */}
+                            <div id="receipt" className="receipt-card p-8 sm:p-12 text-left dark:bg-white dark:text-slate-900 mt-8">  
+                                <div className="text-center border-b-2 border-dashed border-slate-100 pb-8 mb-8">  
+                                    <h3 className="font-black text-2xl text-blue-700 italic uppercase">{t.receipt}</h3>  
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2">NIMBAHERA, RAJASTHAN</p>  
+                                </div>  
+                                  
+                                <div className="space-y-10">  
+                                    <div className="flex justify-between items-end border-b pb-6">  
+                                        <div><p className="text-[10px] text-slate-400 font-black uppercase mb-1">ID IDENTITY</p><p className="text-2xl font-black text-slate-900">{clean(member[1])}</p></div>  
+                                        <div className="text-right"><p className="text-[10px] text-slate-400 font-black uppercase mb-1">Category</p><p className="text-sm font-black text-blue-700 border-2 border-blue-100 px-4 py-1 rounded-full">{clean(member[3])}</p></div>  
+                                    </div>  
+
+                                    <div className="grid grid-cols-3 gap-4">  
+                                        <div className="bg-blue-600 text-white p-6 rounded-3xl text-center shadow-lg">  
+                                            <p className="text-[9px] font-bold uppercase opacity-80 mb-1">{t.points}</p>  
+                                            <p className="text-3xl font-black">{clean(member[21])}</p>  
+                                        </div>  
+                                        <div className="bg-slate-800 text-white p-6 rounded-3xl text-center shadow-lg">  
+                                            <p className="text-[9px] font-bold uppercase opacity-80 mb-1">{t.used}</p>  
+                                            <p className="text-3xl font-black">{clean(member[22])}</p>  
+                                        </div>  
+                                        <div className="bg-green-600 text-white p-6 rounded-3xl text-center shadow-lg">  
+                                            <p className="text-[9px] font-bold uppercase opacity-80 mb-1">{t.balance}</p>  
+                                            <p className="text-3xl font-black">{clean(member[23])}</p>  
+                                        </div>  
+                                    </div>  
+
+                                    <div className="bg-blue-50/50 p-8 rounded-[2rem] border border-blue-100">  
+                                        <p className="text-[11px] font-black text-blue-700 uppercase mb-6 flex items-center italic"><i className="fa-solid fa-crown mr-3"></i> सदस्यता कार्ड सुविधायें</p>  
+                                        <div className="space-y-3">  
+                                        {(() => {  
+                                            const cat = member[3]?.toLowerCase() || "";  
+                                            let key = (cat.includes("vip") || cat.includes("500")) ? "VIP" : (cat.includes("gold") || cat.includes("100")) ? "Gold" : "Silver";  
+                                            return cardSpecs[key][lang].map((ben, i) => (  
+                                                <div key={i} className="flex items-start text-[11px] font-bold italic py-2 border-b border-blue-100/50 last:border-0"><i className="fa-solid fa-circle-check text-green-500 mr-3 mt-1"></i>{ben}</div>  
+                                            ));  
+                                        })()}  
+                                        </div>  
+                                    </div>  
+
+                                    <div className="grid grid-cols-2 gap-x-8 gap-y-10 py-4 border-y border-slate-50">  
+                                        <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1">Customer Name</p><p className="text-[17px] font-black text-slate-900 uppercase">{clean(member[8])}</p></div>  
+                                        <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1">Village</p><p className="text-[17px] font-black text-slate-900 uppercase">{clean(member[5])}</p></div>  
+                                        <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1">Secure Mobile</p><p className="text-lg font-bold tracking-widest">{mask(member[9])}</p></div>  
+                                        <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1">Secure Aadhar</p><p className="text-lg font-bold tracking-widest">{mask(member[11])}</p></div>  
+                                        <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1">{t.active}</p><p className="font-bold text-slate-800">{clean(member[34])}</p></div>  
+                                        <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1">{t.expiry}</p><p className="font-bold text-red-600">{clean(member[35])}</p></div>  
+                                        <div className="bg-slate-100 p-4 rounded-2xl text-center"><p className="text-[9px] text-slate-400 font-black uppercase mb-1">{t.left}</p><p className="text-xl font-black text-blue-700">{clean(member[20])}</p></div>  
+                                        <div className="bg-slate-100 p-4 rounded-2xl text-center"><p className="text-[9px] text-slate-400 font-black uppercase mb-1">{t.fee}</p><p className="text-xl font-black text-slate-800">{clean(member[2])}</p></div>  
+                                    </div>  
+
+                                    <div className="bg-slate-900 text-white p-8 rounded-3xl text-center shadow-xl">  
+                                        <p className="text-[10px] font-black uppercase opacity-50 mb-2 italic tracking-widest">{t.draw}</p>  
+                                        <p className="text-3xl font-black text-yellow-500 italic uppercase">{clean(member[36])}</p>  
+                                    </div>  
+
+                                    <div className="bg-slate-50 p-10 rounded-[2.5rem] border border-slate-100">  
+                                        <h4 className="text-[11px] font-black uppercase mb-8 border-b pb-4 flex items-center text-slate-800"><i className="fa-solid fa-scale-balanced mr-3 text-blue-600"></i> {t.termsTitle}</h4>  
+                                        <div className="space-y-5 text-slate-500 font-bold italic text-[10px] leading-relaxed">  
+                                            <p>{t.t1}</p><p>{t.t2}</p><p>{t.t3}</p><p>{t.t4}</p><p>{t.t5}</p>  
+                                            <p>{t.t6}</p><p>{t.t7}</p><p>{t.t8}</p><p>{t.t9}</p><p>{t.t10}</p>  
+                                        </div>  
+                                    </div>  
+                                    <button onClick={()=>window.print()} className="no-print w-full bg-blue-600 text-white py-6 rounded-full text-sm font-black uppercase shadow-xl hover:bg-blue-700 transition-all active:scale-95">PRINT OFFICIAL RECEIPT</button>  
+                                </div>  
+                            </div>
+
+                            {/* ORIGINAL: MASTER ADMIN - FINGERPRINT ICON */}    
+                            <div className="no-print pt-10 pb-20 flex flex-col items-center">  
+                                {!isAdmin && (  
+                                    <button onClick={() => setShowPin(!showPin)} className="opacity-20 hover:opacity-100 transition-all p-6 bg-white dark:bg-slate-800 rounded-full shadow-lg border dark:border-slate-700">  
+                                        <i className="fa-solid fa-fingerprint text-4xl text-blue-600 dark:text-blue-400"></i>  
+                                    </button>  
+                                )}  
+                                {showPin && !isAdmin && (  
+                                    <div className="mt-8 bg-white dark:bg-slate-800 p-10 rounded-[2.5rem] border dark:border-slate-700 shadow-2xl w-full animate-in zoom-in">  
+                                        <input type="password" id="adminPin" className="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 rounded-2xl px-8 py-5 text-xl font-bold text-center mb-4 focus:border-blue-500 outline-none dark:text-white" placeholder="ENTER PIN" />  
+                                        <button onClick={() => {document.getElementById('adminPin').value === MASTER_PIN ? setIsAdmin(true) : alert("WRONG PIN!");}} className="w-full bg-slate-900 dark:bg-slate-600 py-5 rounded-2xl font-black text-white">UNLOCK ALL 39 COLUMNS</button>  
+                                    </div>  
+                                )}  
+                                {isAdmin && (  
+                                    <div className="w-full mt-10 bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-[2.5rem] p-8 text-left shadow-2xl overflow-hidden">  
+                                        <div className="flex justify-between items-center mb-6 border-b dark:border-slate-700 pb-4">  
+                                            <h3 className="font-black text-blue-600 dark:text-blue-400 text-sm">MASTER DASHBOARD (FULL DATA)</h3>  
+                                            <button onClick={()=>setIsAdmin(false)} className="text-red-500 font-black text-xs uppercase">Logout</button>  
+                                        </div>  
+                                        <div className="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto pr-2 custom-scroll">  
+                                            {member.map((val, i) => (  
+                                                <div key={i} className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-600">  
+                                                    <p className="text-[8px] text-slate-400 dark:text-slate-500 uppercase font-black mb-1">{headers[i] || `Index ${i}`}</p>  
+                                                    <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{val || "---"}</p>  
+                                                </div>  
+                                            ))}  
+                                        </div>  
+                                    </div>  
+                                )}  
+                            </div> 
+                        </div> // End of View State Space-y-8
+                    )}  
+                </div> // End main container
+
+                {/* NEW: Formspree Service Popup Modal */}
+                {showServiceForm.show && (
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+                        <div className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden border dark:border-slate-700 relative">
+                            <button onClick={() => setShowServiceForm({ show: false, serviceName: "" })} className="absolute top-4 right-4 w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-slate-500 hover:text-red-500 transition-colors z-10">
+                                <i className="fa-solid fa-xmark"></i>
+                            </button>
+                            <div className="p-8">
+                                <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mb-4 mx-auto shadow-inner text-blue-600 dark:text-blue-400">
+                                    <i className="fa-solid fa-cloud-arrow-up text-3xl"></i>
+                                </div>
+                                <h3 className="text-lg font-black text-center text-slate-800 dark:text-white uppercase mb-6 tracking-wide">{showServiceForm.serviceName}</h3>
+                                
+                                <form action="https://formspree.io/f/xwvndvoe" method="POST" encType="multipart/form-data" className="space-y-4">
+                                    <input type="hidden" name="Service_Requested" value={showServiceForm.serviceName} />
+                                    <input type="hidden" name="Membership_ID" value={member ? member[1] : "Unknown"} />
                                     
-                                    <div className="mb-2 flex justify-between text-xs font-black text-gray-500 dark:text-gray-400 uppercase">
-                                        <span>Total: <span className="text-blue-600 dark:text-blue-400 text-sm">{clean(member[21])}</span></span>
-                                        <span>{t.balance}: <span className="text-green-600 dark:text-green-400 text-sm">{clean(member[23])}</span></span>
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2 mb-1 block">Full Name</label>
+                                        <input type="text" name="Client_Name" required className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-blue-500 dark:text-white" placeholder="आपका नाम" />
                                     </div>
                                     
-                                    <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-5 mb-2 overflow-hidden shadow-inner border dark:border-gray-600 relative">
-                                        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-5 rounded-full progress-bar relative flex items-center justify-end pr-2" style={{ width: `${calculateProgress(member[22], member[21])}%` }}>
-                                             {calculateProgress(member[22], member[21]) > 10 && <span className="text-[10px] text-white font-black">{Math.round(calculateProgress(member[22], member[21]))}%</span>}
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2 mb-1 block">Mobile Number</label>
+                                        <input type="tel" name="Mobile_Number" required className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-blue-500 dark:text-white" placeholder="मोबाइल नंबर" />
+                                    </div>
+
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2 mb-1 block">Upload Document/Photo</label>
+                                        <div className="w-full bg-slate-50 dark:bg-slate-700 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl px-4 py-4 text-center cursor-pointer hover:border-blue-500 transition-colors relative">
+                                            <i className="fa-solid fa-file-arrow-up text-slate-400 text-2xl mb-2"></i>
+                                            <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Click to upload file</p>
+                                            <input type="file" name="attachment" required className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                                         </div>
                                     </div>
-                                    <p className="text-right text-[11px] text-gray-400 dark:text-gray-500 font-bold uppercase">{t.used}: {clean(member[22])}</p>
-                                </div>
-                                {/* Services Grid (Color Icons) */}
-                                <div>
-                                    <h3 className="font-black text-gray-800 dark:text-gray-200 mb-4 uppercase text-sm tracking-widest pl-2">{t.services}</h3>
-                                    <div className="grid grid-cols-4 gap-4">
-                                        {[
-                                            { id: 'emitra', name: 'ई-मित्र', icon: 'fa-laptop-file', color: 'bg-orange-500' },
-                                            { id: 'data', name: 'डेटा रिकवरी', icon: 'fa-hard-drive', color: 'bg-blue-500' },
-                                            { id: 'unlock', name: 'मोबाइल अनलॉक', icon: 'fa-mobile-screen-button', color: 'bg-purple-500' },
-                                            { id: 'yojana', name: 'सरकारी योजनाएं', icon: 'fa-building-columns', color: 'bg-green-500' }
-                                        ].map(srv => (
-                                            <div key={srv.id} onClick={() => setShowServiceForm({ show: true, serviceName: srv.name })} className="flex flex-col items-center justify-center p-3 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border dark:border-gray-700 cursor-pointer hover:scale-105 transition-transform">
-                                                <div className={`w-12 h-12 ${srv.color} text-white rounded-full flex items-center justify-center shadow-inner mb-2`}>
-                                                    <i className={`fa-solid ${srv.icon} text-xl`}></i>
-                                                </div>
-                                                <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300 text-center leading-tight">{srv.name}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
 
-                                {/* Reward Section (Scratch Card) */}
-                                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border dark:border-gray-700 relative overflow-hidden">
-                                    <h3 className="font-black text-gray-800 dark:text-gray-200 mb-4 flex items-center uppercase text-sm tracking-widest"><i className="fa-solid fa-gift text-pink-500 mr-2 text-lg"></i> {t.rewardTitle}</h3>
-                                    
-                                    {/* Strict Red Warning */}
-                                    <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 rounded-lg mb-6 shadow-sm">
-                                        <p className="text-[11px] font-black animate-pulse">{t.warningMsg}</p>
-                                    </div>
-
-                                    {/* Excel Index 38 Color Logic Integration */}
-                                    <div className={`p-2 rounded-[1.5rem] transition-all duration-700 ${prize.type !== 'normal' && isScratched ? prize.colorClass : 'bg-gray-100 dark:bg-gray-700'}`}>
-                                        {prize.isLocked ? (
-                                            <div className="bg-white dark:bg-gray-800 p-10 rounded-2xl text-center shadow-inner border dark:border-gray-700">
-                                                <i className="fa-solid fa-lock text-4xl text-gray-300 dark:text-gray-600 mb-4"></i>
-                                                <p className="text-gray-500 dark:text-gray-400 font-bold text-sm">{prize.msg}</p>
-                                            </div>
-                                        ) : (
-                                            <ScratchCard onComplete={() => { setIsScratched(true); confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); }}>
-                                                <div className="bg-white dark:bg-gray-800 p-4 text-center w-full h-full flex flex-col justify-center items-center">
-                                                    <div className="bg-gray-100 dark:bg-gray-700 px-6 py-2 rounded-full font-black text-blue-600 dark:text-blue-400 mb-4 shadow-sm text-sm uppercase">{clean(prize.highlight)}</div>
-                                                    <img src={prize.img} className="max-h-32 w-auto object-contain drop-shadow-lg" alt="Prize" />
-                                                </div>
-                                            </ScratchCard>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Help Desk Buttons */}
-                                <div className="grid grid-cols-2 gap-4 mt-6">
-                                    <a href="https://wa.me/917229874128" target="_blank" className="bg-green-500 text-white p-4 rounded-2xl shadow-sm hover:bg-green-600 transition-colors flex items-center justify-center gap-2">
-                                        <i className="fa-brands fa-whatsapp text-2xl"></i>
-                                        <span className="font-black text-sm uppercase">WhatsApp</span>
-                                    </a>
-                                    <a href="https://maps.google.com/?q=Digital+Seva+Nimbahera" target="_blank" className="bg-red-500 text-white p-4 rounded-2xl shadow-sm hover:bg-red-600 transition-colors flex items-center justify-center gap-2">
-                                        <i className="fa-solid fa-location-dot text-2xl"></i>
-                                        <span className="font-black text-sm uppercase">Location</span>
-                                    </a>
-                                </div>
-                                
-                            </div> // End of View State Space-y-6
-                        )}
-
-                        {/* Master Admin - Fingerprint Icon & 39 Columns */}
-                        {status === "view" && (
-                            <div className="mt-16 flex flex-col items-center pb-10">
-                                {!isAdmin && (
-                                    <button onClick={() => setShowPin(!showPin)} className="opacity-30 hover:opacity-100 transition-opacity p-5 bg-white dark:bg-gray-800 rounded-full shadow-lg border dark:border-gray-700">
-                                        <i className="fa-solid fa-fingerprint text-3xl text-blue-600 dark:text-blue-400"></i>
+                                    <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-sm uppercase shadow-lg hover:bg-blue-700 transition-all mt-4 active:scale-95 flex items-center justify-center gap-2">
+                                        <i className="fa-solid fa-paper-plane"></i> Submit Request
                                     </button>
-                                )}
-                                
-                                {showPin && !isAdmin && (
-                                    <div className="mt-6 bg-white dark:bg-gray-800 p-6 rounded-[2rem] border dark:border-gray-700 shadow-xl w-full max-w-sm animate-in zoom-in">
-                                        <input type="password" id="adminPin" className="w-full bg-gray-50 dark:bg-gray-700 border-2 border-gray-100 dark:border-gray-600 rounded-xl px-6 py-4 text-center mb-4 text-lg font-bold outline-none focus:border-blue-500 dark:text-white" placeholder="MASTER PIN" />
-                                        <button onClick={() => { document.getElementById('adminPin').value === MASTER_PIN ? setIsAdmin(true) : alert("WRONG PIN!"); }} className="w-full bg-gray-900 dark:bg-gray-600 py-4 rounded-xl font-black text-white uppercase text-sm shadow-md hover:bg-black transition-colors">UNLOCK DATABASE</button>
-                                    </div>
-                                )}
-
-                                {isAdmin && (
-                                    <div className="w-full mt-8 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-3xl p-6 text-left shadow-2xl overflow-hidden relative">
-                                        <div className="flex justify-between items-center mb-6 border-b dark:border-gray-700 pb-4">
-                                            <h3 className="font-black text-blue-600 dark:text-blue-400 text-xs uppercase tracking-widest"><i className="fa-solid fa-database mr-2"></i> MASTER DB (39 COLUMNS)</h3>
-                                            <button onClick={() => setIsAdmin(false)} className="text-red-500 font-black text-[10px] uppercase bg-red-50 dark:bg-red-900/30 px-3 py-1 rounded-full">Close DB</button>
-                                        </div>
-                                        <div className="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto pr-2 custom-scroll">
-                                            {member.map((val, i) => (
-                                                <div key={i} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-600">
-                                                    <p className="text-[9px] text-gray-400 dark:text-gray-500 uppercase font-black mb-1">{headers[i] || `Col ${i+1}`}</p>
-                                                    <p className="font-bold text-gray-800 dark:text-gray-200 text-sm break-words">{val || "---"}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div> {/* End Main Content Padding */}
-
-                    {/* Formspree Service Popup Modal */}
-                    {showServiceForm.show && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-                            <div className="bg-white dark:bg-gray-800 w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden border dark:border-gray-700 relative">
-                                
-                                <button onClick={() => setShowServiceForm({ show: false, serviceName: "" })} className="absolute top-4 right-4 w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-red-100 hover:text-red-500 transition-colors z-10">
-                                    <i className="fa-solid fa-xmark"></i>
-                                </button>
-                                
-                                <div className="p-8">
-                                    <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mb-4 mx-auto shadow-inner text-blue-600 dark:text-blue-400">
-                                        <i className="fa-solid fa-cloud-arrow-up text-3xl"></i>
-                                    </div>
-                                    <h3 className="text-lg font-black text-center text-gray-800 dark:text-white uppercase mb-6 tracking-wide">{showServiceForm.serviceName}</h3>
-                                    
-                                    {/* Formspree Link Attached Here */}
-                                    <form action="https://formspree.io/f/xwvndvoe" method="POST" encType="multipart/form-data" className="space-y-4">
-                                        <input type="hidden" name="Service_Requested" value={showServiceForm.serviceName} />
-                                        <input type="hidden" name="Membership_ID" value={member ? member[1] : "Unknown"} />
-                                        
-                                        <div>
-                                            <label className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase ml-2 mb-1 block">Full Name</label>
-                                            <input type="text" name="Client_Name" required className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-blue-500 dark:text-white" placeholder="आपका नाम" />
-                                        </div>
-                                        
-                                        <div>
-                                            <label className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase ml-2 mb-1 block">Mobile Number</label>
-                                            <input type="tel" name="Mobile_Number" required className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-blue-500 dark:text-white" placeholder="मोबाइल नंबर" />
-                                        </div>
-
-                                        <div>
-                                            <label className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase ml-2 mb-1 block">Upload Document/Photo</label>
-                                            <div className="w-full bg-gray-50 dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl px-4 py-4 text-center cursor-pointer hover:border-blue-500 transition-colors relative">
-                                                <i className="fa-solid fa-file-arrow-up text-gray-400 text-2xl mb-2"></i>
-                                                <p className="text-xs font-bold text-gray-500 dark:text-gray-400">Click to upload file</p>
-                                                <input type="file" name="attachment" required className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                            </div>
-                                        </div>
-
-                                        <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-sm uppercase shadow-lg hover:bg-blue-700 transition-all mt-4 active:scale-95 flex items-center justify-center gap-2">
-                                            <i className="fa-solid fa-paper-plane"></i> Submit Request
-                                        </button>
-                                    </form>
-                                </div>
+                                </form>
                             </div>
                         </div>
-                    )}
-                </div> // End App Container
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root')); 
-        root.render(<App />);
+                    </div>
+                )}
+            </div>  
+        );  
+    };  
+    const root = ReactDOM.createRoot(document.getElementById('root')); root.render(<App />);  
     </script>
-</body>
+</body>  
 </html>
-
-
