@@ -60,7 +60,6 @@
     <script type="text/babel">  
     const { useState, useEffect, useCallback } = React;  
 
-    // --- मास्टर सेटिंग्स ---  
     const SHEET_ID = "1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo";  
     const MAIN_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;  
     const MAPPING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";  
@@ -104,10 +103,6 @@
             const mID = (userRow[1] || "").toString().toLowerCase().trim();  
             const pName = (userRow[3] || "").toString().trim();  
             const dDateStr = (userRow[36] || "").toString().trim();  
-            
-            // 39वें कॉलम का एग्जैक्ट डेटा (Cashback, Pen, Better Luck या खाली)
-            const exactStatusStr = (userRow[38] || "").toString().trim();  
-            const statusLower = exactStatusStr.toLowerCase();
 
             const today = new Date();  
             const drawDate = dDateStr ? new Date(dDateStr) : null;  
@@ -117,14 +112,8 @@
                 return;  
             }  
 
-            // सेकंड शीट (MAPPING) में से फोटो ढूँढने का फंक्शन
-            const findFallback = (keyword) => {
-                const key = keyword.toLowerCase().trim();
-                return maps.find(m => Object.values(m).some(v => (v || "").toString().toLowerCase().includes(key)));
-            };
-
-            // 🌟 स्टेप 1: 51 विनर्स की लिस्ट में ID चेक करें
-            const exactWinnerMatch = maps.find(m => Object.values(m).some(v => (v || "").toString().trim().toLowerCase() === mID));
+            // 🌟 STEP 1: 51 Winners Match (Ye toh perfect kaam kar hi raha hai)
+            const exactWinnerMatch = mID ? maps.find(m => (m.Membership_ID || "").toString().trim().toLowerCase() === mID) : null;
 
             if (exactWinnerMatch && exactWinnerMatch.Image_Link) {  
                 setPrizeDisplay({   
@@ -137,30 +126,29 @@
                 return; 
             }
 
-            // 🌟 स्टेप 2: अगर ID 51 विनर्स में नहीं है, तो एग्जैक्ट शब्दों का मिलान करें
-            if (statusLower.includes("100 cash back") || statusLower.includes("cash back")) {  
-                const c = findFallback("cashback"); // MAPPING शीट से कैशबैक की फोटो
+            // 🌟 STEP 2: Super Search (Column ka jhanjhat khatam, puri line mein dhoondhega)
+            const fullRowText = userRow.join(" ").toLowerCase();
+
+            if (fullRowText.includes("100 cash back") || fullRowText.includes("cash back")) {  
                 setPrizeDisplay({   
-                    img: toDirectLink(c?.Image_Link),   
+                    img: toDirectLink("https://drive.google.com/file/d/1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD/view?usp=drivesdk"), // Link 1   
                     msg: "नकद कैशबैक इनाम",   
                     isLocked: false,   
                     type: "cashback"   
                 });  
 
-            } else if (statusLower.includes("5 rs pen") || statusLower.includes("pen")) {  
-                const g = findFallback("gift") || findFallback("5 rs pen"); // MAPPING शीट से पेन/गिफ्ट की फोटो
+            } else if (fullRowText.includes("5 rs pen") || fullRowText.includes("pen")) {  
                 setPrizeDisplay({   
-                    img: toDirectLink(g?.Image_Link),   
+                    img: toDirectLink("https://drive.google.com/file/d/1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z/view?usp=drivesdk"), // Link 2 
                     msg: "डिजिटल सेवा उपहार",   
                     isLocked: false,   
                     type: "gift"   
                 });  
 
             } else {  
-                // 🌟 स्टेप 3: अगर 'Better Luck Next Time' लिखा है या कॉलम खाली (Blank) है!
-                const l = findFallback("better luck"); // MAPPING शीट से सांत्वना की फोटो 
+                // 🌟 STEP 3: Sab khali ya Better Luck hone par
                 setPrizeDisplay({   
-                    img: toDirectLink(l?.Image_Link),   
+                    img: toDirectLink("https://drive.google.com/file/d/1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD/view?usp=drivesdk"), // Link 3 (Same as Link 1 right now)
                     msg: "हौसला रखें! अगली बार पक्का बड़ा इनाम आपका होगा।",   
                     isLocked: false,   
                     type: "loss"   
@@ -180,7 +168,8 @@
                     Papa.parse(mainText,{  
                         complete:(results)=>{  
                             const rows = results.data;  
-                            setHeaders(rows[0] || []);  
+                            const mainHeaders = rows[0] || [];
+                            setHeaders(mainHeaders);  
                             const params = new URLSearchParams(window.location.search);  
                             const queryId = params.get('id');  
 
@@ -195,7 +184,7 @@
                                     Papa.parse(mapText,{  
                                         header:true,  
                                         complete:(mResults)=>{  
-                                            mapPrizeDetails(matchRow,mResults.data);  
+                                            mapPrizeDetails(matchRow, mResults.data);  
                                             setStatus("view");  
                                         }  
                                     });  
@@ -290,78 +279,4 @@
                                             <div className="border-l border-white/10 text-center">कुल उपयोग<p className="text-xl font-black mt-1 leading-none">{(parseInt(member[19]) || 0) + (parseInt(member[20]) || 0)}</p></div>  
                                         </div>  
                                     </div>  
-                                    <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 shadow-inner text-left">  
-                                        <p className="text-[10px] font-black text-blue-700 uppercase mb-4 flex items-center leading-none italic"><i className="fa-solid fa-crown mr-2 text-xs"></i> विशेष कार्ड सुविधायें</p>  
-                                        <div className="space-y-1">  
-                                            {(() => {  
-                                                const s = clean(member[3]).toLowerCase();  
-                                                let bKey = (s.includes("vip") || s.includes("500")) ? "VIP" : (s.includes("gold") || s.includes("100")) ? "Gold" : "Silver";  
-                                                return cardSpecs[bKey][lang].map((ben, i) => (  
-                                                    <div key={i} className="flex items-start text-[11px] font-bold italic py-2 border-b border-slate-200/50 last:border-0 leading-tight"><i className="fa-solid fa-circle-check text-green-500 mt-1 mr-3 text-[10px]"></i>{ben}</div>  
-                                                ));  
-                                            })()}  
-                                        </div>  
-                                    </div>  
-                                    <div className="grid grid-cols-3 gap-3 bg-slate-100 p-8 rounded-[3rem] text-center font-black leading-none text-[10px]">  
-                                        <div><p className="text-slate-400 uppercase italic mb-1">{t.active}</p><p className="text-slate-950 font-black">{clean(member[15])}</p></div>  
-                                        <div className="border-x border-slate-200"><p className="text-red-500 uppercase italic mb-1">{t.expiry}</p><p className="text-red-600 font-black">{clean(member[16])}</p></div>  
-                                        <div><p className="text-green-600 uppercase italic mb-1">{t.left}</p><p className="text-green-600 font-black">{clean(member[17])}</p></div>  
-                                    </div>  
-                                    <div className="grid grid-cols-2 gap-y-12 py-10 border-y border-slate-100 leading-none">  
-                                        <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic text-left">Customer Name</p><p className="text-[18px] font-black uppercase italic text-slate-900 leading-tight">{clean(member[8])}</p></div>  
-                                        <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Village</p><p className="text-[18px] font-black uppercase italic text-slate-900 leading-tight">{clean(member[5])}</p></div>  
-                                        <div><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic text-left">Mobile (Secure)</p><p className="text-[15px] font-bold tracking-widest mt-1 uppercase">{mask(member[9])}</p></div>  
-                                        <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-1 italic">Aadhar (Secure)</p><p className="text-[15px] font-bold tracking-widest mt-1 uppercase">{mask(member[11])}</p></div>  
-                                    </div>  
-                                    <div className="bg-slate-950 text-white p-8 rounded-[2.5rem] text-center shadow-2xl relative leading-none">  
-                                        <p className="text-[11px] font-black uppercase opacity-50 tracking-widest mb-3 italic leading-none">{t.draw}</p>  
-                                        <p className="text-3xl font-black text-yellow-500 italic uppercase tracking-tighter leading-none">{clean(member[36])}</p>  
-                                    </div>  
-                                    <div className="bg-slate-50 p-10 rounded-[3rem] border border-slate-200 text-left shadow-inner">  
-                                        <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-6 border-b border-slate-200 pb-3 flex items-center leading-none italic"><i className="fa-solid fa-scale-balanced mr-3 text-blue-600"></i> {t.terms}</h4>  
-                                        <div className="space-y-6 text-slate-600 font-bold italic text-[10px] leading-relaxed">  
-                                            <p>०१. सदस्यता कार्ड अहस्तांतरणीय है।</p><p>०२. सेवाओं का उपयोग वैधता अवधि तक ही मान्य है।</p><p>०३. लकी ड्रा के परिणाम अंतिम व सर्वमान्य होंगे।</p><p>०४. इनाम या कैशबैक सिर्फ घोषित तिथि पर दिया जाएगा।</p><p>०५. नियम व शर्तों में बदलाव का अधिकार DPSG के पास सुरक्षित है।</p>  
-                                        </div>  
-                                    </div>  
-                                    <button onClick={()=>window.print()} className="no-print w-full bg-slate-900 text-white py-6 rounded-full text-[12px] font-black uppercase shadow-2xl active:scale-95 transition-all">PRINT OFFICIAL RECEIPT</button>  
-                                </div>  
-                            </div>  
-
-                            <div className="no-print pt-32 pb-20 flex flex-col items-center">  
-                                {!isAdmin && <button onClick={()=>setShowAdminPanel(!showAdminPanel)} className="opacity-10 hover:opacity-40 transition-all p-8 bg-white/5 rounded-full shadow-2xl"><i className="fa-solid fa-fingerprint text-4xl"></i></button>}  
-                                {showAdminPanel && !isAdmin && (  
-                                    <form onSubmit={(e)=>{e.preventDefault(); pinInput === MASTER_PIN ? setIsAdmin(true) : alert("पासवर्ड गलत है!");}} className="mt-8 bg-white/5 p-10 rounded-[3.5rem] border border-white/10 w-full animate-in zoom-in shadow-2xl">  
-                                        <p className="text-[11px] font-black text-blue-400 uppercase tracking-widest mb-6 text-center italic leading-none">{t.auth}</p>  
-                                        <input type="password" onChange={(e)=>setPinInput(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-2xl px-8 py-5 text-xl font-bold tracking-[1em] text-white text-center outline-none mb-4 focus:border-blue-500 transition-all" placeholder="PIN" />  
-                                        <button type="submit" className="w-full bg-blue-600 py-6 rounded-2xl text-[12px] font-black uppercase text-white shadow-xl">UNLOCK MASTER DASHBOARD</button>  
-                                    </form>  
-                                )}  
-                                {isAdmin && (  
-                                    <div className="w-full mt-10 bg-white/5 border border-white/10 rounded-[3.5rem] p-12 shadow-2xl text-left animate-in fade-in">  
-                                        <div className="flex justify-between items-center mb-12 pb-8 border-b border-white/10 text-white uppercase italic leading-none text-center">  
-                                            <h3 className="text-[13px] font-black text-blue-400 tracking-widest italic leading-none uppercase">Master Data (39 Columns)</h3>  
-                                            <button onClick={()=>setIsAdmin(false)} className="bg-red-500/10 text-red-500 px-6 py-2 rounded-full font-black text-[10px] border border-red-500/20 active:scale-95">LOGOUT</button>  
-                                        </div>  
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[800px] overflow-y-auto pr-4 custom-scroll">  
-                                            {member.map((val, i) => (  
-                                                <div key={i} className="p-5 rounded-2xl bg-white/5 border border-white/10 group transition-all hover:bg-white/10">  
-                                                    <p className="text-[9px] text-blue-400 uppercase font-black tracking-widest mb-2 opacity-70 leading-none">{headers[i] || `Col Index ${i}`}</p>  
-                                                    <p className="text-[15px] font-bold italic leading-relaxed text-white">{val || "---"}</p>  
-                                                </div>  
-                                            ))}  
-                                        </div>  
-                                    </div>  
-                                )}  
-                            </div>  
-                        </div>  
-                    )}  
-                </div>  
-            </div>  
-        );  
-    };  
-
-    const root = ReactDOM.createRoot(document.getElementById('root'));  
-    root.render(<App />);  
-    </script>  
-</body>  
-</html>
+                                    <div className="bg-slate-50 p-8 rounded-
