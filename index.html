@@ -1,271 +1,305 @@
-<!DOCTYPE html>  <html lang="hi">  
-<head>  
-    <meta charset="UTF-8">  
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
-    <title>DPSG Digital Seva - Official Result Portal</title>  
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>  
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>  
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>  
-    <script src="https://cdn.tailwindcss.com"></script>  
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>  
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>  
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">  
-    <style>  
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');  
-        body { font-family: 'Inter', sans-serif; background-color: #010413; color: white; margin: 0; overflow-x: hidden; }  
-        .receipt-card { border: 1px solid #e2e8f0; color: #0f172a; border-radius: 1.5rem; background: white; }  
-        @media print { .no-print { display: none !important; } }  
-
-        /* SCRATCH CARD CSS */
-        .scratch-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto; user-select: none; min-height: 400px; }
-        .scratch-canvas { position: absolute; top: 0; left: 0; z-index: 30; cursor: crosshair; border-radius: 1.5rem; width: 100%; height: 100%; touch-action: none; }
-        .scratch-content { position: relative; z-index: 10; background: #000; border-radius: 1.5rem; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
-
-        .winner-peela-glow { border: 4px solid #fbbf24; box-shadow: 0 0 70px rgba(251, 191, 36, 0.45); border-radius: 2rem; background: rgba(2, 6, 23, 0.95); animation: pulse-glow 2s infinite; }  
-        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.3); } 50% { box-shadow: 0 0 80px rgba(251, 191, 36, 0.6); } }  
-
-        .prize-image-display { width: 100%; display: flex; align-items: center; justify-content: center; background: #000; }
-        .prize-image-display img { width: 100%; height: auto; max-height: 75vh; object-fit: contain; }
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPSG Digital Seva - Official Master Portal</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #010413; color: white; margin: 0; overflow-x: hidden; }
+        .receipt-card { border: 1px solid #e2e8f0; color: #0f172a; border-radius: 1.5rem; background: white; }
+        @media print { .no-print { display: none !important; } body { background: white !important; color: black !important; } .receipt-card { border: none !important; box-shadow: none !important; margin: 0 !important; width: 100% !important; } }
+        
+        /* SCRATCH CARD SYSTEM */
+        .scratch-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto; min-height: 400px; }
+        .scratch-canvas { position: absolute; top: 0; left: 0; z-index: 30; border-radius: 1.5rem; cursor: crosshair; touch-action: none; width: 100%; height: 100%; }
+        .scratch-content { background: #000; border-radius: 1.5rem; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
+        .winner-peela-glow { border: 4px solid #fbbf24; box-shadow: 0 0 70px rgba(251, 191, 36, 0.45); border-radius: 2rem; background: rgba(2, 6, 23, 0.95); animation: pulse-glow 2s infinite; }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.3); } 50% { box-shadow: 0 0 80px rgba(251, 191, 36, 0.6); } }
+        .prize-image-display img { width: 100%; height: auto; max-height: 70vh; object-fit: contain; }
+        .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
-</head>  
-<body>  
-    <div id="root"></div>  
-    <script type="text/babel">  
-    const { useState, useEffect, useRef, useCallback } = React;  
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
 
-    const SHEET_ID = "1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo";  
-    const MAIN_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;  
-    const MAPPING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";  
+    const SHEET_ID = "1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo";
+    const MAIN_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+    const MAPPING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";
+    const MASTER_PIN = "Chanchal@6375";
 
-    const toDirectLink = (url) => {  
-        if (!url) return "";  
-        let id = "";  
-        if (url.includes("/d/")) id = url.split("/d/")[1].split("/")[0];  
-        if (url.includes("id=")) id = url.split("id=")[1].split("&")[0];  
-        return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000" : url;  
-    };  
+    const vocab = {
+        hi: {
+            brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", service: "डिजिटल सेवा", slogan: "समस्या आपकी, समाधान हमारा !", receipt: "प्रोफेशनल डिजिटल रसीद", idLabel: "मेंबरशिप आईडी दर्ज करें", print: "प्रिंट रसीद", points: "सर्विस पॉइंट्स", active: "सक्रियण", expiry: "समाप्ति", left: "शेष दिन", draw: "लकी ड्रा तिथि", prizeLabel: "घोषित इनाम",
+            terms: "नियम व शर्तें",
+            t1: "यह डिजिटल सदस्यता कार्ड व्यक्तिगत है और पूरी तरह से अहस्तांतरणीय है।",
+            t2: "कार्ड की सेवाओं का लाभ केवल कार्ड पर अंकित 'समाप्ति तिथि' (Expiry Date) तक ही लिया जा सकता है।",
+            t3: "कार्ड हेतु लिया गया शुल्क केवल 'पंजीकरण शुल्क' (Registration Fee) है, जो किसी भी स्थिति में वापस (Non-refundable) नहीं किया जाएगा।",
+            t4: "सर्वर या तकनीकी त्रुटि की स्थिति में, फिजिकल स्क्रैच कार्ड पर छपे परिणाम को ही अंतिम और सही माना जाएगा।",
+            t5: "इंटरनेट या सर्वर में तकनीकी खराबी होने पर सेवाओं में देरी हो सकती है, इसमें प्रबंधन की कोई जिम्मेदारी नहीं होगी।",
+            t6: "ई-मित्र सेवाओं के अंतर्गत आने वाले सभी 'सरकारी टोकन शुल्क' का भुगतान ग्राहक द्वारा अनिवार्य रूप से अलग से देय होगा।",
+            t7: "फ्री होम डिलीवरी की सीमा समाप्त होने पर दूरी के आधार पर 'न्यूनतम उचित शुल्क' लिया जाएगा।",
+            t8: "यह कार्य पूर्णतः समाज सेवा के उद्देश्य से किया जा रहा है। कार्यों के संपादन में समय लग सकता है, अतः कृपया धैर्य बनाए रखें।",
+            t9: "कार्य में लगने वाले समय के लिए अनावश्यक तर्क-वितर्क या अभद्र व्यवहार स्वीकार्य नहीं होगा।",
+            t10: "DPSG मैनेजमेंट के पास बिना सूचना के नियमों और सुविधाओं में बदलाव करने का पूर्ण अधिकार सुरक्षित है।",
+            pending: "परिणाम की घोषणा जल्द की जाएगी, कृपया ड्रा तिथि का इंतज़ार करें।"
+        },
+        en: {
+            brand: "Digital Problem Solution Group", service: "Digital Seva", slogan: "Your Problem, Our Solution!", receipt: "Professional Receipt", idLabel: "Enter Membership ID", print: "Print Receipt", points: "Service Points", active: "Activation", expiry: "Expiry", left: "Days Left", draw: "Lucky Draw Date", prizeLabel: "Announced Prize",
+            terms: "Terms & Conditions",
+            t1: "This membership card is personal and fully non-transferable.",
+            t2: "Services can be availed only until the 'Expiry Date' mentioned on the card.",
+            t3: "The fee taken is only a 'Registration Fee', which will not be refunded under any circumstances.",
+            t4: "In case of server error, the result on the Physical Scratch Card will be considered final.",
+            t5: "Services may be delayed due to server/internet issues; management won't be responsible.",
+            t6: "All government token charges for E-Mitra services must be paid by the customer separately.",
+            t7: "After the free delivery limit, a minimum appropriate fee will be charged based on distance.",
+            t8: "This work is purely for social service. It may take time, so please keep patience.",
+            t9: "Unnecessary arguments or misbehavior due to time taken will not be acceptable.",
+            t10: "DPSG Management reserves all rights to change terms and facilities without notice.",
+            pending: "Results will be announced soon, please wait for the draw date."
+        }
+    };
+
+    const cardSpecs = {
+        VIP: {
+            hi: [
+                "कीमत: ₹500 (समय सीमा 6 महीने)",
+                "उपयोग: पूरे परिवार के लिए मान्य",
+                "कोटा: 150 प्रिंट + 80 फोटो (या 380 फोटो / 190 प्रिंट)",
+                "लैमिनेशन: 2 फ्री",
+                "ई-मित्र: 100% फ्री सेवा (केवल सरकारी टोकन चार्ज देय)",
+                "डिलीवरी: 2 बार फ्री (न्यूनतम रेट पर)",
+                "इनाम: ₹100 Cash Back + बड़ा धमाका!"
+            ],
+            en: [
+                "Price: ₹500 (Validity 6 Months)",
+                "Usage: Valid for whole family",
+                "Quota: 150 Prints + 80 Photos (or 380 Photos / 190 Prints)",
+                "Lamination: 2 Free",
+                "E-Mitra: 100% Free Service (Token charge payable)",
+                "Delivery: 2 Times Free (at Minimum Rate)",
+                "Prize: ₹100 Cash Back + Big Blast!"
+            ]
+        },
+        Gold: {
+            hi: [
+                "कीमत: ₹100 (समय सीमा 3 महीने)",
+                "उपयोग: केवल 1 व्यक्ति हेतु",
+                "कोटा: 40 प्रिंट + 24 फोटो (या 100 फोटो / 52 प्रिंट)",
+                "लैमिनेशन: 1 फ्री",
+                "ई-मित्र: 50% छूट (केवल टोकन चार्ज देय)",
+                "डिलीवरी: 1 बार (न्यूनतम रेट पर)",
+                "इनाम: 100% गारंटीड उपहार!"
+            ],
+            en: [
+                "Price: ₹100 (Validity 3 Months)",
+                "Usage: Valid for only 1 person",
+                "Quota: 40 Prints + 24 Photos (or 100 Photos / 52 Prints)",
+                "Lamination: 1 Free",
+                "E-Mitra: 50% Off (Token charge payable)",
+                "Delivery: 1 Time (at Minimum Rate)",
+                "Prize: 100% Guaranteed Gift!"
+            ]
+        },
+        Silver: {
+            hi: [
+                "कीमत: ₹50 (समय सीमा 1 महीना)",
+                "उपयोग: केवल 1 व्यक्ति हेतु",
+                "कोटा: 15 प्रिंट + 12 फोटो (या 40 फोटो / 21 प्रिंट)",
+                "ई-मित्र: सीमित सेवा (केवल टोकन चार्ज देय)",
+                "डिलीवरी: 1 बार (न्यूनतम रेट पर)",
+                "इनाम: लकी ड्रा का शानदार अवसर!"
+            ],
+            en: [
+                "Price: ₹50 (Validity 1 Month)",
+                "Usage: Valid for only 1 person",
+                "Quota: 15 Prints + 12 Photos (or 40 Photos / 21 Prints)",
+                "E-Mitra: Limited Service (Token charge payable)",
+                "Delivery: 1 Time (at Minimum Rate)",
+                "Prize: Lucky Draw Opportunity!"
+            ]
+        }
+    };
+
+    const toDirectLink = (url) => { if (!url) return ""; let id = ""; if (url.includes("/d/")) id = url.split("/d/")[1].split("/")[0]; if (url.includes("id=")) id = url.split("id=")[1].split("&")[0]; return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000" : url; };
+    const mask = (v) => v?.length > 4 ? v.slice(0, 2) + "******" + v.slice(-2) : v;
 
     const ScratchCard = ({ onComplete, children }) => {
         const canvasRef = useRef(null);
         const [isRevealed, setIsRevealed] = useState(false);
-
         useEffect(() => {
-            const canvas = canvasRef.current;
-            if(!canvas) return;
-            const ctx = canvas.getContext('2d');
-            const parent = canvas.parentElement;
-            canvas.width = parent.offsetWidth;
-            canvas.height = parent.offsetHeight;
-
-            // Premium Golden Scratch Layer
+            const canvas = canvasRef.current; if(!canvas) return; const ctx = canvas.getContext('2d');
+            canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight;
             const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-            grad.addColorStop(0, '#D4AF37'); 
-            grad.addColorStop(0.5, '#F9F295'); 
-            grad.addColorStop(1, '#B8860B');
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.font = "bold 26px Inter";
-            ctx.fillStyle = "#5c4033";
-            ctx.textAlign = "center";
+            grad.addColorStop(0, '#D4AF37'); grad.addColorStop(0.5, '#F9F295'); grad.addColorStop(1, '#B8860B');
+            ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = "bold 24px Inter"; ctx.fillStyle = "#5c4033"; ctx.textAlign = "center";
             ctx.fillText("यहाँ स्क्रैच करें!", canvas.width / 2, canvas.height / 2);
-
             const scratch = (e) => {
-                if (isRevealed) return;
-                const rect = canvas.getBoundingClientRect();
+                if (isRevealed) return; const rect = canvas.getBoundingClientRect();
                 const x = (e.pageX || (e.touches && e.touches[0].pageX)) - rect.left;
                 const y = (e.pageY || (e.touches && e.touches[0].pageY)) - rect.top;
-
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.beginPath();
-                ctx.arc(x, y, 40, 0, Math.PI * 2);
-                ctx.fill();
-
+                ctx.globalCompositeOperation = 'destination-out'; ctx.beginPath(); ctx.arc(x, y, 40, 0, Math.PI * 2); ctx.fill();
                 const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-                let count = 0;
-                for (let i = 0; i < pixels.length; i += 40) if (pixels[i + 3] === 0) count++;
-                if (count > (pixels.length / 40) * 0.55) {
-                    setIsRevealed(true);
-                    onComplete();
-                }
+                let count = 0; for (let i = 0; i < pixels.length; i += 40) if (pixels[i + 3] === 0) count++;
+                if (count > (pixels.length / 40) * 0.55) { setIsRevealed(true); onComplete(); }
             };
-            canvas.addEventListener('mousemove', scratch);
-            canvas.addEventListener('touchmove', scratch);
+            canvas.addEventListener('mousemove', scratch); canvas.addEventListener('touchmove', scratch);
         }, [isRevealed]);
-
-        return (
-            <div className="scratch-container mt-6">
-                {!isRevealed && <canvas ref={canvasRef} className="scratch-canvas" />}
-                <div className="scratch-content">{children}</div>
-            </div>
-        );
+        return ( <div className="scratch-container mt-6"> {!isRevealed && <canvas ref={canvasRef} className="scratch-canvas" />} <div className="scratch-content">{children}</div> </div> );
     };
 
-    const App = () => {  
-        const [status, setStatus] = useState("loading");  
-        const [member, setMember] = useState(null);  
-        const [prizeDisplay, setPrizeDisplay] = useState({ img: "", msg: "", isLocked: true, type: "normal", highlight: "" });  
-        const [isScratched, setIsScratched] = useState(false);
+    const App = () => {
+        const [lang, setLang] = useState('hi'); const [status, setStatus] = useState("loading");
+        const [member, setMember] = useState(null); const [headers, setHeaders] = useState([]);
+        const [prizeDisplay, setPrizeDisplay] = useState({ img: "", msg: "", isLocked: true, type: "normal", highlight: "" });
+        const [isScratched, setIsScratched] = useState(false); const [isAdmin, setIsAdmin] = useState(false);
+        const t = vocab[lang];
 
-        const mapPrizeDetails = useCallback((userRow, maps, mainHeaders) => {  
-            const mID = (userRow[1] || "").toString().toLowerCase().trim();  
-            
-            const drawDateIdx = mainHeaders.findIndex(h => h && h.trim() === "Draw Date");
-            const inamStatusIdx = mainHeaders.findIndex(h => h && h.trim() === "Inam Status");
-            const prizeInamIdx = mainHeaders.findIndex(h => h && h.trim() === "Prize_Inam");
+        const mapPrizeDetails = useCallback((userRow, maps, mainHeaders) => {
+            const mID = (userRow[1] || "").toString().toLowerCase().trim();
+            const dDateStr = (userRow[36] || "").toString().trim();
+            const masterLock = (userRow[37] || "").toString().toUpperCase().trim();
+            const prizeInam = (userRow[4] || "").toString().trim();
+            const today = new Date(); const drawDate = dDateStr ? new Date(dDateStr) : null;
+            const magic = ["DPSG_WINNER", "DPSG_CASH", "DPSG_GIFT", "DPSG_NEXT"];
 
-            const dDateStr = drawDateIdx !== -1 ? (userRow[drawDateIdx] || "").toString().trim() : "";
-            const masterLock = inamStatusIdx !== -1 ? (userRow[inamStatusIdx] || "").toString().toUpperCase().trim() : "";
-            const prizeInam = prizeInamIdx !== -1 ? (userRow[prizeInamIdx] || "").toString().trim() : "";
-
-            const today = new Date();  
-            const drawDate = dDateStr ? new Date(dDateStr) : null;  
-            
-            // 🌟 STRICT MASTER LOCK: सिर्फ इन 4 शब्दों पर ही ताला खुलेगा
-            const validKeywords = ["DPSG_WINNER", "DPSG_CASH", "DPSG_GIFT", "DPSG_NEXT"];
-            
-            if (!dDateStr || drawDate > today || !masterLock || !validKeywords.includes(masterLock)) {
-                setPrizeDisplay({ img: "", msg: "रिजल्ट की घोषणा जल्द की जाएगी, अपना कार्ड सुरक्षित रखें!", isLocked: true, type: "normal" });
-                return;
+            if (!dDateStr || drawDate > today || !magic.includes(masterLock)) {
+                setPrizeDisplay({ img: "", msg: t.pending, isLocked: true, type: "normal" }); return;
             }
+            const match = maps.find(m => m.Membership_ID.toLowerCase() === mID);
+            if (masterLock === "DPSG_WINNER" && match) setPrizeDisplay({ img: toDirectLink(match.Image_Link), highlight: prizeInam, msg: `🎉 बधाई! आपने 51 मुख्य इनामों की लिस्ट में ${match.Match_Name} जीता है!`, isLocked: false, type: "winner" });
+            else if (masterLock === "DPSG_CASH") setPrizeDisplay({ img: toDirectLink("https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000"), highlight: prizeInam, msg: "🥳 कैशबैक मुबारक!", isLocked: false, type: "cashback" });
+            else if (masterLock === "DPSG_GIFT") setPrizeDisplay({ img: toDirectLink("https://drive.google.com/thumbnail?id=1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z&sz=w1000"), highlight: prizeInam, msg: "🎁 उपहार मुबारक!", isLocked: false, type: "gift" });
+            else if (masterLock === "DPSG_NEXT") setPrizeDisplay({ img: toDirectLink("https://drive.google.com/thumbnail?id=1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh&sz=w1000"), highlight: prizeInam || "Better Luck", msg: "✨ बेहतर भाग्य अगली बार!", isLocked: false, type: "loss" });
+        }, [t.pending]);
 
-            const exactWinnerMatch = maps.find(m => (m.Membership_ID || "").toLowerCase() === mID);
+        useEffect(() => {
+            fetch(MAIN_CSV + "&t=" + Date.now()).then(r => r.text()).then(txt => {
+                Papa.parse(txt, { complete: (res) => {
+                    const rows = res.data; setHeaders(rows[0] || []);
+                    const qId = new URLSearchParams(window.location.search).get('id');
+                    const match = rows.slice(1).find(r => r[1] && r[1].toLowerCase() === (qId || "").toLowerCase());
+                    if (match) { setMember(match); fetch(MAPPING_CSV).then(r => r.text()).then(mTxt => { Papa.parse(mTxt, { header: true, complete: (mRes) => { mapPrizeDetails(match, mRes.data, rows[0]); setStatus("view"); } }); }); }
+                    else setStatus("search");
+                }});
+            });
+        }, [mapPrizeDetails]);
 
-            if (masterLock === "DPSG_WINNER" && exactWinnerMatch) {
-                setPrizeDisplay({
-                    img: toDirectLink(exactWinnerMatch.Image_Link),
-                    highlight: prizeInam,
-                    msg: `🎉 ढेरों शुभकामनाएँ! 51 मुख्य इनामों की लिस्ट में आपने शानदार ${exactWinnerMatch.Match_Name || 'रैंक'} हासिल की है! DPSG परिवार की ओर से बहुत-बहुत बधाई! 🙏`,
-                    isLocked: false, type: "winner"
-                });
-            } 
-            else if (masterLock === "DPSG_CASH") {
-                setPrizeDisplay({
-                    img: toDirectLink("https://drive.google.com/file/d/1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD/view?usp=drivesdk"),
-                    highlight: prizeInam,
-                    msg: "🥳 बधाई हो! आप 51 इनामों की लिस्ट में तो नहीं आ पाए, पर 'डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप' की तरफ से आपको यह कैशबैक दिया जा रहा है। धन्यवाद! 🙏",
-                    isLocked: false, type: "cashback"
-                });
-            }
-            else if (masterLock === "DPSG_GIFT") {
-                setPrizeDisplay({
-                    img: toDirectLink("https://drive.google.com/file/d/1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z/view?usp=drivesdk"),
-                    highlight: prizeInam,
-                    msg: "🎁 शुभकामनाएँ! 51 इनामों की लिस्ट में न आने पर भी निराश न हों, हमारी तरफ से आपके प्यार और सम्मान में यह उपहार दिया जा रहा है। हार्दिक धन्यवाद! 🙏",
-                    isLocked: false, type: "gift"
-                });
-            }
-            else if (masterLock === "DPSG_NEXT") {
-                setPrizeDisplay({
-                    img: toDirectLink("https://drive.google.com/file/d/1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh/view?usp=drivesdk"),
-                    highlight: prizeInam || "Better Luck Next Time",
-                    msg: "✨ हौसला रखें और मुस्कुराते रहें! इस बार आप 51 इनामों की लिस्ट में नहीं आ पाए हैं। लेकिन निराश न हों, भविष्य में आपका भाग्य जरूर चमकेगा। धन्यवाद! 🙏",
-                    isLocked: false, type: "loss"
-                });
-            }
-        }, []);
+        if (status === "loading") return <div className="h-screen bg-[#010413] flex items-center justify-center text-yellow-500 font-black italic">DPSG LOADING...</div>;
 
-        useEffect(() => {  
-            async function startSystem(){  
-                const mainResponse = await fetch(MAIN_CSV + "&t=" + Date.now());  
-                const mainText = await mainResponse.text();  
-                const mapResponse = await fetch(MAPPING_CSV);  
-                const mapText = await mapResponse.text();  
-                Papa.parse(mainText,{ complete:(results)=>{  
-                    const rows = results.data;  
-                    const mainHeaders = rows[0] || [];
-                    const queryId = new URLSearchParams(window.location.search).get('id');  
-                    if(queryId){  
-                        const matchRow = rows.slice(1).find(r=> r[1] && r[1].toLowerCase()===queryId.toLowerCase());  
-                        if(matchRow){  
-                            setMember(matchRow);  
-                            Papa.parse(mapText,{ header:true, complete:(mRes)=>{ mapPrizeDetails(matchRow, mRes.data, mainHeaders); setStatus("view"); } });  
-                        } else setStatus("search");  
-                    } else setStatus("search");  
-                }});  
-            }  
-            startSystem();  
-        }, [mapPrizeDetails]);  
+        return (
+            <div className="min-h-screen p-4 sm:p-8 text-center bg-[#010413]">
+                <div className="max-w-md mx-auto no-print flex justify-between mb-8 items-center border-b border-white/10 pb-4">
+                    <div className="flex bg-white/5 p-1 rounded-xl">
+                        <button onClick={() => setLang('hi')} className={`px-4 py-1.5 rounded-lg ${lang === 'hi' ? 'bg-white text-black' : 'text-gray-400'}`}>हिन्दी</button>
+                        <button onClick={() => setLang('en')} className={`px-4 py-1.5 rounded-lg ${lang === 'en' ? 'bg-white text-black' : 'text-gray-400'}`}>EN</button>
+                    </div>
+                    <button onClick={() => {if(prompt("PIN?")===MASTER_PIN) setIsAdmin(true)}} className="opacity-10 hover:opacity-100 transition-all"><i className="fa-solid fa-fingerprint text-3xl"></i></button>
+                </div>
 
-        if (status === "loading") return <div className="h-screen bg-[#010413] flex items-center justify-center text-yellow-500 font-black">DPSG LOADING...</div>;  
-
-        return (  
-            <div className="min-h-screen p-4 sm:p-8 text-center bg-[#010413]">  
-                <div className="max-w-md mx-auto">  
-                    {status === "search" ? (  
-                        <div className="bg-white/5 border border-white/10 p-10 rounded-[3rem]">  
-                            <h2 className="text-xl font-black mb-8 italic uppercase text-white">ID दर्ज करें</h2>  
-                            <input id="sid" type="text" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center text-white mb-6" placeholder="DPSG-26-XXX-XXXX" />  
-                            <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-white shadow-xl">विवरण देखें</button>  
-                        </div>  
-                    ) : (  
-                        <div className="space-y-8">  
-                            <div className="text-center">  
-                                <h1 className="text-2xl font-black italic text-white uppercase leading-tight">डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप</h1>  
-                                <p className="text-yellow-500 font-bold tracking-widest mt-1">NIMBAHERA</p>  
-                            </div>  
+                <div className="max-w-md mx-auto">
+                    {status === "search" ? (
+                        <div className="bg-white/5 border border-white/10 p-10 rounded-[3rem] text-white">
+                            <h2 className="text-xl font-black mb-8 italic uppercase tracking-widest">{t.idLabel}</h2>
+                            <input id="sid" type="text" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center mb-6 text-white text-xl font-bold" placeholder="DPSG-26-XXX" />
+                            <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase text-white shadow-xl">विवरण देखें</button>
+                        </div>
+                    ) : (
+                        <div className="space-y-8 animate-in zoom-in">
+                            <div className="text-center text-white">
+                                <h1 className="text-2xl font-black italic uppercase leading-tight">{t.brand}</h1>
+                                <p className="text-yellow-500 font-bold tracking-widest mt-1 uppercase">{t.service}</p>
+                                <p className="text-[11px] text-blue-400 font-bold mt-2 italic tracking-widest uppercase underline decoration-blue-500/30 underline-offset-4">{t.slogan}</p>
+                            </div>
 
                             {prizeDisplay.isLocked ? (
                                 <div className="bg-white/5 border border-white/10 p-10 rounded-[2rem] italic text-white">
                                     <i className="fa-solid fa-lock text-4xl text-yellow-500 mb-4"></i>
-                                    <h2 className="text-xl font-bold">{prizeDisplay.msg}</h2>
+                                    <h2 className="text-xl font-bold leading-relaxed">{prizeDisplay.msg}</h2>
                                 </div>
                             ) : (
                                 <div className={prizeDisplay.type !== 'loss' ? 'winner-peela-glow' : 'bg-white/5 border border-white/10 p-6 rounded-[2rem]'}>
-                                    
                                     <ScratchCard onComplete={() => { setIsScratched(true); confetti(); }}>
-                                        {/* इनाम का नाम और फोटो अब स्क्रैच के पीछे हैं */}
-                                        <div className="mb-4">
-                                            <div className="bg-yellow-500 text-black font-black py-3 px-6 rounded-full inline-block italic uppercase shadow-lg text-sm">
-                                                {prizeDisplay.highlight}
-                                            </div>
-                                        </div>
-                                        <div className="prize-image-display">
-                                            <img src={prizeDisplay.img} alt="Prize" />
-                                        </div>
+                                        <div className="bg-yellow-500 text-black font-black py-3 px-6 rounded-full inline-block italic uppercase text-sm mb-4 shadow-lg">{prizeDisplay.highlight}</div>
+                                        <div className="prize-image-display"><img src={prizeDisplay.img} alt="Prize" /></div>
                                     </ScratchCard>
-
-                                    {isScratched && (
-                                        <div className="p-6 mt-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 text-left animate-in fade-in duration-1000">
-                                            <p className="text-[14px] leading-relaxed font-medium text-blue-100">{prizeDisplay.msg}</p>
-                                        </div>
-                                    )}
+                                    {isScratched && <div className="p-6 mt-4 bg-white/10 rounded-2xl text-left text-[13px] text-blue-100 italic leading-relaxed">{prizeDisplay.msg}</div>}
                                 </div>
                             )}
 
-                            <div id="receipt" className="receipt-card bg-white text-slate-900 rounded-[3rem] p-8 text-left shadow-2xl">
-                                <div className="text-center border-b-2 border-dashed border-slate-200 pb-4 mb-6">
-                                    <h3 className="font-black text-2xl text-blue-700 italic text-center w-full">प्रोफेशनल डिजिटल रसीद</h3>
+                            <div id="receipt" className="receipt-card bg-white text-slate-900 rounded-[3.5rem] p-10 shadow-2xl text-left">
+                                <div className="text-center border-b-2 border-dashed border-slate-200 pb-8 mb-8">
+                                    <h3 className="font-black text-2xl text-blue-700 italic uppercase tracking-tighter">{t.receipt}</h3>
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2 italic">NIMBAHERA, RAJASTHAN</p>
                                 </div>
-                                <div className="space-y-4">
+                                <div className="space-y-8">
                                     <div className="flex justify-between border-b pb-4">
-                                        <div><p className="text-[10px] text-slate-400 font-bold">ID IDENTITY</p><p className="text-xl font-black uppercase">{member[1]}</p></div>
-                                        <div className="text-right"><p className="text-[10px] text-slate-400 font-bold">CATEGORY</p><p className="text-xs font-black text-blue-700 uppercase">{member[3]}</p></div>
+                                        <div><p className="text-[10px] text-slate-400 font-black uppercase italic">ID IDENTITY</p><p className="text-xl font-black uppercase mt-1 leading-none">{member[1]}</p></div>
+                                        <div className="text-right"><p className="text-[10px] text-slate-400 font-black uppercase italic">Category</p><p className="text-[11px] font-black text-blue-700 uppercase mt-1 italic leading-none">{member[3]}</p></div>
                                     </div>
-                                    <div className="bg-blue-600 rounded-[2rem] p-6 text-center text-white">
-                                        <p className="text-[10px] font-bold uppercase opacity-70">सर्विस पॉइंट्स</p>
-                                        <span className="text-6xl font-black">{member[21]}</span>
+                                    <div className="bg-blue-600 rounded-[3.5rem] p-10 text-center text-white shadow-xl">
+                                        <p className="text-[11px] font-black uppercase opacity-70 mb-2 italic tracking-widest">{t.points}</p>
+                                        <span className="text-8xl font-black leading-none">{member[21]}</span>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4 text-xs font-bold border-y py-4 italic">
-                                        <div>NAME: {member[8]}</div>
-                                        <div className="text-right">VILLAGE: {member[5]}</div>
+                                    <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 shadow-inner">
+                                        <p className="text-[10px] font-black text-blue-700 uppercase mb-6 flex items-center italic leading-none"><i className="fa-solid fa-crown mr-3"></i> सदस्यता कार्ड सुविधायें</p>
+                                        {(() => {
+                                            const s = member[3].toLowerCase();
+                                            let key = (s.includes("vip") || s.includes("500")) ? "VIP" : (s.includes("gold") || s.includes("100")) ? "Gold" : "Silver";
+                                            return cardSpecs[key][lang].map((ben, i) => (
+                                                <div key={i} className="flex items-start text-[11px] font-bold italic py-3 border-b border-slate-200/50 last:border-0 leading-tight"><i className="fa-solid fa-circle-check text-green-500 mr-3 mt-1"></i>{ben}</div>
+                                            ));
+                                        })()}
                                     </div>
-                                    <div className="bg-slate-950 text-white p-6 rounded-2xl text-center">
-                                        <p className="text-[10px] opacity-50 uppercase mb-1">लकी ड्रा तिथि</p>
-                                        <p className="text-2xl font-black text-yellow-500 italic">{member[36]}</p>
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-12 py-8 border-y border-slate-100">
+                                        <div><p className="text-[9px] text-slate-400 font-black uppercase mb-2 italic">Customer Name</p><p className="text-[17px] font-black uppercase italic leading-tight text-slate-900">{member[8]}</p></div>
+                                        <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-2 italic">Village</p><p className="text-[17px] font-black uppercase italic leading-tight text-slate-900">{member[5]}</p></div>
+                                        <div><p className="text-[9px] text-slate-400 font-black uppercase mb-2 italic">Mobile (Secure)</p><p className="text-[15px] font-bold tracking-widest">{mask(member[9])}</p></div>
+                                        <div className="text-right"><p className="text-[9px] text-slate-400 font-black uppercase mb-2 italic">Aadhar (Secure)</p><p className="text-[15px] font-bold tracking-widest">{mask(member[11])}</p></div>
                                     </div>
-                                    <button onClick={()=>window.print()} className="no-print w-full bg-slate-900 text-white py-5 rounded-full text-xs font-black uppercase mt-4 shadow-xl">PRINT RECEIPT</button>
+                                    <div className="bg-slate-950 text-white p-8 rounded-[2.5rem] text-center shadow-2xl relative">
+                                        <p className="text-[11px] font-black uppercase opacity-50 mb-4 italic leading-none tracking-widest">{t.draw}</p>
+                                        <p className="text-4xl font-black text-yellow-500 italic uppercase leading-none tracking-tighter">{member[36]}</p>
+                                    </div>
+                                    <div className="bg-slate-50 p-10 rounded-[3rem] border border-slate-200 shadow-inner">
+                                        <h4 className="text-[11px] font-black uppercase mb-6 border-b pb-3 italic leading-none flex items-center"><i className="fa-solid fa-scale-balanced mr-3 text-blue-600"></i> {t.terms}</h4>
+                                        <div className="space-y-6 text-slate-600 font-bold italic text-[10px] leading-relaxed">
+                                            <p>०१. {t.t1}</p><p>०२. {t.t2}</p><p>०३. {t.t3}</p><p>०४. {t.t4}</p><p>०५. {t.t5}</p>
+                                            <p>०६. {t.t6}</p><p>०७. {t.t7}</p><p>०८. {t.t8}</p><p>०९. {t.t9}</p><p>१०. {t.t10}</p>
+                                        </div>
+                                    </div>
+                                    <button onClick={()=>window.print()} className="no-print w-full bg-slate-900 text-white py-6 rounded-full text-[12px] font-black uppercase shadow-2xl transition-all active:scale-95">PRINT OFFICIAL RECEIPT</button>
                                 </div>
                             </div>
-                        </div>  
-                    )}  
-                </div>  
-            </div>  
-        );  
-    };  
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));  
-    root.render(<App />);  
-    </script>  
-</body>  
+                            {isAdmin && (
+                                <div className="no-print mt-12 bg-white/5 border border-white/10 rounded-[3.5rem] p-10 text-left animate-in fade-in">
+                                    <h3 className="text-blue-400 font-black uppercase italic mb-8 border-b border-white/10 pb-4 text-[13px] tracking-widest text-center">Master Data Dashboard (39 Columns)</h3>
+                                    <div className="grid grid-cols-1 gap-4 max-h-[600px] overflow-auto pr-4 custom-scroll">
+                                        {member.map((val, i) => ( <div key={i} className="p-4 bg-white/5 rounded-2xl border border-white/5"> <p className="text-[8px] opacity-50 uppercase font-black mb-1">{headers[i] || `Index ${i}`}</p> <p className="font-bold text-white italic text-[14px]">{val || "---"}</p> </div> ))}
+                                    </div>
+                                    <button onClick={()=>setIsAdmin(false)} className="mt-8 w-full bg-red-500 text-white py-4 rounded-2xl font-black uppercase text-[10px]">Logout Admin</button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+    const root = ReactDOM.createRoot(document.getElementById('root')); root.render(<App />);
+    </script>
+</body>
 </html>
