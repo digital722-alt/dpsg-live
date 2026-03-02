@@ -14,7 +14,6 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');  
         body { font-family: 'Inter', sans-serif; background-color: #010413; color: white; margin: 0; overflow-x: hidden; }  
         .receipt-card { border: 1px solid #e2e8f0; color: #0f172a; border-radius: 1.5rem; background: white; }  
-          
         @media print { .no-print { display: none !important; } }  
 
         /* SCRATCH CARD CSS */
@@ -26,8 +25,8 @@
         @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.3); } 50% { box-shadow: 0 0 80px rgba(251, 191, 36, 0.6); } }  
 
         /* BIG PHOTO SIZE */
-        .prize-image-display { width: 100%; height: auto; min-height: 350px; display: flex; align-items: center; justify-content: center; }
-        .prize-image-display img { width: 100%; height: auto; max-height: 600px; object-fit: contain; }
+        .prize-image-display { width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; background: #000; }
+        .prize-image-display img { width: 100%; height: auto; max-height: 80vh; object-fit: contain; padding: 10px; }
     </style>
 </head>  
 <body>  
@@ -53,12 +52,12 @@
 
         useEffect(() => {
             const canvas = canvasRef.current;
+            if(!canvas) return;
             const ctx = canvas.getContext('2d');
             const parent = canvas.parentElement;
             canvas.width = parent.offsetWidth;
             canvas.height = parent.offsetHeight;
 
-            // Scratch Layer (Golden/Silver Mix)
             const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
             grad.addColorStop(0, '#C0C0C0');
             grad.addColorStop(0.5, '#E8E8E8');
@@ -66,33 +65,30 @@
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Text on Scratch
-            ctx.font = "bold 20px Inter";
-            ctx.fillStyle = "#666";
+            ctx.font = "bold 24px Inter";
+            ctx.fillStyle = "#444";
             ctx.textAlign = "center";
             ctx.fillText("इसे स्क्रैच करें!", canvas.width / 2, canvas.height / 2);
 
             const scratch = (e) => {
                 if (isRevealed) return;
                 const rect = canvas.getBoundingClientRect();
-                const x = (e.pageX || e.touches[0].pageX) - rect.left - window.scrollX;
-                const y = (e.pageY || e.touches[0].pageY) - rect.top - window.scrollY;
+                const x = (e.pageX || (e.touches && e.touches[0].pageX)) - rect.left;
+                const y = (e.pageY || (e.touches && e.touches[0].pageY)) - rect.top;
 
                 ctx.globalCompositeOperation = 'destination-out';
                 ctx.beginPath();
-                ctx.arc(x, y, 35, 0, Math.PI * 2);
+                ctx.arc(x, y, 40, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Check Reveal Percentage
                 const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
                 let count = 0;
                 for (let i = 0; i < pixels.length; i += 40) if (pixels[i + 3] === 0) count++;
-                if (count > (pixels.length / 40) * 0.5) {
+                if (count > (pixels.length / 40) * 0.55) {
                     setIsRevealed(true);
                     onComplete();
                 }
             };
-
             canvas.addEventListener('mousemove', scratch);
             canvas.addEventListener('touchmove', scratch);
         }, [isRevealed]);
@@ -108,64 +104,68 @@
     const App = () => {  
         const [status, setStatus] = useState("loading");  
         const [member, setMember] = useState(null);  
+        const [headers, setHeaders] = useState([]);
         const [prizeDisplay, setPrizeDisplay] = useState({ img: "", msg: "", isLocked: true, type: "normal", highlight: "" });  
         const [isScratched, setIsScratched] = useState(false);
 
-        const mapPrizeDetails = useCallback((userRow, maps) => {  
+        const mapPrizeDetails = useCallback((userRow, maps, mainHeaders) => {  
             const mID = (userRow[1] || "").toString().toLowerCase().trim();  
-            const dDateStr = (userRow[36] || "").toString().trim();  
-            const prizeInam = (userRow[38] || "").toString().trim(); // Column 39
-            const masterLock = (userRow[37] || "").toString().trim(); // Column AL (38)
+            
+            // कॉलम नाम से ढूंढें
+            const drawDateIdx = mainHeaders.findIndex(h => h.trim() === "Draw Date");
+            const inamStatusIdx = mainHeaders.findIndex(h => h.trim() === "Inam Status");
+            const prizeInamIdx = mainHeaders.findIndex(h => h.trim() === "Prize_Inam");
+
+            const dDateStr = drawDateIdx !== -1 ? (userRow[drawDateIdx] || "").toString().trim() : "";
+            const masterLock = inamStatusIdx !== -1 ? (userRow[inamStatusIdx] || "").toString().toUpperCase().trim() : "";
+            const prizeInam = prizeInamIdx !== -1 ? (userRow[prizeInamIdx] || "").toString().trim() : "";
 
             const today = new Date();  
             const drawDate = dDateStr ? new Date(dDateStr) : null;  
             
-            // TRIPLE LOCK CHECK
+            // लॉक चेक
             if (!dDateStr || drawDate > today || !masterLock || !prizeInam) {
-                setPrizeDisplay({ img: "", msg: "रिजल्ट तैयार किया जा रहा है, कृपया प्रतीक्षा करें।", isLocked: true, type: "normal" });
+                setPrizeDisplay({ img: "", msg: "रिजल्ट की घोषणा जल्द की जाएगी, कृपया प्रतीक्षा करें।", isLocked: true, type: "normal" });
                 return;
             }
 
             const exactWinnerMatch = maps.find(m => (m.Membership_ID || "").toLowerCase() === mID);
 
-            // 1. DPSG_WINNER LOCK
-            if (masterLock === "DPSG_WINNER" && exactWinnerMatch) {
+            // 1. DPSG_WINNER या Win (51 विनर्स के लिए)
+            if ((masterLock === "DPSG_WINNER" || masterLock === "WIN") && exactWinnerMatch) {
                 setPrizeDisplay({
                     img: toDirectLink(exactWinnerMatch.Image_Link),
-                    highlight: exactWinnerMatch.Inam_Name || prizeInam,
-                    msg: `🎉 बहुत-बहुत शुभकामनाएँ! आपको यह जानकर बेहद खुशी होगी कि 51 मुख्य इनामों की लिस्ट में आपने शानदार ${exactWinnerMatch.Match_Name || 'Rank'} हासिल की है! 51 इनामों की इस लिस्ट में जगह बनाने वाले आप जैसे सभी भाग्यशाली प्रतिभागियों को बहुत-बहुत शुभकामनाएं। DPSG परिवार का हिस्सा बनने के लिए धन्यवाद! 🙏`,
+                    highlight: prizeInam, // आपकी पहले से सेट Prize_Inam वैल्यू
+                    msg: `🎉 बहुत-बहुत शुभकामनाएँ! आपको यह जानकर बेहद खुशी होगी कि 51 मुख्य इनामों की लिस्ट में आपने शानदार ${exactWinnerMatch.Match_Name || 'Rank'} हासिल की है! DPSG परिवार की ओर से बधाई! 🙏`,
                     isLocked: false, type: "winner"
                 });
             } 
-            // 2. DPSG_CASH LOCK
+            // 2. DPSG_CASH (कैशबैक के लिए)
             else if (masterLock === "DPSG_CASH") {
                 setPrizeDisplay({
                     img: toDirectLink("https://drive.google.com/file/d/1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD/view?usp=drivesdk"),
                     highlight: prizeInam,
-                    msg: "🥳 बधाई हो! आप 51 इनामों की लिस्ट में तो नहीं आ पाए हैं, लेकिन निराश होने की बिल्कुल ज़रूरत नहीं है! हमारी 'डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप' की तरफ से आपको यह नकद कैशबैक का इनाम दिया जा रहा है। हम पर विश्वास जताने के लिए धन्यवाद! 🙏",
+                    msg: "🥳 बधाई हो! आप 51 इनामों की लिस्ट में तो नहीं आ पाए हैं, लेकिन निराश होने की बिल्कुल ज़रूरत नहीं है! DPSG की तरफ से आपको यह नकद कैशबैक दिया जा रहा है। धन्यवाद! 🙏",
                     isLocked: false, type: "cashback"
                 });
             }
-            // 3. DPSG_GIFT LOCK
+            // 3. DPSG_GIFT (पेन/गिफ्ट के लिए)
             else if (masterLock === "DPSG_GIFT") {
                 setPrizeDisplay({
                     img: toDirectLink("https://drive.google.com/file/d/1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z/view?usp=drivesdk"),
                     highlight: prizeInam,
-                    msg: "🎁 शुभकामनाएँ! इस बार आप 51 इनामों की लिस्ट में नहीं आ पाए हैं, इसलिए हमारी तरफ से आपके प्यार और सम्मान में यह प्यारा सा उपहार दिया जा रहा है! हमारे साथ हमेशा जुड़े रहने के लिए आपका हार्दिक धन्यवाद! 🙏",
+                    msg: "🎁 शुभकामनाएँ! आप 51 इनामों की लिस्ट में नहीं आ पाए हैं, इसलिए हमारी तरफ से आपके प्यार और सम्मान में यह उपहार दिया जा रहा है! हार्दिक धन्यवाद! 🙏",
                     isLocked: false, type: "gift"
                 });
             }
-            // 4. DPSG_NEXT LOCK (Try Again)
+            // 4. DPSG_NEXT (Better Luck के लिए)
             else if (masterLock === "DPSG_NEXT") {
                 setPrizeDisplay({
                     img: toDirectLink("https://drive.google.com/file/d/1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh/view?usp=drivesdk"),
-                    highlight: "Better Luck Next Time",
-                    msg: "✨ हौसला रखें और मुस्कुराते रहें! इस बार आप 51 इनामों की लिस्ट में नहीं आ पाए हैं। लेकिन निराश बिल्कुल न हों, हमें पूरा विश्वास है कि भविष्य में आपका भाग्य जरूर चमकेगा और कोई बड़ा इनाम आपका इंतज़ार कर रहा होगा। धन्यवाद! 🙏",
+                    highlight: prizeInam,
+                    msg: "✨ हौसला रखें! इस बार आप 51 इनामों की लिस्ट में नहीं आ पाए हैं। लेकिन निराश न हों, भविष्य में आपका भाग्य जरूर चमकेगा। धन्यवाद! 🙏",
                     isLocked: false, type: "loss"
                 });
-            }
-            else {
-                setPrizeDisplay({ img: "", msg: "परिणाम की आधिकारिक घोषणा जल्द होगी।", isLocked: true, type: "normal" });
             }
         }, []);
 
@@ -177,12 +177,14 @@
                 const mapText = await mapResponse.text();  
                 Papa.parse(mainText,{ complete:(results)=>{  
                     const rows = results.data;  
+                    const mainHeaders = rows[0] || [];
+                    setHeaders(mainHeaders);
                     const queryId = new URLSearchParams(window.location.search).get('id');  
                     if(queryId){  
                         const matchRow = rows.slice(1).find(r=> r[1] && r[1].toLowerCase()===queryId.toLowerCase());  
                         if(matchRow){  
                             setMember(matchRow);  
-                            Papa.parse(mapText,{ header:true, complete:(mRes)=>{ mapPrizeDetails(matchRow, mRes.data); setStatus("view"); } });  
+                            Papa.parse(mapText,{ header:true, complete:(mRes)=>{ mapPrizeDetails(matchRow, mRes.data, mainHeaders); setStatus("view"); } });  
                         } else setStatus("search");  
                     } else setStatus("search");  
                 }});  
@@ -197,37 +199,34 @@
                 <div className="max-w-md mx-auto">  
                     {status === "search" ? (  
                         <div className="bg-white/5 border border-white/10 p-10 rounded-[3rem]">  
-                            <h2 className="text-xl font-black mb-8 italic uppercase tracking-widest">ID दर्ज करें</h2>  
+                            <h2 className="text-xl font-black mb-8 italic uppercase text-white">ID दर्ज करें</h2>  
                             <input id="sid" type="text" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 text-center text-white mb-6" placeholder="DPSG-26-XXX-XXXX" />  
-                            <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase shadow-xl">विवरण देखें</button>  
+                            <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-blue-600 py-6 rounded-2xl font-black uppercase shadow-xl text-white">विवरण देखें</button>  
                         </div>  
                     ) : (  
                         <div className="space-y-8">  
                             <div className="text-center">  
-                                <h1 className="text-2xl font-black italic">डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप</h1>  
-                                <p className="text-yellow-500 font-bold uppercase tracking-widest mt-1">NIMBAHERA</p>  
+                                <h1 className="text-2xl font-black italic text-white">डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप</h1>  
+                                <p className="text-yellow-500 font-bold tracking-widest mt-1">NIMBAHERA</p>  
                             </div>  
 
                             {prizeDisplay.isLocked ? (
-                                <div className="bg-white/5 border border-white/10 p-10 rounded-[2rem] italic">
+                                <div className="bg-white/5 border border-white/10 p-10 rounded-[2rem] italic text-white">
                                     <i className="fa-solid fa-lock text-4xl text-yellow-500 mb-4"></i>
                                     <h2 className="text-xl font-bold">{prizeDisplay.msg}</h2>
                                 </div>
                             ) : (
                                 <div className={prizeDisplay.type !== 'loss' ? 'winner-peela-glow' : 'bg-white/5 border border-white/10 p-6 rounded-[2rem]'}>
-                                    {/* 1. HIGHLIGHT BADGE */}
-                                    <div className="bg-yellow-500 text-black font-black py-3 px-6 rounded-full inline-block mb-4 italic uppercase tracking-tighter shadow-lg">
-                                        {prizeDisplay.type === 'winner' ? '🏆 मुख्य इनाम' : '🎁 उपहार'} : {prizeDisplay.highlight}
+                                    <div className="bg-yellow-500 text-black font-black py-3 px-6 rounded-full inline-block mb-4 italic uppercase shadow-lg">
+                                        {prizeDisplay.highlight}
                                     </div>
 
-                                    {/* 2. SCRATCH CARD WITH BIG PHOTO */}
                                     <ScratchCard onComplete={() => { setIsScratched(true); confetti(); }}>
                                         <div className="prize-image-display">
                                             <img src={prizeDisplay.img} alt="Prize" />
                                         </div>
                                     </ScratchCard>
 
-                                    {/* 3. PROFESSIONAL MESSAGE */}
                                     {isScratched && (
                                         <div className="p-6 mt-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 text-left animate-in fade-in duration-1000">
                                             <p className="text-[14px] leading-relaxed font-medium text-blue-100">{prizeDisplay.msg}</p>
@@ -236,7 +235,6 @@
                                 </div>
                             )}
 
-                            {/* RECEIPT SECTION (Old Code Safe) */}
                             <div id="receipt" className="receipt-card bg-white text-slate-900 rounded-[3rem] p-8 text-left shadow-2xl">
                                 <div className="text-center border-b-2 border-dashed border-slate-200 pb-4 mb-6">
                                     <h3 className="font-black text-2xl text-blue-700 italic">प्रोफेशनल डिजिटल रसीद</h3>
