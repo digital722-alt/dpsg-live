@@ -18,27 +18,17 @@
         .dark body { background-color: #020617; color: #f8fafc; }
         .light body { background-color: #f1f5f9; color: #1e293b; }
         .receipt-card { border-radius: 2.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); background: white; color: #0f172a; }  
-        
-        /* Marquee */
         .marquee { background: #fbbf24; color: #000; padding: 12px 0; font-weight: 900; overflow: hidden; border-bottom: 3px solid #000; text-transform: uppercase; }
         .marquee p { display: inline-block; white-space: nowrap; animation: scroll 20s linear infinite; font-size: 15px; }
         @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-        
-        /* Speaker Notice Box */
         .notice-portal { background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 10px solid #fbbf24; padding: 25px; border-radius: 24px; position: relative; margin-bottom: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
         .notice-portal i.fa-bullhorn { position: absolute; right: 15px; top: 15px; font-size: 60px; color: #fbbf24; opacity: 0.15; transform: rotate(-15deg); }
-
-        /* Scratch System */
         .scratch-container { position: relative; width: 100%; max-width: 550px; margin: 0 auto; min-height: 480px; border-radius: 2rem; overflow: hidden; }  
         .scratch-canvas { position: absolute; top: 0; left: 0; z-index: 30; cursor: crosshair; touch-action: none; width: 100%; height: 100%; }  
         .scratch-content { background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; border: 4px solid #fbbf24; }  
-        
-        /* Royal Prize Box - Stylish Text & Color */
         .winner-box { background: #000; border: 5px solid #fbbf24; border-radius: 2.5rem; padding: 35px; color: #fff; text-align: center; box-shadow: 0 0 60px rgba(251, 191, 36, 0.6); width: 100%; }
-        .winner-shayari { color: #fde68a; font-weight: 800; line-height: 1.6; font-size: 16px; italic: true; margin-bottom: 20px; border-bottom: 1px solid rgba(251,191,36,0.3); padding-bottom: 15px; }
-        .winner-main-msg { color: #fff; font-size: 14px; line-height: 1.8; }
+        .winner-shayari { color: #fde68a; font-weight: 800; line-height: 1.6; font-size: 16px; margin-bottom: 20px; border-bottom: 1px solid rgba(251,191,36,0.3); padding-bottom: 15px; }
         .highlight-yellow { color: #fbbf24; font-weight: 900; font-size: 18px; text-transform: uppercase; display: block; margin: 10px 0; }
-
         @media print { .no-print { display: none !important; } .receipt-card { box-shadow: none !important; border: 1px solid #ddd !important; width: 100% !important; color: black !important; } }
     </style>
 </head>  
@@ -53,20 +43,8 @@
     const UPLOAD_FORM = "https://formspree.io/f/xwvndvoe";
 
     const translations = {
-        hi: {
-            brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", slogan: "समस्या आपकी, समाधान हमारा", 
-            receipt: "प्रोफेशनल डिजिटल रसीद", notice: "आधिकारिक घोषणा पोर्टल", search: "मेंबरशिप ID दर्ज करें",
-            id: "ID पहचान", cat: "श्रेणी", name: "ग्राहक का नाम", vil: "ग्राम/शहर", mob: "मोबाइल", adh: "आधार", active: "सक्रियण", exp: "समाप्ति",
-            pts: "कुल पॉइंट्स", usd: "उपयोग", bal: "शेष", draw: "लकी ड्रा तिथि", benefit: "कार्ड सुविधायें",
-            tTitle: "नियम व शर्तें", warning: "⚠️ आधिकारिक घोषणा तक स्क्रैच न करें", pending: "परिणाम जल्द घोषित होगा", update: "आपकी जानकारी अपडेट की जा रही है"
-        },
-        en: {
-            brand: "DIGITAL PROBLEM SOLUTION GROUP", slogan: "YOUR PROBLEM, OUR SOLUTION",
-            receipt: "OFFICIAL DIGITAL RECEIPT", notice: "OFFICIAL NOTICE PORTAL",
-            id: "ID IDENTITY", cat: "CATEGORY", name: "NAME", vil: "VILLAGE", mob: "MOBILE", adh: "AADHAR", active: "ACTIVE", exp: "EXPIRY",
-            pts: "POINTS", usd: "USED", bal: "BALANCE", draw: "DRAW DATE", benefit: "BENEFITS",
-            tTitle: "TERMS & CONDITIONS", warning: "⚠️ DO NOT SCRATCH UNTIL ANNOUNCED", pending: "RESULT SOON", update: "Updating info..."
-        }
+        hi: { brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", slogan: "समस्या आपकी, समाधान हमारा", receipt: "प्रोफेशनल डिजिटल रसीद", notice: "आधिकारिक घोषणा पोर्टल", search: "मेंबरशिप ID दर्ज करें", id: "ID पहचान", cat: "श्रेणी", name: "ग्राहक का नाम", vil: "ग्राम/शहर", mob: "मोबाइल", adh: "आधार", active: "सक्रियण", exp: "समाप्ति", pts: "कुल पॉइंट्स", usd: "उपयोग", bal: "शेष", draw: "लकी ड्रा तिथि", benefit: "कार्ड सुविधायें", tTitle: "नियम व शर्तें", warning: "⚠️ आधिकारिक घोषणा तक स्क्रैच न करें", pending: "परिणाम जल्द घोषित होगा", update: "आपकी जानकारी अपडेट की जा रही है" },
+        en: { brand: "DIGITAL PROBLEM SOLUTION GROUP", slogan: "YOUR PROBLEM, OUR SOLUTION", receipt: "OFFICIAL DIGITAL RECEIPT", notice: "OFFICIAL NOTICE PORTAL", search: "SEARCH ID", id: "ID IDENTITY", cat: "CATEGORY", name: "NAME", vil: "VILLAGE", mob: "MOBILE", adh: "AADHAR", active: "ACTIVE", exp: "EXPIRY", pts: "POINTS", usd: "USED", bal: "BALANCE", draw: "DRAW DATE", benefit: "BENEFITS", tTitle: "TERMS & CONDITIONS", warning: "⚠️ DO NOT SCRATCH UNTIL ANNOUNCED", pending: "COMING SOON", update: "Updating info..." }
     };
 
     const cardSpecs = {  
@@ -94,7 +72,7 @@
                 for(let i=0; i<pix.length; i+=40) if(pix[i+3] === 0) c++;  
                 if(c > (pix.length/40)*0.45) { setRevealed(true); onComplete(); }  
             };  
-            canvas.addEventListener('mousemove', scratch); canvas.addEventListener('touchmove', scratch, {passive: true});  
+            canvas.addEventListener('mousemove', scratch); canvas.addEventListener('touchmove', scratch);  
         }, [isLocked, revealed]);  
         return ( <div className="scratch-container"> {!revealed && !isLocked && <canvas ref={canvasRef} className="scratch-canvas" />} <div className="scratch-content">{children}</div> </div> );  
     };  
@@ -119,29 +97,27 @@
                         fetch(MAPPING_CSV).then(r => r.text()).then(mTxt => { Papa.parse(mTxt, { header: true, complete: (mRes) => {
                             const lock = (row[37] || "").toUpperCase().trim();
                             const m = mRes.data.find(x => x.Membership_ID?.toLowerCase() === row[1].toLowerCase());
-                            
                             let shay = ""; let msg = "";
                             if(lock === "DPSG_WINNER" && m) {
                                 shay = `"मंजिल उन्हीं को मिलती है जिनके सपनों में जान होती है, आज आपकी मेहनत और किस्मत दोनों मेहरबान होती है!"`;
-                                msg = `हार्दिक बधाई! आप डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप (DPSG) के गौरवशाली विजेता बने हैं। आपने <span class="highlight-yellow">${m.Inam_Name}</span> प्राप्त की है और आपकी रैंक <span class="highlight-yellow">${m.Match_Name}</span> है। यह उपहार संस्था की ओर से आपके अटूट विश्वास का एक छोटा सा सम्मान है। भविष्य में भी हम आपकी समस्याओं के बेहतरीन समाधान के लिए प्रतिबद्ध रहेंगे। DPSG परिवार का हिस्सा बनने के लिए आपका हृदय से धन्यवाद!`;
+                                msg = `हार्दिक बधाई! आप डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप (DPSG) के गौरवशाली विजेता बने हैं। आपने <span class="highlight-yellow">${m.Inam_Name}</span> प्राप्त की है और आपकी रैंक <span class="highlight-yellow">${m.Match_Name}</span> है। धन्यवाद!`;
                             } else if(lock === "DPSG_CASH") {
-                                shay = `"इनाम छोटा हो या बड़ा, अपनों का साथ सबसे प्यारा है, जीत की ये शुरुआत है, अभी तो सारा आसमान तुम्हारा है!"`;
-                                msg = `मुस्कुराइए! DPSG संस्था की ओर से आपको यह विशेष कैशबैक भेंट किया जा रहा है। यह आपके और हमारे अटूट रिश्ते की एक सुंदर पहचान है। आपकी खुशियों में ही हमारी सफलता है। उज्जवल भविष्य की शुभकामनाओं के साथ, आपका बहुत-बहुत धन्यवाद!`;
+                                shay = `"इनाम छोटा हो या बड़ा, अपनों का साथ सबसे प्यारा है!"`;
+                                msg = `मुस्कुराइए! DPSG संस्था की ओर से आपको यह विशेष कैशबैक भेंट किया जा रहा है। धन्यवाद!`;
                             } else if(lock === "DPSG_GIFT") {
-                                shay = `"खूबसूरत सा ये तोहफा बस एक छोटा सा बहाना है, हमे तो आपके साथ मिलकर खुशियों का जशन मनाना है!"`;
-                                msg = `बधाई हो! DPSG परिवार की ओर से यह उपहार आपके डिजिटल सफर को और भी खास बनाने के लिए है। आपकी संतुष्टि ही हमारी असली पूंजी है। हमें गर्व है कि आप हमारे साथ जुड़े हुए हैं। DPSG संस्था पर भरोसा जताने के लिए आपका धन्यवाद!`;
+                                shay = `"खूबसूरत सा ये तोहफा बस एक छोटा सा बहाना है!"`;
+                                msg = `बधाई हो! DPSG परिवार की ओर से यह उपहार आपके विश्वास का सम्मान है। धन्यवाद!`;
                             } else {
-                                shay = `"गिरते हैं शहसवार ही मैदान-ए-जंग में, वो क्या गिरेंगे जो घुटनों के बल चलते हैं!"`;
-                                msg = `निराश न हों! हालांकि इस बार आप 51 बड़े इनामों की सूची में अपनी जगह नहीं बना पाए हैं, लेकिन DPSG संस्था आपके निरंतर सहयोग और अटूट विश्वास का सम्मान करती है। आप हमारे लिए हमेशा खास हैं और भविष्य के लकी ड्रा में आपकी किस्मत ज़रूर चमकेगी। हमारे साथ बने रहने और हम पर भरोसा करने के लिए आपका हृदय से धन्यवाद!`;
+                                shay = `"गिरते हैं शहसवार ही मैदान-ए-जंग में!"`;
+                                msg = `निराश न हों! हालांकि इस बार आप 51 बड़े इनामों में नहीं आ पाए, पर भविष्य में किस्मत ज़रूर चमकेगी। धन्यवाद!`;
                             }
-                            
                             setPrize({ img: fixUrl(m?.Image_Link), shayari: shay, mainMsg: msg, isLocked: (lock === "LOCKED" || !lock) });
                             setStatus("view");
                         }}); });
                     } else setStatus("search");  
                 }});  
             });  
-        }, [theme]);  
+        }, [theme, lang]);  
 
         const cleanData = (val) => (val && val !== "#REF!" && val !== "") ? val : t.update;
 
@@ -152,96 +128,71 @@
                 <div className="no-print marquee"><p>{member ? cleanData(member[38]) : t.brand} • समस्या आपकी, समाधान हमारा • {t.brand}</p></div>  
                 <div className="max-w-xl mx-auto p-4 sm:p-6">  
                     <div className="no-print flex justify-between items-center mb-6">
-                        <button onClick={() => setLang(lang === 'hi' ? 'en' : 'hi')} className="bg-blue-600 text-white px-5 py-2 rounded-full font-black text-[10px] shadow-lg uppercase tracking-wider">{lang === 'hi' ? 'English' : 'हिंदी'}</button>
+                        <button onClick={() => setLang(lang === 'hi' ? 'en' : 'hi')} className="bg-blue-600 text-white px-5 py-2 rounded-full font-black text-[10px] uppercase">{lang === 'hi' ? 'English' : 'हिंदी'}</button>
                         <button onClick={()=>setTheme(theme==='light'?'dark':'light')} className="p-3 bg-white dark:bg-slate-800 rounded-full shadow-xl text-xl">{theme==='light'?'🌙':'☀️'}</button>
                     </div>
 
                     {status === "search" ? (  
                         <div className="bg-white dark:bg-slate-800 p-12 rounded-[2.5rem] shadow-2xl text-center border dark:border-slate-700">  
-                            <i className="fa-solid fa-id-card text-7xl text-blue-600 mb-6"></i>  
-                            <input id="sid" type="text" className="w-full border-2 p-5 rounded-2xl mb-6 font-bold text-center dark:bg-slate-700 dark:text-white dark:border-slate-600 text-xl" placeholder="DPSG-26-XXXX" />  
-                            <button onClick={() => {const v=document.getElementById('sid').value; if(v) window.location.href=`?id=${v}`}} className="w-full bg-blue-600 py-5 rounded-2xl font-black text-white shadow-lg uppercase tracking-widest hover:bg-blue-700">Open Dashboard</button>  
+                            <i className="fa-solid fa-fingerprint text-7xl text-blue-600 mb-6"></i>  
+                            <input id="sid" type="text" className="w-full border-2 p-5 rounded-2xl mb-6 font-bold text-center dark:bg-slate-700 dark:text-white" placeholder="DPSG-26-XXXX" />  
+                            <button onClick={() => {const v=document.getElementById('sid').value; if(v) window.location.href=`?id=${v}`}} className="w-full bg-blue-600 py-5 rounded-2xl font-black text-white shadow-lg uppercase">Dashboard खोलें</button>  
                         </div>  
                     ) : (  
                         <div className="space-y-6">  
                             <div className="text-center"><h1 className="text-3xl font-black italic uppercase dark:text-white leading-none tracking-tighter">{t.brand}</h1><p className="text-blue-500 font-black text-[10px] mt-1 tracking-[0.3em] uppercase">Digital Seva Nimbahera</p></div>  
-
                             <div className="grid grid-cols-4 gap-3 no-print">
-                                <a href={UPLOAD_FORM} target="_blank" className="bg-white p-4 rounded-3xl shadow-lg text-center hover:scale-105 transition-transform"><i className="fa-solid fa-desktop text-orange-500 text-2xl"></i><p className="text-[9px] font-black mt-1 text-slate-900 uppercase">ई-मित्र</p></a>
-                                <a href={UPLOAD_FORM} target="_blank" className="bg-white p-4 rounded-3xl shadow-lg text-center hover:scale-105 transition-transform"><i className="fa-solid fa-file-invoice text-blue-500 text-2xl"></i><p className="text-[9px] font-black mt-1 text-slate-900 uppercase">डेटा</p></a>
-                                <a href={UPLOAD_FORM} target="_blank" className="bg-white p-4 rounded-3xl shadow-lg text-center hover:scale-105 transition-transform"><i className="fa-solid fa-unlock text-purple-500 text-2xl"></i><p className="text-[9px] font-black mt-1 text-slate-900 uppercase">अनलॉक</p></a>
-                                <a href={UPLOAD_FORM} target="_blank" className="bg-white p-4 rounded-3xl shadow-lg text-center hover:scale-105 transition-transform"><i className="fa-solid fa-landmark text-green-600 text-2xl"></i><p className="text-[9px] font-black mt-1 text-slate-900 uppercase">योजना</p></a>
+                                <a href={UPLOAD_FORM} target="_blank" className="bg-white p-4 rounded-3xl shadow-lg text-center"><i className="fa-solid fa-desktop text-orange-500 text-2xl"></i><p className="text-[9px] font-black mt-1 text-slate-900 uppercase">ई-मित्र</p></a>
+                                <a href={UPLOAD_FORM} target="_blank" className="bg-white p-4 rounded-3xl shadow-lg text-center"><i className="fa-solid fa-file-invoice text-blue-500 text-2xl"></i><p className="text-[9px] font-black mt-1 text-slate-900 uppercase">डेटा</p></a>
+                                <a href={UPLOAD_FORM} target="_blank" className="bg-white p-4 rounded-3xl shadow-lg text-center"><i className="fa-solid fa-unlock text-purple-500 text-2xl"></i><p className="text-[9px] font-black mt-1 text-slate-900 uppercase">अनलॉक</p></a>
+                                <a href={UPLOAD_FORM} target="_blank" className="bg-white p-4 rounded-3xl shadow-lg text-center"><i className="fa-solid fa-landmark text-green-600 text-2xl"></i><p className="text-[9px] font-black mt-1 text-slate-900 uppercase">योजना</p></a>
                             </div>
-
-                            <div className="notice-portal no-print">
-                                <i className="fa-solid fa-bullhorn"></i>
-                                <h4 className="text-yellow-400 font-black text-xs uppercase mb-2 flex items-center gap-2 tracking-widest"><i className="fa-solid fa-microphone-lines"></i> {t.notice}</h4>
-                                <p className="text-white font-bold text-sm italic leading-relaxed">{cleanData(member[38])}</p>
-                            </div>
-
+                            <div className="notice-portal no-print"><i className="fa-solid fa-bullhorn"></i><h4 className="text-yellow-400 font-black text-xs uppercase mb-2 tracking-widest">{t.notice}</h4><p className="text-white font-bold text-sm italic">{cleanData(member[38])}</p></div>
                             <div className="no-print bg-slate-900 p-1 rounded-[2.5rem] shadow-xl border-2 border-slate-800">
-                                <p className="text-red-500 font-black text-[10px] my-3 text-center animate-pulse uppercase tracking-widest">{t.warning}</p>
                                 <ScratchCard isLocked={prize.isLocked} onComplete={() => confetti()}>
                                     <div className="p-4 text-center w-full bg-white rounded-[2rem]">
-                                        {prize.isLocked ? <p className="text-slate-300 italic font-black py-20 text-sm uppercase">🔒 {t.pending}</p> : <div className="winner-box">
+                                        {prize.isLocked ? <p className="text-slate-300 italic font-black py-20 text-sm">🔒 {t.pending}</p> : <div className="winner-box">
                                             <p className="winner-shayari whitespace-pre-line">{prize.shayari}</p>
-                                            {prize.img && <img src={prize.img} className="max-h-[350px] object-contain mb-6 mx-auto rounded-2xl shadow-2xl border-2 border-yellow-500/20" />}
-                                            <div className="p-2">
-                                                <p className="winner-main-msg italic whitespace-pre-line" dangerouslySetInnerHTML={{__html: prize.mainMsg}}></p>
-                                            </div>
+                                            {prize.img && <img src={prize.img} className="max-h-[350px] object-contain mb-6 mx-auto rounded-2xl shadow-xl" />}
+                                            <p className="italic text-sm leading-relaxed" dangerouslySetInnerHTML={{__html: prize.mainMsg}}></p>
                                         </div>}
                                     </div>
                                 </ScratchCard>
                             </div>
-
                             <div id="receipt" className="receipt-card p-10 text-left bg-white text-slate-900 border-2 border-slate-200">  
                                 <div className="text-center border-b-2 border-dashed border-slate-200 pb-6 mb-8"><h3 className="font-black text-2xl text-blue-700 italic uppercase tracking-tighter">{t.receipt}</h3><p className="text-[9px] font-black text-slate-400 mt-1 uppercase tracking-widest">DPSG NIMBAHERA OFFICIAL</p></div>  
                                 <div className="grid grid-cols-2 gap-y-10 border-b pb-8 text-sm">  
                                     <div><p className="text-[9px] font-black text-slate-400 uppercase mb-1">{t.id}</p><p className="text-xl font-black text-blue-800">{cleanData(member[1])}</p></div>  
-                                    <div className="text-right"><p className="text-[9px] font-black text-slate-400 uppercase mb-1">{t.cat}</p><p className="font-bold text-white bg-blue-600 px-4 py-1 rounded-full text-[10px] inline-block uppercase shadow-md">{cleanData(member[3])}</p></div>  
-                                    <div><p className="text-[9px] font-black text-slate-400 uppercase mb-1">{t.name}</p><p className="font-black uppercase text-lg text-slate-800">{cleanData(member[8])}</p></div>  
-                                    <div className="text-right"><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Village</p><p className="font-black uppercase text-lg text-slate-800">{cleanData(member[5])}</p></div>  
-                                    <div><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Mobile</p><p className="font-bold tracking-widest text-slate-700">******{member[9]?.slice(-4)}</p></div>
-                                    <div className="text-right"><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Expiry Date</p><p className="font-bold text-red-600">{cleanData(member[16])}</p></div>
+                                    <div className="text-right"><p className="text-[9px] font-black text-slate-400 uppercase mb-1">{t.cat}</p><p className="font-bold text-white bg-blue-600 px-4 py-1 rounded-full text-[10px] inline-block uppercase">{cleanData(member[3])}</p></div>  
+                                    <div><p className="text-[9px] font-black text-slate-400 uppercase mb-1">{t.name}</p><p className="font-black uppercase text-lg">{cleanData(member[8])}</p></div>  
+                                    <div className="text-right"><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Village</p><p className="font-black uppercase text-lg">{cleanData(member[5])}</p></div>  
+                                    <div><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Mobile</p><p className="font-bold tracking-widest">******{member[9]?.slice(-4)}</p></div>
+                                    <div className="text-right"><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Expiry</p><p className="font-bold text-red-600">{cleanData(member[16])}</p></div>
                                 </div>
                                 <div className="grid grid-cols-3 gap-4 my-8">
-                                    <div className="bg-blue-700 text-white p-5 rounded-3xl text-center shadow-lg"><p className="text-[8px] font-bold opacity-70 uppercase mb-1">PTS</p><p className="text-2xl font-black">{member[18] || 0}</p></div>
-                                    <div className="bg-slate-800 text-white p-5 rounded-3xl text-center shadow-lg"><p className="text-[8px] font-bold opacity-70 uppercase mb-1">USED</p><p className="text-2xl font-black">{(parseInt(member[18])-parseInt(member[21]))||0}</p></div>
-                                    <div className="bg-green-600 text-white p-5 rounded-3xl text-center shadow-lg"><p className="text-[8px] font-bold opacity-70 uppercase mb-1">BAL</p><p className="text-2xl font-black">{member[21] || 0}</p></div>
+                                    <div className="bg-blue-700 text-white p-5 rounded-3xl text-center"><p className="text-[8px] font-bold opacity-70 mb-1">PTS</p><p className="text-2xl font-black">{member[18] || 0}</p></div>
+                                    <div className="bg-slate-800 text-white p-5 rounded-3xl text-center"><p className="text-[8px] font-bold opacity-70 mb-1">USED</p><p className="text-2xl font-black">{(parseInt(member[18])-parseInt(member[21]))||0}</p></div>
+                                    <div className="bg-green-600 text-white p-5 rounded-3xl text-center"><p className="text-[8px] font-bold opacity-70 mb-1">BAL</p><p className="text-2xl font-black">{member[21] || 0}</p></div>
                                 </div>
-
-                                <div className="bg-blue-50/50 p-6 rounded-[2rem] border border-blue-100 my-8 font-bold italic text-[11px] space-y-3">
-                                    <p className="text-blue-700 font-black uppercase mb-2 flex items-center italic tracking-widest"><i className="fa-solid fa-crown mr-2 text-yellow-500"></i> {t.benefit}</p>
+                                <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-100 my-8 font-bold italic text-[11px] space-y-3">
+                                    <p className="text-blue-700 font-black uppercase mb-2 flex items-center italic"><i className="fa-solid fa-crown mr-2 text-yellow-500"></i> {t.benefit}</p>
                                     {(() => { 
                                         const cat = (member[3] || "").toLowerCase(); 
                                         let key = (cat.includes("vip") || cat.includes("500")) ? "VIP" : (cat.includes("gold") || cat.includes("100")) ? "Gold" : "Silver"; 
                                         return cardSpecs[key].map((ben, i) => ( <div key={i} className="flex items-center py-1.5 border-b border-blue-100 last:border-0"><i className="fa-solid fa-circle-check text-green-500 mr-2 text-sm"></i>{ben}</div> )); 
                                     })()}
                                 </div>
-                                <div className="bg-slate-900 text-white p-10 rounded-[2.5rem] text-center mb-10 shadow-2xl border-4 border-slate-800"><p className="text-[10px] opacity-50 uppercase mb-2 tracking-widest">{t.draw}</p><p className="text-4xl font-black text-yellow-500 italic uppercase tracking-wider">{cleanData(member[36])}</p></div>
-                                
+                                <div className="bg-slate-900 text-white p-10 rounded-[2.5rem] text-center mb-10 border-4 border-slate-800"><p className="text-[10px] opacity-50 uppercase mb-2 tracking-widest">{t.draw}</p><p className="text-4xl font-black text-yellow-500 italic uppercase">{cleanData(member[36])}</p></div>
                                 <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 mb-8 text-[10px] font-bold italic space-y-3 text-slate-500 shadow-inner">
                                     <h4 className="text-[11px] font-black uppercase mb-3 border-b pb-2 text-slate-800 flex items-center"><i className="fa-solid fa-scale-balanced mr-3 text-blue-600 text-sm"></i> {t.tTitle}</h4>
-                                    <p>01. यह डिजिटल सदस्यता कार्ड व्यक्तिगत है और अहस्तांतरणीय है।</p>
-                                    <p>02. सेवाओं का लाभ केवल कार्ड पर अंकित समाप्ति तिथि तक ही मान्य है।</p>
-                                    <p>03. लिया गया शुल्क पंजीकरण शुल्क है, जो वापस नहीं होगा।</p>
-                                    <p>04. सर्वर त्रुटि में फिजिकल स्क्रैच कार्ड का परिणाम अंतिम होगा।</p>
-                                    <p>05. सर्वर खराबी पर प्रबंधन की जिम्मेदारी नहीं होगी।</p>
-                                    <p>06. सरकारी टोकन शुल्क ग्राहक द्वारा अलग से देय होगा।</p>
-                                    <p>07. फ्री डिलीवरी सीमा के बाद न्यूनतम शुल्क लिया जाएगा।</p>
-                                    <p>08. यह समाज सेवा हेतु है, कृपया कार्य पूर्ण होने तक धैर्य रखें।</p>
-                                    <p>09. कार्य में लगने वाले समय हेतु अभद्र व्यवहार स्वीकार्य नहीं होगा।</p>
-                                    <p>10. मैनेजमेंट के पास नियमों में बदलाव का पूर्ण अधिकार है।</p>
+                                    <p>01. यह डिजिटल सदस्यता कार्ड व्यक्तिगत है।</p><p>02. सेवाएँ समाप्ति तिथि तक मान्य हैं।</p><p>03. मैनेजमेंट के पास नियमों में बदलाव का अधिकार है।</p>
                                 </div>
-
                                 <a href="https://wa.me/917229874128" target="_blank" className="no-print w-full bg-green-600 text-white py-6 rounded-full font-black uppercase shadow-xl hover:bg-green-700 text-lg flex items-center justify-center gap-3 transition-all"><i className="fa-brands fa-whatsapp text-3xl"></i> WhatsApp Support</a>
-                                <button onClick={()=>window.print()} className="no-print w-full bg-blue-600 text-white py-6 rounded-full font-black uppercase shadow-xl hover:bg-blue-700 text-lg mt-4 transition-all">Print Official Receipt</button>
                             </div>
-
                             <div className="no-print flex flex-col items-center pt-10 pb-20">  
                                 {!isAdmin && <button onClick={()=>setShowPin(!showPin)} className="p-8 bg-white dark:bg-slate-800 rounded-full shadow-lg border opacity-20 hover:opacity-100 transition-all hover:scale-110"><i className="fa-solid fa-fingerprint text-5xl text-blue-600"></i></button>}  
-                                {showPin && !isAdmin && ( <div className="mt-4 bg-white dark:bg-slate-800 p-8 rounded-[2rem] border dark:border-slate-700 w-full animate-in zoom-in shadow-2xl"><input type="password" id="adminPin" className="w-full bg-slate-100 dark:bg-slate-700 rounded-2xl py-5 text-center mb-4 font-black outline-none text-2xl dark:text-white border-2 border-transparent focus:border-blue-500" placeholder="ENTER MASTER PIN" /><button onClick={()=>{document.getElementById('adminPin').value===MASTER_PIN?setIsAdmin(true):alert("Wrong Pin!");}} className="w-full bg-black text-white py-5 rounded-2xl font-black uppercase">Unlock Database</button></div> )}
-                                {isAdmin && ( <div className="w-full mt-6 bg-white dark:bg-slate-800 border-4 border-blue-600 rounded-[3rem] p-10 text-left shadow-2xl overflow-hidden"><div className="flex justify-between items-center mb-8 border-b pb-4"><h3 className="font-black text-sm text-blue-600 uppercase tracking-widest flex items-center gap-2"><i className="fa-solid fa-database"></i> Master Database</h3><button onClick={()=>setIsAdmin(false)} className="text-red-500 font-bold text-[10px] uppercase border px-4 py-1 rounded-full hover:bg-red-50">Logout</button></div><div className="grid gap-4 max-h-[500px] overflow-y-auto pr-2 custom-scroll">{member.map((v, i) => ( <div key={i} className="p-5 bg-slate-50 dark:bg-slate-700/50 rounded-2xl border border-slate-200 dark:border-slate-600 flex flex-col"><p className="text-[9px] text-slate-400 font-black uppercase mb-1">{headers[i] || `Col ${i}`}</p><p className="font-bold text-md text-slate-800 dark:text-slate-100 break-words">{v||"---"}</p></div> ))}</div></div> )}
+                                {showPin && !isAdmin && ( <div className="mt-4 bg-white dark:bg-slate-800 p-8 rounded-[2rem] border dark:border-slate-700 w-full animate-in zoom-in shadow-2xl"><input type="password" id="adminPin" className="w-full bg-slate-100 dark:bg-slate-700 rounded-2xl py-5 text-center mb-4 font-black outline-none text-2xl dark:text-white" placeholder="MASTER PIN" /><button onClick={()=>{document.getElementById('adminPin').value===MASTER_PIN?setIsAdmin(true):alert("Wrong Pin!");}} className="w-full bg-black text-white py-5 rounded-2xl font-black uppercase">Unlock Database</button></div> )}
+                                {isAdmin && ( <div className="w-full mt-6 bg-white dark:bg-slate-800 border-4 border-blue-600 rounded-[3rem] p-10 text-left shadow-2xl overflow-hidden"><div className="flex justify-between items-center mb-8 border-b pb-4"><h3 className="font-black text-sm text-blue-600 uppercase tracking-widest flex items-center gap-2"><i className="fa-solid fa-database"></i> Master Database</h3><button onClick={()=>setIsAdmin(false)} className="text-red-500 font-bold text-[10px] uppercase border px-4 py-1 rounded-full">Logout</button></div><div className="grid gap-4 max-h-[500px] overflow-y-auto pr-2 custom-scroll">{member.map((v, i) => ( <div key={i} className="p-5 bg-slate-50 dark:bg-slate-700/50 rounded-2xl border border-slate-200 dark:border-slate-600 flex flex-col"><p className="text-[9px] text-slate-400 font-black uppercase mb-1">{headers[i] || `Col ${i}`}</p><p className="font-bold text-md text-slate-800 dark:text-slate-100 break-words">{v||"---"}</p></div> ))}</div></div> )}
                             </div>
                         </div>
                     )}
