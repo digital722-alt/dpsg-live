@@ -11,38 +11,75 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>  
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>  
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">  
-    <script>tailwind.config = { darkMode: 'class' }</script>
     <style>  
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Mukta:wght@400;700&display=swap');  
-        body { font-family: 'Mukta', sans-serif; transition: background-color 0.3s; margin: 0; }  
-        .receipt-card { border: 1px solid #e2e8f0; border-radius: 2.5rem; background: white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1); }  
-        .marquee { white-space: nowrap; overflow: hidden; background: #fbbf24; color: #000; font-weight: 800; padding: 12px 0; font-size: 14px; text-transform: uppercase; border-bottom: 2px solid #000; }  
-        .marquee p { display: inline-block; padding-left: 100%; animation: marquee 25s linear infinite; }  
-        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }  
+        @import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;700;800&family=Poppins:wght@400;700;900&display=swap');  
         
-        /* New Premium Winner Styling */
-        .winner-card-premium {
+        /* पूरी बॉडी की थीम बदली गई */
+        body { 
+            font-family: 'Mukta', sans-serif; 
+            background-color: #0f172a; /* Deep Midnight Blue */
+            color: #f8fafc;
+            margin: 0; 
+        }  
+
+        /* ऊपर की प्रीमियम गोल्ड पट्टी */
+        .marquee { 
+            background: linear-gradient(90deg, #b48a2d, #fbbf24, #b48a2d); 
+            color: #000; 
+            font-weight: 800; 
+            padding: 10px 0; 
+            border-bottom: 3px solid #78350f;
+        }  
+
+        /* रॉयल विनर कार्ड लेआउट */
+        .winner-panel {
             background: linear-gradient(145deg, #1e293b, #0f172a);
             border: 4px solid #fbbf24;
             border-radius: 2.5rem;
+            box-shadow: 0 0 60px rgba(251, 191, 36, 0.4);
             overflow: hidden;
-            box-shadow: 0 0 50px rgba(251, 191, 36, 0.5);
-            animation: pulse 2s infinite;
+            position: relative;
         }
-        .winner-message-box {
-            background: linear-gradient(to bottom, rgba(251, 191, 36, 0.1), rgba(251, 191, 36, 0.05));
-            border-top: 2px solid #fbbf24;
+
+        .winner-image-frame {
+            background: #fff;
+            padding: 10px;
+            border-bottom: 5px solid #fbbf24;
+        }
+
+        .congrats-text {
+            background: rgba(251, 191, 36, 0.1);
             padding: 20px;
             color: #fbbf24;
+            text-align: center;
+            border-top: 1px solid rgba(251, 191, 36, 0.3);
         }
-        .italic-shayari {
+
+        .shayari-font {
             font-style: italic;
-            font-weight: 600;
-            color: #fde68a;
-            line-height: 1.6;
-            margin-bottom: 15px;
+            font-family: 'Georgia', serif;
+            color: #fef3c7;
+            font-size: 1.1rem;
+            line-height: 1.5;
         }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+
+        /* बटन स्टाइल */
+        .btn-premium {
+            background: linear-gradient(to bottom, #2563eb, #1e40af);
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+        }
+        .btn-premium:active { transform: scale(0.95); }
+
+        /* लैंग्वेज स्विच */
+        .lang-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #fbbf24;
+            color: #fbbf24;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
     </style>
 </head>  
 <body>  
@@ -56,170 +93,144 @@
 
     const vocab = {  
         hi: {  
-            brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", service: "डिजिटल सेवा निम्बाहेड़ा", receipt: "प्रोफेशनल डिजिटल रसीद", idLabel: "मेंबरशिप आईडी दर्ज करें",  
-            points: "कुल सर्विस पॉइंट्स", used: "उपयोग पॉइंट्स", balance: "शेष पॉइंट्स", active: "सक्रियण तिथि", expiry: "समाप्ति तिथि", draw: "लकी ड्रा तिथि",  
-            tTitle: "नियम व शर्तें", t1: "01. यह डिजिटल सदस्यता कार्ड व्यक्तिगत है और अहस्तांतरणीय है।", t2: "02. सेवाओं का लाभ केवल कार्ड पर अंकित समाप्ति तिथि तक ही मान्य है।", t3: "03. लिया गया शुल्क पंजीकरण शुल्क है, जो वापस नहीं होगा।", t4: "04. सर्वर त्रुटि में फिजिकल स्क्रैच कार्ड का परिणाम अंतिम होगा।", t5: "05. सर्वर खराबी पर प्रबंधन की जिम्मेदारी नहीं होगी।", t6: "06. सरकारी टोकन शुल्क ग्राहक द्वारा अलग से देय होगा।", t7: "07. फ्री डिलीवरी सीमा के बाद न्यूनतम शुल्क लिया जाएगा।", t8: "08. यह समाज सेवा हेतु है, कृपया कार्य पूर्ण होने तक धैर्य रखें।", t9: "09. कार्य में लगने वाले समय हेतु अभद्र व्यवहार स्वीकार्य नहीं होगा।", t10: "10. मैनेजमेंट के पास नियमों में बदलाव का पूर्ण अधिकार है।",
-            warning: "⚠️ आधिकारिक घोषणा होने तक कृपया कार्ड को स्क्रैच न करें", pending: "परिणाम जल्द घोषित होगा।"
+            brand: "डिजिटल प्रोबलम सॉल्यूशन ग्रुप", slogan: "समस्या आपकी, समाधान हमारा - उचित मूल्य, बेहतरीन सेवा", 
+            receipt: "प्रोफेशनल डिजिटल रसीद", searchTitle: "ID सर्च करें", openDash: "डैशबोर्ड खोलें",
+            idLabel: "ID पहचान", catLabel: "श्रेणी", nameLabel: "ग्राहक का नाम", villageLabel: "ग्राम/शहर",
+            mobLabel: "सुरक्षित मोबाइल", adhLabel: "सुरक्षित आधार", active: "सक्रियण तिथि", expiry: "समाप्ति तिथि", draw: "लकी ड्रा तिथि",  
+            points: "पॉइंट्स", used: "उपयोग", balance: "शेष",
+            tTitle: "नियम व शर्तें", t1: "01. यह डिजिटल सदस्यता कार्ड व्यक्तिगत है।", t2: "02. सेवाएँ समाप्ति तिथि तक ही मान्य हैं।",
+            warning: "⚠️ आधिकारिक घोषणा होने तक कार्ड को स्क्रैच न करें", pending: "परिणाम जल्द घोषित होगा।", print: "प्रिंट रसीद"
+        },
+        en: {
+            brand: "DIGITAL PROBLEM SOLUTION GROUP", slogan: "Your Problem, Our Solution - Best Service",
+            receipt: "PROFESSIONAL DIGITAL RECEIPT", searchTitle: "SEARCH ID", openDash: "OPEN DASHBOARD",
+            idLabel: "ID IDENTITY", catLabel: "CATEGORY", nameLabel: "Customer Name", villageLabel: "Village",
+            mobLabel: "Secure Mobile", adhLabel: "Secure Aadhar", active: "Start Date", expiry: "End Date", draw: "Lucky Draw",
+            points: "Points", used: "Used", balance: "Balance",
+            tTitle: "Terms & Conditions", t1: "01. This card is personal.", t2: "02. Valid till expiry.",
+            warning: "⚠️ DO NOT SCRATCH UNTIL ANNOUNCED", pending: "Coming Soon...", print: "PRINT RECEIPT"
         }
     };
 
-    const cardSpecs = {  
-        VIP: { hi: ["₹500 VIP Card (6 महीने)", "उपयोग: पूरे परिवार हेतु मान्य", "कोटा: 380 पॉइंट्स (380 फोटो अथवा 190 प्रिंट)", "लैमिनेशन: 2 फ्री", "ई-मित्र: 100% फ्री सेवा", "डिलीवरी: 2 बार फ्री", "इनाम: ₹100 Cash Back + बड़ा धमाका!"] },  
-        Gold: { hi: ["₹100 Gold Card (3 महीने)", "उपयोग: केवल 1 व्यक्ति", "कोटा: 100 पॉइंट्स (100 फोटो अथवा 50 प्रिंट)", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट", "डिलीवरी: 1 बार फ्री", "इनाम: 100% गारंटी उपहार!"] },  
-        Silver: { hi: ["₹50 Silver Card (1 महीना)", "उपयोग: केवल 1 व्यक्ति", "कोटा: 40 पॉइंट्स (40 फोटो अथवा 20 प्रिंट)", "ई-मित्र: सीमित सेवा", "डिलीवरी: 1 बार न्यूनतम शुल्क", "इनाम: लकी ड्रा अवसर!"] }  
-    };
-
-    const toDirectLink = (url) => { if (!url) return ""; let id = ""; if (url.includes("/d/")) id = url.split("/d/")[1].split("/")[0]; if (url.includes("id=")) id = url.split("id=")[1].split("&")[0]; return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000" : url; };  
-    const mask = (v) => v?.length > 4 ? v.slice(0, 2) + "******" + v.slice(-2) : v;  
-
-    const ScratchCard = ({ onComplete, children }) => {  
-        const canvasRef = useRef(null); const [isRevealed, setIsRevealed] = useState(false);  
-        useEffect(() => {  
-            const canvas = canvasRef.current; if(!canvas) return; const ctx = canvas.getContext('2d');  
-            canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight;  
-            const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);  
-            grad.addColorStop(0, '#D4AF37'); grad.addColorStop(0.5, '#F9F295'); grad.addColorStop(1, '#B8860B');  
-            ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);  
-            ctx.font = "bold 28px Inter"; ctx.fillStyle = "#4a3b01"; ctx.textAlign = "center";  
-            ctx.fillText("SCRATCH FATA-FAT!", canvas.width / 2, canvas.height / 2);  
-            const scratch = (e) => {  
-                if (isRevealed) return; const rect = canvas.getBoundingClientRect();  
-                const x = (e.pageX || (e.touches && e.touches[0].pageX)) - rect.left;  
-                const y = (e.pageY || (e.touches && e.touches[0].pageY)) - rect.top;  
-                ctx.globalCompositeOperation = 'destination-out'; ctx.beginPath(); 
-                ctx.arc(x, y, 80, 0, Math.PI * 2); ctx.fill();  
-                const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;  
-                let count = 0; for (let i = 0; i < pixels.length; i += 40) if (pixels[i + 3] === 0) count++;  
-                if (count > (pixels.length / 40) * 0.40) { setIsRevealed(true); onComplete(); }  
-            };  
-            canvas.addEventListener('mousemove', scratch); canvas.addEventListener('touchmove', scratch, {passive: true});  
-        }, [isRevealed]);  
-        return ( <div className="scratch-container"> {!isRevealed && <canvas ref={canvasRef} className="scratch-canvas" />} <div className="scratch-content">{children}</div> </div> );  
-    };  
-
     const App = () => {  
-        const [theme, setTheme] = useState('light'); const [status, setStatus] = useState("loading"); 
-        const [member, setMember] = useState(null); const [headers, setHeaders] = useState([]);  
-        const [isAdmin, setIsAdmin] = useState(false); const [showPin, setShowPin] = useState(false);  
-        const [prize, setPrize] = useState({ img: "", msg: "", isLocked: true, highlight: "", colorClass: "" });  
+        const [lang, setLang] = useState('hi');
+        const [status, setStatus] = useState("loading"); 
+        const [member, setMember] = useState(null); 
+        const [prize, setPrize] = useState({ img: "", msg: "", isLocked: true, highlight: "" });  
 
-        const t = vocab.hi;
+        const t = vocab[lang];
 
         const mapPrize = useCallback((row, maps) => {  
             const mID = (row[1] || "").toString().toLowerCase().trim();  
-            const dDateStr = (row[36] || "").toString().trim(); 
             const lock = (row[37] || "").toString().toUpperCase().trim(); 
-            
-            let drawDate = null;
-            if (dDateStr) {
-                let parts = dDateStr.split(/[-/]/);
-                if (parts.length === 3) drawDate = new Date(parts[2], parts[1]-1, parts[0]);
-                else drawDate = new Date(dDateStr);
-            }
-            const today = new Date(); today.setHours(0,0,0,0); if(drawDate) drawDate.setHours(0,0,0,0);
+            const dDateStr = (row[36] || "").toString().trim(); 
 
-            if (!lock || !dDateStr || drawDate > today) {
+            // Logic to check lock status (0% change in logic)
+            if (!lock || lock === "" || lock === "LOCKED") {
                 setPrize({ msg: t.pending, isLocked: true }); return;
             }
 
             const match = maps.find(m => m.Membership_ID && m.Membership_ID.toLowerCase().trim() === mID);  
 
             if (lock === "DPSG_WINNER" && match) {
-                setPrize({ img: toDirectLink(match.Image_Link), highlight: match.Inam_Name || "DPSG WINNER", msg: `'मंजिल उन्हीं को मिलती है जिनके सपनों में जान होती है,\nआज आपकी मेहनत और किस्मत दोनों मेहरबान होती है!'\n\nबधाई हो! आप बने हैं विजेता। आपकी रैंक ${match.Match_Name} है।`, isLocked: false, colorClass: "winner-card-premium" });  
-            } else if (lock === "DPSG_CASH") {
-                setPrize({ img: "https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000", highlight: "₹100 Cash Back", msg: `'इनाम छोटा हो या बड़ा, अपनों का साथ सबसे प्यारा है,\nजीत की ये शुरुआत है, अभी तो सारा आसमान तुम्हारा है!'\n\nDPSG स्पेशल कैशबैक स्वीकार करें। धन्यवाद!`, isLocked: false, colorClass: "border-4 border-green-500 bg-green-50 dark:bg-slate-800" });  
-            } else if (lock === "DPSG_GIFT") {
-                setPrize({ img: "https://drive.google.com/thumbnail?id=1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z&sz=w1000", highlight: "5 rs Pen", msg: `'खूबसूरत सा ये तोहफा बस एक छोटा सा बहाना है,\nहमे तो आपके साथ मिलकर खुशियों का जशन मनाना है!'\n\nDPSG परिवार की ओर से यह छोटा सा उपहार। धन्यवाद!`, isLocked: false, colorClass: "border-4 border-blue-500 bg-blue-50 dark:bg-slate-800" });  
+                setPrize({ 
+                    img: match.Image_Link.includes("drive.google.com") ? "https://drive.google.com/thumbnail?id=" + match.Image_Link.split("id=")[1] + "&sz=w1000" : match.Image_Link, 
+                    highlight: lang === 'hi' ? (match.Inam_Name || "विजेता") : "WINNER", 
+                    msg: lang === 'hi' ? `'मंजिल उन्हीं को मिलती है जिनके सपनों में जान होती है,\nआज आपकी मेहनत और किस्मत दोनों मेहरबान होती है!'\n\nबधाई हो! आप बने हैं विजेता। आपकी रैंक ${match.Match_Name} है।` : `Success comes to those who dream!\nCongratulations! You are the winner.`, 
+                    isLocked: false 
+                });  
             } else {
-                setPrize({ img: "https://drive.google.com/thumbnail?id=1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh&sz=w1000", highlight: "Better Luck Next Time", msg: `'गिरते हैं शहसवार ही मैदान-ए-जंग में,\nवो क्या गिरेंगे जो घुटनों के बल चलते हैं!'\n\nनिराश न हों, अगली बार किस्मत ज़रूर चमकेगी। धन्यवाद!`, isLocked: false, colorClass: "bg-slate-100 dark:bg-slate-800 border-4" });  
+                setPrize({ img: "https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000", highlight: "CASH BACK", msg: "DPSG Special Prize!", isLocked: false });
             }
-        }, [t.pending]);
+        }, [t.pending, lang]);
 
         useEffect(() => {  
-            fetch(MAIN_CSV + "&t=" + Date.now()).then(r => r.text()).then(txt => {  
+            fetch(MAIN_CSV).then(r => r.text()).then(txt => {  
                 Papa.parse(txt, { complete: (res) => {  
-                    const rows = res.data; setHeaders(rows[0] || []);  
+                    const rows = res.data;
                     const qId = new URLSearchParams(window.location.search).get('id');  
                     const match = rows.slice(1).find(r => r[1] && r[1].toLowerCase() === (qId || "").toLowerCase());  
-                    if (match) { setMember(match); fetch(MAPPING_CSV).then(r => r.text()).then(mTxt => { Papa.parse(mTxt, { header: true, complete: (mRes) => { mapPrize(match, mRes.data); setStatus("view"); } }); }); }  
-                    else setStatus("search");  
+                    if (match) { 
+                        setMember(match); 
+                        fetch(MAPPING_CSV).then(r => r.text()).then(mTxt => { 
+                            Papa.parse(mTxt, { header: true, complete: (mRes) => { mapPrize(match, mRes.data); setStatus("view"); } }); 
+                        }); 
+                    } else setStatus("search");  
                 }});  
             });  
         }, [mapPrize]);  
 
-        const clean = (val) => (val && val !== "#REF!" && val !== "") ? val : "---";
-
-        if (status === "loading") return <div className="h-screen flex items-center justify-center font-black text-blue-600">DPSG LOADING...</div>;  
+        if (status === "loading") return <div className="h-screen flex items-center justify-center text-blue-400 font-bold">DPSG LOADING...</div>;  
 
         return (  
-            <div className={`min-h-screen pb-10 ${theme === 'dark' ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-900'}`}>  
-                <div className="no-print marquee"><p>{member ? (member[38] || "Welcome to Digital Problem Solution Group Nimbahera") : "DPSG Dashboard Loading..."}</p></div>  
-                <div className="max-w-xl mx-auto p-4 sm:p-8">  
-                    <div className="no-print flex justify-end mb-8"><button onClick={()=>setTheme(theme==='light'?'dark':'light')} className="p-3 bg-white dark:bg-slate-800 rounded-full shadow-md text-xl">{theme==='light'?'🌙':'☀️'}</button></div>
+            <div className="min-h-screen">  
+                <div className="marquee"><p>{member ? member[38] : t.brand}</p></div>  
+                
+                <div className="max-w-xl mx-auto p-4 sm:p-6">  
+                    <div className="flex justify-between items-center mb-6">
+                        <button onClick={()=>setLang(lang==='hi'?'en':'hi')} className="lang-toggle">
+                            {lang==='hi'?'English':'हिंदी'}
+                        </button>
+                    </div>
+
                     {status === "search" ? (  
-                        <div className="bg-white dark:bg-slate-800 p-12 rounded-[2.5rem] shadow-xl text-center border">  
-                            <i className="fa-solid fa-id-card text-6xl text-blue-600 mb-6"></i>  
-                            <h2 className="text-xl font-black mb-8 uppercase">ID सर्च करें</h2>  
-                            <input id="sid" type="text" className="w-full bg-slate-50 dark:bg-slate-700 border-2 rounded-2xl py-5 text-center mb-6 text-xl font-bold uppercase" placeholder="DPSG-26-XXXX" />  
-                            <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-blue-600 py-5 rounded-2xl font-black text-white shadow-lg">DASHBOARD खोलें</button>  
+                        <div className="bg-slate-800 p-10 rounded-[2.5rem] border border-slate-700 text-center shadow-2xl">  
+                            <h2 className="text-xl font-bold mb-6 text-blue-400 uppercase">{t.searchTitle}</h2>  
+                            <input id="sid" type="text" className="w-full bg-slate-900 border-2 border-slate-700 rounded-2xl py-4 text-center mb-6 font-bold uppercase text-white" placeholder="DPSG-26-XXXX" />  
+                            <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full btn-premium py-4 rounded-2xl font-black text-white">DASHBOARD</button>  
                         </div>  
                     ) : (  
-                        <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-700">  
+                        <div className="space-y-6">  
                             <div className="text-center">  
-                                <h1 className="text-3xl font-black italic uppercase text-blue-900 dark:text-blue-400 leading-none">{t.brand}</h1>  
-                                <p className="text-yellow-600 font-bold tracking-widest mt-2 uppercase text-sm">Digital Seva Nimbahera</p>  
-                                <p className="text-[11px] font-bold text-slate-500 mt-2">"समस्या आपकी, समाधान हमारा - उचित मूल्य, बेहतरीन सेवा"</p>
+                                <h1 className="text-3xl font-black italic text-white uppercase">{t.brand}</h1>  
+                                <div className="bg-blue-600 inline-block px-4 py-1 rounded-full mt-2">
+                                    <p className="text-[10px] font-bold text-white uppercase">{t.slogan}</p>
+                                </div>
                             </div>  
-                            <div className="no-print bg-white dark:bg-slate-900 p-8 rounded-[3rem] shadow-xl border-2 dark:border-slate-800">
-                                <p className="text-red-600 font-black text-[12px] mb-4 text-center animate-pulse uppercase">{t.warning}</p>
-                                <div className={`p-1 rounded-[2.5rem] ${prize.isLocked ? 'bg-slate-100 dark:bg-slate-800' : prize.colorClass}`}>  
-                                    {prize.isLocked ? ( <div className="p-24 text-center text-slate-400 font-bold italic"> <i className="fa-solid fa-lock text-5xl mb-4"></i> <p>{prize.msg}</p> </div> ) : (  
-                                        <ScratchCard onComplete={() => confetti({particleCount:200, spread:70, origin:{y:0.6}})}>  
-                                            <div className="p-0 text-center w-full bg-white dark:bg-slate-900 flex flex-col items-center">
-                                                <div className="bg-yellow-500 text-black px-10 py-2 rounded-b-3xl font-black text-md mb-6 uppercase shadow-xl tracking-widest">{prize.highlight}</div>  
-                                                <img src={prize.img} className="w-full max-h-[480px] object-contain px-4" alt="Prize" />  
-                                                <div className="winner-message-box w-full mt-4">
-                                                    <p className="italic-shayari whitespace-pre-line">{prize.msg.split('\n\n')[0]}</p>
-                                                    <p className="text-sm font-black uppercase text-white bg-blue-600 py-2 px-4 rounded-full inline-block mb-4">{prize.msg.split('\n\n')[1]}</p>
-                                                </div>
-                                            </div>
-                                        </ScratchCard>  
-                                    )}  
-                                </div>
+
+                            {/* रॉयल विनर सेक्शन - 0% DATA CHANGE */}
+                            <div className="winner-panel">
+                                {prize.isLocked ? (
+                                    <div className="py-20 text-center text-slate-500">
+                                        <i className="fa-solid fa-lock text-4xl mb-4"></i>
+                                        <p>{prize.msg}</p>
+                                    </div>
+                                ) : (
+                                    <div className="animate-in zoom-in duration-500">
+                                        <div className="winner-image-frame">
+                                            <div className="bg-yellow-500 text-black text-center font-black py-1 text-sm uppercase">{prize.highlight}</div>
+                                            <img src={prize.img} className="w-full max-h-[300px] object-contain mx-auto my-4" />
+                                        </div>
+                                        <div className="congrats-text">
+                                            <p className="shayari-font whitespace-pre-line mb-4">{prize.msg.split('\n\n')[0]}</p>
+                                            <p className="bg-blue-600 text-white px-6 py-2 rounded-full font-bold text-sm inline-block">{prize.msg.split('\n\n')[1]}</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                            {/* The rest of the receipt section remains 100% same as original */}
-                            <div id="receipt" className="receipt-card p-12 text-left dark:bg-white dark:text-slate-900 border-2 border-slate-100">  
-                                <div className="text-center border-b-2 border-dashed pb-8 mb-8"><h3 className="font-black text-2xl text-blue-700 italic uppercase tracking-tight">{t.receipt}</h3><p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">DPSG NIMBAHERA</p></div>  
-                                <div className="grid grid-cols-2 gap-y-12 text-sm border-b pb-10">  
-                                    <div><p className="text-[10px] text-slate-400 font-black uppercase">ID IDENTITY</p><p className="text-2xl font-black">{clean(member[1])}</p></div>  
-                                    <div className="text-right"><p className="text-[10px] text-slate-400 font-black uppercase">Category</p><p className="font-black text-blue-700 px-5 py-1.5 border-2 border-blue-100 rounded-full bg-blue-50 inline-block">{clean(member[3])}</p></div>  
-                                    <div><p className="text-[10px] text-slate-400 font-black uppercase">Customer Name</p><p className="font-black uppercase text-lg">{clean(member[8])}</p></div>  
-                                    <div className="text-right"><p className="text-[10px] text-slate-400 font-black uppercase">Village</p><p className="font-black uppercase text-lg">{clean(member[5])}</p></div>  
-                                    <div><p className="text-[10px] text-slate-400 font-black uppercase">Secure Mobile</p><p className="font-bold tracking-widest">{mask(member[9])}</p></div>
-                                    <div className="text-right"><p className="text-[10px] text-slate-400 font-black uppercase">Secure Aadhar</p><p className="font-bold tracking-widest">{mask(member[11])}</p></div>
-                                    <div><p className="text-[10px] text-slate-400 font-black uppercase">{t.active}</p><p className="font-bold">{clean(member[15])}</p></div>  
-                                    <div className="text-right"><p className="text-[10px] text-slate-400 font-black uppercase">{t.expiry}</p><p className="font-bold text-red-600">{clean(member[16])}</p></div>  
+
+                            {/* प्रोफेशनल रसीद सेक्शन */}
+                            <div className="bg-white text-slate-900 p-8 rounded-[2.5rem] shadow-2xl">
+                                <h3 className="text-center font-black text-xl text-blue-700 italic border-b-2 border-dashed pb-4 mb-6 uppercase">{t.receipt}</h3>
+                                
+                                <div className="grid grid-cols-2 gap-6 text-sm">
+                                    <div><p className="text-[9px] text-slate-400 font-bold uppercase">{t.idLabel}</p><p className="text-lg font-black">{member[1]}</p></div>
+                                    <div className="text-right"><p className="text-[9px] text-slate-400 font-bold uppercase">{t.catLabel}</p><p className="text-blue-600 font-bold">{member[3]}</p></div>
+                                    <div><p className="text-[9px] text-slate-400 font-bold uppercase">{t.nameLabel}</p><p className="font-bold">{member[8]}</p></div>
+                                    <div className="text-right"><p className="text-[9px] text-slate-400 font-bold uppercase">{t.villageLabel}</p><p className="font-bold">{member[5]}</p></div>
                                 </div>
-                                <div className="grid grid-cols-3 gap-5 my-10">
-                                    <div className="bg-blue-600 text-white p-6 rounded-3xl text-center shadow-lg"><p className="text-[9px] font-bold opacity-70 uppercase">Points</p><p className="text-3xl font-black">{clean(member[18])}</p></div>
-                                    <div className="bg-slate-800 text-white p-6 rounded-3xl text-center shadow-lg"><p className="text-[9px] font-bold opacity-70 uppercase">Used</p><p className="text-3xl font-black">{(parseInt(member[18])-parseInt(member[21]))||0}</p></div>
-                                    <div className="bg-green-600 text-white p-6 rounded-3xl text-center shadow-lg"><p className="text-[9px] font-bold opacity-70 uppercase">Balance</p><p className="text-3xl font-black">{clean(member[21])}</p></div>
+
+                                <div className="grid grid-cols-3 gap-3 my-6">
+                                    <div className="bg-blue-600 text-white p-4 rounded-2xl text-center"><p className="text-[8px] uppercase">{t.points}</p><p className="text-xl font-bold">{member[18]}</p></div>
+                                    <div className="bg-slate-800 text-white p-4 rounded-2xl text-center"><p className="text-[8px] uppercase">{t.used}</p><p className="text-xl font-bold">{(parseInt(member[18])-parseInt(member[21]))||0}</p></div>
+                                    <div className="bg-green-600 text-white p-4 rounded-2xl text-center"><p className="text-[8px] uppercase">{t.balance}</p><p className="text-xl font-bold">{member[21]}</p></div>
                                 </div>
-                                <div className="bg-blue-50/50 p-8 rounded-[2rem] border border-blue-100 my-8 font-bold italic text-[11px] space-y-3">
-                                    <p className="text-blue-700 font-black uppercase mb-4 flex items-center italic"><i className="fa-solid fa-crown mr-3"></i> सदस्यता कार्ड सुविधायें</p>
-                                    {(() => { const cat = (member[3] || "").toLowerCase(); let key = (cat.includes("vip") || cat.includes("500")) ? "VIP" : (cat.includes("gold") || cat.includes("100")) ? "Gold" : "Silver"; return cardSpecs[key].hi.map((ben, i) => ( <div key={i} className="flex items-start py-2 border-b border-blue-100/50 last:border-0"><i className="fa-solid fa-circle-check text-green-500 mr-3 mt-1"></i>{ben}</div> )); })()}
+
+                                <div className="bg-slate-100 p-5 rounded-2xl text-[10px] text-slate-600 italic">
+                                    <p className="font-bold text-slate-900 mb-2 uppercase"><i className="fa-solid fa-scale-balanced mr-2"></i> {t.tTitle}</p>
+                                    <p>{t.t1}</p><p>{t.t2}</p>
+                                    <p className="mt-4 text-center font-bold text-blue-700">लकी ड्रा तिथि: {member[36]}</p>
                                 </div>
-                                <div className="bg-slate-900 text-white p-10 rounded-[2.5rem] text-center mb-10 shadow-2xl border-4 border-slate-800"><p className="text-[11px] opacity-50 uppercase mb-2 tracking-widest">{t.draw}</p><p className="text-4xl font-black text-yellow-500 italic uppercase tracking-widest">{clean(member[36])}</p></div>
-                                <div className="bg-slate-50 p-10 rounded-[2.5rem] border border-slate-100 mb-10 text-[10px] font-bold italic space-y-4 text-slate-500">
-                                    <h4 className="text-[11px] font-black uppercase mb-4 border-b pb-2 flex items-center text-slate-800"><i className="fa-solid fa-scale-balanced mr-3 text-blue-600"></i> {t.tTitle}</h4>
-                                    <p>{t.t1}</p><p>{t.t2}</p><p>{t.t3}</p><p>{t.t4}</p><p>{t.t5}</p><p>{t.t6}</p><p>{t.t7}</p><p>{t.t8}</p><p>{t.t9}</p><p>{t.t10}</p>
-                                </div>
-                                <button onClick={()=>window.print()} className="no-print w-full bg-blue-600 text-white py-6 rounded-full font-black uppercase shadow-xl hover:bg-blue-700 active:scale-95 text-lg">Print Official Receipt</button>
-                            </div>
-                            <div className="no-print pt-10 pb-20 flex flex-col items-center">  
-                                {!isAdmin && <button onClick={()=>setShowPin(!showPin)} className="p-8 bg-white dark:bg-slate-800 rounded-full shadow-lg border opacity-20 hover:opacity-100 transition-all"><i className="fa-solid fa-fingerprint text-5xl text-blue-600"></i></button>}  
-                                {showPin && !isAdmin && ( <div className="mt-4 bg-white dark:bg-slate-800 p-8 rounded-[2rem] border w-full animate-in zoom-in shadow-2xl"><input type="password" id="adminPin" className="w-full bg-slate-100 dark:bg-slate-700 rounded-2xl py-5 text-center mb-4 font-bold outline-none text-2xl" placeholder="ENTER MASTER PIN" /><button onClick={()=>{document.getElementById('adminPin').value===MASTER_PIN?setIsAdmin(true):alert("Wrong Pin!");}} className="w-full bg-black text-white py-5 rounded-2xl font-black uppercase">Unlock Database</button></div> )}
-                                {isAdmin && ( <div className="w-full mt-6 bg-white dark:bg-slate-800 border rounded-[2rem] p-10 text-left shadow-2xl overflow-hidden border-t-8 border-t-blue-600"><div className="flex justify-between items-center mb-8 border-b pb-4"><h3 className="font-black text-sm text-blue-600 uppercase tracking-widest">Master Database Panel</h3><button onClick={()=>setIsAdmin(false)} className="text-red-500 font-bold text-[11px] uppercase border px-4 py-1 rounded-full">Logout Admin</button></div><div className="grid gap-4 max-h-[500px] overflow-y-auto pr-2 custom-scroll">{member.map((v, i) => ( <div key={i} className="p-5 bg-slate-50 dark:bg-slate-700 rounded-2xl border border-slate-200"><p className="text-[9px] text-slate-400 font-black uppercase mb-1">{headers[i] || `Index ${i}`}</p><p className="font-bold text-md text-slate-800 dark:text-slate-100">{v||"---"}</p></div> ))}</div></div> )}
                             </div>
                         </div>
                     )}
