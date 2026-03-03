@@ -14,16 +14,16 @@
     <script>tailwind.config = { darkMode: 'class' }</script>
     <style>  
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Mukta:wght@400;700;800&display=swap');  
-        body { font-family: 'Mukta', sans-serif; transition: all 0.3s; margin: 0; }  
-        .dark body { background-color: #0f172a; color: #f8fafc; }
-        .light body { background-color: #f1f5f9; color: #1e293b; }
-        .receipt-card { border-radius: 2.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }  
-        .marquee-container { background: #fbbf24; color: #000; padding: 12px 0; overflow: hidden; border-bottom: 3px solid #000; }
-        .marquee-p { display: inline-block; white-space: nowrap; font-weight: 900; animation: scroll-left 25s linear infinite; font-size: 15px; }
-        @keyframes scroll-left { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        body { font-family: 'Mukta', sans-serif; transition: background-color 0.3s; margin: 0; background-color: #0f172a; color: #f8fafc; }  
+        .receipt-card { border: 1px solid #e2e8f0; border-radius: 2.5rem; background: white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); color: #0f172a; }  
+        .marquee { white-space: nowrap; overflow: hidden; background: #fbbf24; color: #000; font-weight: 800; padding: 12px 0; font-size: 15px; text-transform: uppercase; border-bottom: 2px solid #000; }  
+        .marquee p { display: inline-block; padding-left: 100%; animation: marquee 25s linear infinite; }  
+        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }  
+        .scratch-container { position: relative; width: 100%; max-width: 550px; margin: 0 auto; min-height: 480px; }  
+        .scratch-canvas { position: absolute; top: 0; left: 0; z-index: 30; border-radius: 2rem; cursor: crosshair; touch-action: none; width: 100%; height: 100%; }  
+        .scratch-content { background: #fff; border-radius: 2rem; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; border: 4px solid #fbbf24; }  
         .winner-glow { border: 8px solid #fbbf24; box-shadow: 0 0 70px rgba(251, 191, 36, 0.9); animation: pulse 2s infinite; }  
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }  
-        @media print { .no-print { display: none !important; } .receipt-card { box-shadow: none !important; border: 1px solid #ccc !important; } }
+        @media print { .no-print { display: none !important; } .receipt-card { border: none !important; box-shadow: none !important; width: 100% !important; margin: 0 !important; } }  
     </style>
 </head>  
 <body>  
@@ -33,133 +33,157 @@
     const SHEET_ID = "1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo";  
     const MAIN_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;  
     const MAPPING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";  
+    const MASTER_PIN = "Chanchal@6375";  
     const FORM_LINK = "https://docs.google.com/forms/d/e/1FAIpQLSdU9UfN7-6Xyv9U5X9z9X9z9X9z9X9z9X9z9X9z9X9z9X9z9/viewform";
 
-    const translations = {
-        hi: {
-            brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", slogan: "समस्या आपकी, समाधान हमारा - उचित मूल्य, बेहतरीन सेवा", 
-            receipt: "प्रोफेशनल डिजिटल रसीद", notice: "📢 आवश्यक सूचना", search: "ID सर्च करें", open: "डैशबोर्ड खोलें",
-            id: "ID पहचान", cat: "श्रेणी", name: "ग्राहक का नाम", vil: "ग्राम/शहर", mob: "मोबाइल", active: "सक्रियण तिथि", exp: "समाप्ति तिथि",
-            pts: "कुल पॉइंट्स", usd: "उपयोग", bal: "शेष", draw: "लकी ड्रा तिथि", benefit: "सदस्यता कार्ड सुविधायें",
-            tTitle: "नियम व शर्तें", warning: "⚠️ आधिकारिक घोषणा होने तक कृपया कार्ड को स्क्रैच न करें", pending: "परिणाम जल्द घोषित होगा।"
+    const vocab = {  
+        hi: {  
+            brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", slogan: "समस्या आपकी, समाधान हमारा", receipt: "प्रोफेशनल डिजिटल रसीद", idLabel: "ID पहचान",  
+            points: "कुल पॉइंट्स", used: "उपयोग", balance: "शेष", active: "सक्रियण", expiry: "समाप्ति", draw: "लकी ड्रा तिथि",  
+            tTitle: "नियम व शर्तें", warning: "⚠️ आधिकारिक घोषणा होने तक स्क्रैच न करें", pending: "परिणाम जल्द घोषित होगा।", update: "आपकी जानकारी अपडेट की जा रही है"
         },
         en: {
-            brand: "DIGITAL PROBLEM SOLUTION GROUP", slogan: "YOUR PROBLEM, OUR SOLUTION - BEST SERVICE",
-            receipt: "PROFESSIONAL DIGITAL RECEIPT", notice: "📢 IMPORTANT NOTICE", search: "SEARCH ID", open: "OPEN DASHBOARD",
-            id: "ID IDENTITY", cat: "CATEGORY", name: "CUSTOMER NAME", vil: "VILLAGE/CITY", mob: "MOBILE", active: "ACTIVATION DATE", exp: "EXPIRY DATE",
-            pts: "TOTAL POINTS", usd: "USED", bal: "BALANCE", draw: "LUCKY DRAW DATE", benefit: "MEMBERSHIP BENEFITS",
-            tTitle: "TERMS & CONDITIONS", warning: "⚠️ DO NOT SCRATCH UNTIL ANNOUNCED", pending: "RESULT COMING SOON..."
+            brand: "DIGITAL PROBLEM SOLUTION GROUP", slogan: "YOUR PROBLEM, OUR SOLUTION", receipt: "OFFICIAL RECEIPT", idLabel: "ID IDENTITY",  
+            points: "TOTAL POINTS", used: "USED", balance: "BALANCE", active: "ACTIVATION", expiry: "EXPIRY", draw: "DRAW DATE",  
+            tTitle: "TERMS & CONDITIONS", warning: "⚠️ DO NOT SCRATCH UNTIL ANNOUNCED", pending: "RESULT SOON", update: "Information being updated"
         }
-    };
+    }; 
 
     const cardSpecs = {  
-        VIP: ["वीआईपी कार्ड: ₹500 (6 महीने)", "उपयोग: पूरे परिवार के लिए मान्य", "कोटा: 150 प्रिंट + 80 फोटो (या 380 फोटो / 190 प्रिंट)", "लैमिनेशन: 2 फ्री", "ई-मित्र: 100% फ्री सेवा (केवल टोकन चार्ज)", "डिलीवरी: 2 बार फ्री (न्यूनतम रेट)", "इनाम: 100 Cash Back + बड़ा धमाका!", "संपर्क: 7229874128"],  
-        Gold: ["गोल्ड कार्ड: ₹100 (3 महीने)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 40 प्रिंट + 24 फोटो (या 100 फोटो / 52 प्रिंट)", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट (केवल टोकन चार्ज)", "डिलीवरी: 1 बार (न्यूनतम रेट)", "इनाम: 100% गारंटीड उपहार!", "संपर्क: 7229874128"],  
-        Silver: ["सिल्वर कार्ड: ₹50 (1 महीना)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 15 प्रिंट + 12 फोटो (या 40 फोटो / 21 प्रिंट)", "ई-मित्र: सीमित सेवा (केवल टोकन चार्ज)", "डिलीवरी: 1 बार (न्यूनतम रेट)", "इनाम: लकी ड्रा का शानदार अवसर!", "संपर्क: 7229874128"]  
-    };
+        VIP: ["वीआईपी कार्ड: ₹500 (6 महीने)", "उपयोग: पूरे परिवार के लिए मान्य", "कोटा: 150 प्रिंट + 80 फोटो (या 380 फोटो / 190 प्रिंट)", "लैमिनेशन: 2 फ्री", "ई-मित्र: 100% फ्री सेवा (केवल टोकन)", "डिलीवरी: 2 बार फ्री", "इनाम: 100 Cash Back + बड़ा धमाका!", "संपर्क: 7229874128"],  
+        Gold: ["गोल्ड कार्ड: ₹100 (3 महीने)", "उपयोग: केवल 1 व्यक्ति", "कोटा: 40 प्रिंट + 24 फोटो (या 100 फोटो / 52 प्रिंट)", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट (केवल टोकन)", "डिलीवरी: 1 बार फ्री", "इनाम: 100% गारंटी उपहार!", "संपर्क: 7229874128"],  
+        Silver: ["सिल्वर कार्ड: ₹50 (1 महीना)", "उपयोग: केवल 1 व्यक्ति", "कोटा: 15 प्रिंट + 12 फोटो (या 40 फोटो / 21 प्रिंट)", "ई-मित्र: सीमित सेवा", "डिलीवरी: 1 बार (न्यूनतम रेट)", "इनाम: लकी ड्रा अवसर!", "संपर्क: 7229874128"]  
+    }; 
+
+    const toDirectLink = (url) => { if (!url) return ""; let id = ""; if (url.includes("/d/")) id = url.split("/d/")[1].split("/")[0]; if (url.includes("id=")) id = url.split("id=")[1].split("&")[0]; return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000" : url; };  
+    const mask = (v) => v?.length > 4 ? v.slice(0, 2) + "******" + v.slice(-2) : v;  
+    const clean = (val, l) => (val && val !== "#REF!" && val !== "") ? val : vocab[l].update;
+
+    const ScratchCard = ({ onComplete, isLocked, children }) => {  
+        const canvasRef = useRef(null); const [revealed, setRevealed] = useState(false);  
+        useEffect(() => {  
+            if (isLocked) return; const canvas = canvasRef.current; if(!canvas) return; const ctx = canvas.getContext('2d');  
+            canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight;  
+            const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);  
+            grad.addColorStop(0, '#D4AF37'); grad.addColorStop(1, '#B8860B');  
+            ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);  
+            ctx.font = "bold 26px Mukta"; ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.fillText("यहाँ स्क्रैच करें", canvas.width / 2, canvas.height / 2);  
+            const scratch = (e) => {  
+                if (revealed) return; const rect = canvas.getBoundingClientRect();  
+                const x = (e.pageX || e.touches[0].pageX) - rect.left; const y = (e.pageY || e.touches[0].pageY) - rect.top;  
+                ctx.globalCompositeOperation = 'destination-out'; ctx.beginPath(); ctx.arc(x, y, 65, 0, Math.PI * 2); ctx.fill();  
+                const pix = ctx.getImageData(0, 0, canvas.width, canvas.height).data; let c = 0;  
+                for (let i = 0; i < pix.length; i += 40) if (pix[i + 3] === 0) c++;  
+                if (c > (pix.length / 40) * 0.45) { setRevealed(true); onComplete(); }  
+            };  
+            canvas.addEventListener('mousemove', scratch); canvas.addEventListener('touchmove', scratch);  
+        }, [isLocked, revealed]);  
+        return ( <div className="scratch-container"> {!revealed && !isLocked && <canvas ref={canvasRef} className="scratch-canvas" />} <div className="scratch-content">{children}</div> </div> );  
+    };  
 
     const App = () => {  
-        const [lang, setLang] = useState('hi');
-        const [theme, setTheme] = useState('dark');
-        const [status, setStatus] = useState("loading"); 
-        const [member, setMember] = useState(null); 
-        const [prize, setPrize] = useState({ img: "", msg: "", isLocked: true, highlight: "" });  
+        const [lang, setLang] = useState('hi'); const [theme, setTheme] = useState('dark'); const [status, setStatus] = useState("loading"); 
+        const [member, setMember] = useState(null); const [headers, setHeaders] = useState([]);  
+        const [isAdmin, setIsAdmin] = useState(false); const [showPin, setShowPin] = useState(false);  
+        const [prize, setPrize] = useState({ img: "", msg: "", isLocked: true });  
 
-        const t = translations[lang];
+        const t = vocab[lang]; 
 
         const mapPrize = useCallback((row, maps) => {  
             const lock = (row[37] || "").toUpperCase().trim(); 
-            if (!lock || lock === "LOCKED") { setPrize({ msg: t.pending, isLocked: true }); return; }
-            const match = maps.find(m => m.Membership_ID?.toLowerCase().trim() === row[1].toLowerCase().trim());
-
-            if (lock === "DPSG_WINNER" && match) {
-                setPrize({ img: "https://drive.google.com/thumbnail?id=" + match.Image_Link?.split("id=")[1] + "&sz=w1000", highlight: lang==='hi'?(match.Inam_Name||"विजेता"):"WINNER", msg: lang==='hi'?`'मंजिल उन्हीं को मिलती है जिनके सपनों में जान होती है,\nआज आपकी मेहनत और किस्मत दोनों मेहरबान होती है!'\n\nहार्दिक बधाई! आप DPSG के विजेता बने हैं। आपने ${match.Inam_Name} जीता है और आपकी रैंक ${match.Match_Name} है। धन्यवाद!`:`Congratulations! You won ${match.Inam_Name} (Rank ${match.Match_Name}). Thank you!`, isLocked: false });
-            } else if (lock === "DPSG_CASH") {
-                setPrize({ img: "https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000", highlight: "CASH BACK", msg: lang==='hi'?`'इनाम छोटा हो या बड़ा, अपनों का साथ सबसे प्यारा है!'\n\nमुस्कुराइए! DPSG की ओर से आपको विशेष कैशबैक दिया जा रहा है। भविष्य में भी हम आपकी सेवा के लिए तत्पर रहेंगे। धन्यवाद!`:`DPSG Special Cashback for you. Thank you for your trust!`, isLocked: false });
-            } else if (lock === "DPSG_GIFT") {
-                setPrize({ img: "https://drive.google.com/thumbnail?id=1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z&sz=w1000", highlight: "DPSG GIFT", msg: lang==='hi'?`'खूबसूरत सा ये तोहफा बस एक छोटा सा बहाना है!'\n\nबधाई हो! DPSG परिवार की ओर से यह उपहार आपकी संतुष्टि और विश्वास का सम्मान है। धन्यवाद!`:`Congratulations! This DPSG gift is a token of our appreciation. Thank you!`, isLocked: false });
-            } else {
-                setPrize({ img: "https://drive.google.com/thumbnail?id=1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh&sz=w1000", highlight: "TRY AGAIN", msg: lang==='hi'?`'गिरते हैं शहसवार ही मैदान-ए-जंग में!'\n\nनिराश न हों! हालांकि इस बार आप 51 बड़े इनामों में नहीं आ पाए, पर भविष्य के ड्रा में आपकी किस्मत ज़रूर चमकेगी। धन्यवाद!`:`Don't be disappointed! Better luck next time in the lucky draw. Thank you!`, isLocked: false });
-            }
-        }, [lang, t.pending]);
+            const m = maps.find(x => x.Membership_ID?.toLowerCase().trim() === row[1]?.toLowerCase().trim());
+            let winMsg = "";
+            if (lock === "DPSG_WINNER" && m) winMsg = `"मंजिल उन्हीं को मिलती है जिनके सपनों में जान होती है, आज आपकी मेहनत और किस्मत दोनों मेहरबान होती है!"\n\nहार्दिक बधाई! आप डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप (DPSG) के गौरवशाली विजेता बने हैं और आपने ${m.Inam_Name} प्राप्त की है। आपकी रैंक ${m.Match_Name} है। यह उपहार संस्था की ओर से आपके अटूट विश्वास का सम्मान है। धन्यवाद!`;
+            else if (lock === "DPSG_CASH") winMsg = `"इनाम छोटा हो या बड़ा, अपनों का साथ सबसे प्यारा है, जीत की ये शुरुआत है!"\n\nमुस्कुराइए! DPSG की ओर से आपको विशेष कैशबैक दिया जा रहा है। धन्यवाद!`;
+            else if (lock === "DPSG_GIFT") winMsg = `"खूबसूरत सा ये तोहफा बस एक छोटा सा बहाना है!"\n\nबधाई हो! DPSG परिवार की ओर से यह उपहार आपकी संतुष्टि का सम्मान है। धन्यवाद!`;
+            else winMsg = `"गिरते हैं शहसवार ही मैदान-ए-जंग में!"\n\nनिराश न हों! हालांकि इस बार आप 51 बड़े इनामों में नहीं आ पाए, पर भविष्य के ड्रा में आपकी किस्मत ज़रूर चमकेगी। धन्यवाद!`;
+            setPrize({ img: toDirectLink(m?.Image_Link), msg: winMsg, isLocked: (lock === "LOCKED" || !lock) });
+        }, [lang]); 
 
         useEffect(() => {  
             document.documentElement.className = theme;
             fetch(MAIN_CSV + "&t=" + Date.now()).then(r => r.text()).then(txt => {  
                 Papa.parse(txt, { complete: (res) => {  
-                    const rows = res.data;
+                    const rows = res.data; setHeaders(rows[0] || []);  
                     const qId = new URLSearchParams(window.location.search).get('id');  
                     const match = rows.slice(1).find(r => r[1] && r[1].toLowerCase() === (qId || "").toLowerCase());  
-                    if (match) { 
-                        setMember(match); 
-                        fetch(MAPPING_CSV).then(r => r.text()).then(mTxt => { Papa.parse(mTxt, { header: true, complete: (mRes) => { mapPrize(match, mRes.data); setStatus("view"); } }); });
-                    } else setStatus("search");  
+                    if (match) { setMember(match); fetch(MAPPING_CSV).then(r => r.text()).then(mTxt => { Papa.parse(mTxt, { header: true, complete: (mRes) => { mapPrize(match, mRes.data); setStatus("view"); } }); }); }  
+                    else setStatus("search");  
                 }});  
             });  
-        }, [lang, theme, mapPrize]);  
+        }, [mapPrize, theme]);  
 
         if (status === "loading") return <div className="h-screen flex items-center justify-center font-black text-blue-400">DPSG LOADING...</div>;  
 
         return (  
             <div className="min-h-screen pb-10">  
-                <div className="no-print marquee-container"><div className="marquee-p">{member ? member[38] : t.brand} • {t.slogan}</div></div>  
+                <div className="no-print marquee"><p>{member ? clean(member[38], lang) : t.brand}</p></div>  
                 <div className="max-w-xl mx-auto p-4 sm:p-8">  
-                    <div className="no-print flex justify-between items-center mb-6">
-                        <button onClick={() => setLang(lang === 'hi' ? 'en' : 'hi')} className="bg-blue-600 text-white px-5 py-2 rounded-full font-bold text-xs">{lang === 'hi' ? 'ENGLISH' : 'हिंदी'}</button>
-                        <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="p-3 bg-white dark:bg-slate-800 rounded-full shadow-lg">{theme === 'dark' ? '☀️' : '🌙'}</button>
+                    <div className="no-print flex justify-between items-center mb-8">
+                        <button onClick={() => setLang(lang === 'hi' ? 'en' : 'hi')} className="bg-blue-600 text-white px-5 py-2 rounded-full font-bold text-xs uppercase">{lang === 'hi' ? 'English' : 'हिंदी'}</button>
+                        <button onClick={()=>setTheme(theme==='light'?'dark':'light')} className="p-3 bg-white dark:bg-slate-800 rounded-full shadow-md text-xl">{theme==='light'?'🌙':'☀️'}</button>
                     </div>
 
-                    {status === "search" ? (  
-                        <div className="bg-white dark:bg-slate-800 p-12 rounded-[2.5rem] shadow-xl text-center"><i className="fa-solid fa-id-card text-6xl text-blue-600 mb-6"></i><h2 className="text-xl font-bold mb-8 uppercase dark:text-white">{t.search}</h2><input id="sid" type="text" className="w-full bg-slate-100 dark:bg-slate-700 border-2 rounded-2xl py-5 text-center mb-6 font-bold" placeholder="DPSG-26-XXXX" /><button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-blue-600 py-5 rounded-2xl font-black text-white shadow-lg">{t.open}</button></div>
-                    ) : (  
-                        <div className="space-y-6">  
-                            <div className="text-center"><h1 className="text-3xl font-black italic uppercase dark:text-white">{t.brand}</h1><div className="bg-blue-600 inline-block px-4 py-1 rounded-full mt-2"><p className="text-[10px] font-bold text-white uppercase">{t.slogan}</p></div></div>  
+                    {status === "view" && (  
+                        <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-700">  
+                            <div className="text-center"><h1 className="text-3xl font-black italic uppercase dark:text-white leading-none">{t.brand}</h1><div className="bg-blue-600 inline-block px-4 py-1 rounded-full mt-2"><p className="text-[10px] font-bold text-white uppercase">{t.slogan}</p></div></div>  
                             
                             <div className="grid grid-cols-4 gap-2 text-center no-print">
-                                <a href={FORM_LINK} className="bg-white p-3 rounded-2xl shadow-lg"><i className="fa-solid fa-desktop text-orange-500 text-2xl"></i><p className="text-[9px] font-bold text-slate-900 mt-2">ई-मित्र</p></a>
-                                <a href={FORM_LINK} className="bg-white p-3 rounded-2xl shadow-lg"><i className="fa-solid fa-database text-blue-500 text-2xl"></i><p className="text-[9px] font-bold text-slate-900 mt-2">डेटा</p></a>
-                                <a href={FORM_LINK} className="bg-white p-3 rounded-2xl shadow-lg"><i className="fa-solid fa-mobile-screen text-purple-500 text-2xl"></i><p className="text-[9px] font-bold text-slate-900 mt-2">अनलोक</p></a>
-                                <a href={FORM_LINK} className="bg-white p-3 rounded-2xl shadow-lg"><i className="fa-solid fa-landmark text-green-600 text-2xl"></i><p className="text-[9px] font-bold text-slate-900 mt-2">योजना</p></a>
+                                <a href={FORM_LINK} className="bg-white p-3 rounded-2xl shadow-lg text-center"><i className="fa-solid fa-desktop text-orange-500 text-2xl"></i><p className="text-[9px] font-black mt-1 text-slate-900 uppercase">ई-मित्र</p></a>
+                                <a href={FORM_LINK} className="bg-white p-3 rounded-2xl shadow-lg text-center"><i className="fa-solid fa-database text-blue-500 text-2xl"></i><p className="text-[9px] font-black mt-1 text-slate-900 uppercase">डेटा</p></a>
+                                <a href={FORM_LINK} className="bg-white p-3 rounded-2xl shadow-lg text-center"><i className="fa-solid fa-mobile-screen text-purple-500 text-2xl"></i><p className="text-[9px] font-black mt-1 text-slate-900 uppercase">अनलोक</p></a>
+                                <a href={FORM_LINK} className="bg-white p-3 rounded-2xl shadow-lg text-center"><i className="fa-solid fa-landmark text-green-600 text-2xl"></i><p className="text-[9px] font-black mt-1 text-slate-900 uppercase">योजना</p></a>
                             </div>
 
-                            <div className="bg-slate-800 dark:bg-slate-900 p-1 rounded-[2.5rem] shadow-xl border-2 border-slate-700">
+                            <div className="no-print bg-slate-900 p-1 rounded-[2.5rem] shadow-xl border-2 border-slate-800">
                                 <p className="text-red-500 font-bold text-[10px] my-3 text-center animate-pulse uppercase">{t.warning}</p>
-                                <div className="bg-white rounded-[2rem] overflow-hidden">  
-                                    {prize.isLocked ? ( <div className="py-24 text-center text-slate-400 font-bold italic"><p>{prize.msg}</p></div> ) : (  
-                                        <div className="text-center w-full winner-glow">
-                                            <div className="bg-blue-600 text-white px-10 py-2 rounded-b-3xl font-black text-xs mb-4 uppercase">{prize.highlight}</div>  
-                                            <img src={prize.img} className="w-full max-h-[300px] object-contain px-4" />  
-                                            <div className="bg-slate-900 text-white p-6 w-full text-center border-t-4 border-yellow-500">
-                                                <p className="italic font-bold text-sm text-yellow-200 whitespace-pre-line">{prize.msg}</p>
-                                            </div>
-                                        </div>
-                                    )}  
-                                </div>
+                                <ScratchCard isLocked={prize.isLocked} onComplete={() => confetti()}>
+                                    <div className={`p-4 text-center w-full bg-white rounded-[2rem] ${!prize.isLocked ? 'winner-glow' : ''}`}>
+                                        {prize.isLocked ? <p className="text-slate-400 italic font-bold py-20">🔒 परिणाम जल्द घोषित होगा।</p> : <><img src={prize.img} className="max-h-[300px] object-contain mb-4 mx-auto" /><p className="font-bold text-slate-900 text-[13px] whitespace-pre-line leading-relaxed">{prize.msg}</p></>}
+                                    </div>
+                                </ScratchCard>
                             </div>
 
-                            <div id="receipt" className="receipt-card p-10 text-left bg-white text-slate-900 border-2 border-slate-100">  
+                            <div id="receipt" className="receipt-card p-10 text-left bg-white text-slate-900">  
                                 <div className="text-center border-b-2 border-dashed border-slate-200 pb-6 mb-8"><h3 className="font-black text-2xl text-blue-700 italic uppercase">{t.receipt}</h3><p className="text-[9px] font-black text-slate-400 mt-1 uppercase">DPSG NIMBAHERA</p></div>  
                                 <div className="grid grid-cols-2 gap-y-10 border-b pb-8 text-sm">  
-                                    <div><p className="text-[9px] font-black text-slate-400 uppercase">{t.id}</p><p className="text-xl font-black text-blue-700">{member[1]}</p></div>  
-                                    <div className="text-right"><p className="text-[9px] font-black text-slate-400 uppercase">{t.cat}</p><p className="font-bold text-blue-700 bg-blue-50 px-4 py-1 rounded-full text-[10px] inline-block">{member[3]}</p></div>  
-                                    <div><p className="text-[9px] font-black text-slate-400 uppercase">{t.name}</p><p className="font-bold uppercase">{member[8]}</p></div>  
-                                    <div className="text-right"><p className="text-[9px] font-black text-slate-400 uppercase">{t.vil}</p><p className="font-bold uppercase">{member[5]}</p></div>  
+                                    <div><p className="text-[9px] font-black text-slate-400 uppercase">{t.id}</p><p className="text-xl font-black text-blue-700">{clean(member[1], lang)}</p></div>  
+                                    <div className="text-right"><p className="text-[9px] font-black text-slate-400 uppercase">{t.cat}</p><p className="font-bold text-blue-700 bg-blue-50 px-4 py-1 rounded-full text-[10px] inline-block uppercase">{clean(member[3], lang)}</p></div>  
+                                    <div><p className="text-[9px] font-black text-slate-400 uppercase">{t.name}</p><p className="font-black uppercase text-lg">{clean(member[8], lang)}</p></div>  
+                                    <div className="text-right"><p className="text-[9px] font-black text-slate-400 uppercase">Village</p><p className="font-black uppercase text-lg">{clean(member[5], lang)}</p></div>  
                                 </div>
                                 <div className="grid grid-cols-3 gap-4 my-8">
-                                    <div className="bg-blue-600 text-white p-5 rounded-3xl text-center"><p className="text-[8px] font-bold uppercase">{t.pts}</p><p className="text-2xl font-black">{member[18]}</p></div>
-                                    <div className="bg-slate-800 text-white p-5 rounded-3xl text-center"><p className="text-[8px] font-bold uppercase">{t.usd}</p><p className="text-2xl font-black">{(parseInt(member[18])-parseInt(member[21]))||0}</p></div>
-                                    <div className="bg-green-600 text-white p-5 rounded-3xl text-center"><p className="text-[8px] font-bold uppercase">{t.bal}</p><p className="text-2xl font-black">{member[21]}</p></div>
+                                    <div className="bg-blue-600 text-white p-5 rounded-3xl text-center shadow-lg"><p className="text-[9px] font-bold opacity-70 uppercase">POINTS</p><p className="text-2xl font-black">{member[18]}</p></div>
+                                    <div className="bg-slate-800 text-white p-5 rounded-3xl text-center shadow-lg"><p className="text-[9px] font-bold opacity-70 uppercase">USED</p><p className="text-2xl font-black">{(parseInt(member[18])-parseInt(member[21]))||0}</p></div>
+                                    <div className="bg-green-600 text-white p-5 rounded-3xl text-center shadow-lg"><p className="text-[9px] font-bold opacity-70 uppercase">BALANCE</p><p className="text-2xl font-black">{member[21]}</p></div>
                                 </div>
-                                <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-100 my-8 font-bold italic text-[11px] space-y-3">
-                                    <p className="text-blue-700 font-black uppercase mb-2 flex items-center"><i className="fa-solid fa-star mr-2"></i> {t.benefit}</p>
+                                <div className="bg-blue-50/50 p-6 rounded-[2rem] border border-blue-100 my-8 font-bold italic text-[11px] space-y-3">
+                                    <p className="text-blue-700 font-black uppercase mb-2 flex items-center italic"><i className="fa-solid fa-crown mr-2"></i> {t.benefit}</p>
                                     {(() => { 
                                         const cat = (member[3] || "").toLowerCase(); 
                                         let key = (cat.includes("vip") || cat.includes("500")) ? "VIP" : (cat.includes("gold") || cat.includes("100")) ? "Gold" : "Silver"; 
-                                        return cardSpecs[key].map((ben, i) => ( <div key={i} className="flex items-start py-1 border-b border-blue-100 last:border-0"><i className="fa-solid fa-check text-green-500 mr-2 mt-1"></i>{ben}</div> )); 
+                                        return cardSpecs[key].map((ben, i) => ( <div key={i} className="flex items-start py-1 border-b border-blue-100 last:border-0"><i className="fa-solid fa-circle-check text-green-500 mr-2 mt-1"></i>{ben}</div> )); 
                                     })()}
                                 </div>
-                                <div className="bg-slate-900 text-white p-8 rounded-[2.5rem] text-center mb-8 border-4 border-slate-800"><p className="text-[10px] opacity-50 uppercase mb-1">{t.draw}</p><p className="text-3xl font-black text-yellow-500 italic uppercase">{member[36]}</p></div>
+                                <div className="bg-slate-900 text-white p-10 rounded-[2.5rem] text-center mb-10 shadow-2xl border-4 border-slate-800"><p className="text-[11px] opacity-50 uppercase mb-2 tracking-widest">{t.draw}</p><p className="text-4xl font-black text-yellow-500 italic uppercase tracking-widest">{clean(member[36], lang)}</p></div>
+                                
+                                {/* 10 नियम और शर्तें सुरक्षित ( वापस बहाल) */}
+                                <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 mb-8 text-[10px] font-bold italic space-y-3 text-slate-500">
+                                    <h4 className="text-[11px] font-black uppercase mb-4 border-b pb-2 text-slate-800"><i className="fa-solid fa-scale-balanced mr-3 text-blue-600"></i> {t.tTitle}</h4>
+                                    <p>01. यह डिजिटल सदस्यता कार्ड व्यक्तिगत है और अहस्तांतरणीय है।</p>
+                                    <p>02. सेवाओं का लाभ केवल कार्ड पर अंकित समाप्ति तिथि तक ही मान्य है।</p>
+                                    <p>03. लिया गया शुल्क पंजीकरण शुल्क है, जो वापस नहीं होगा।</p>
+                                    <p>04. सर्वर त्रुटि में फिजिकल स्क्रैच कार्ड का परिणाम अंतिम होगा।</p>
+                                    <p>05. सर्वर खराबी पर प्रबंधन की जिम्मेदारी नहीं होगी।</p>
+                                    <p>06. सरकारी टोकन शुल्क ग्राहक द्वारा अलग से देय होगा।</p>
+                                    <p>07. फ्री डिलीवरी सीमा के बाद न्यूनतम शुल्क लिया जाएगा।</p>
+                                    <p>08. यह समाज सेवा हेतु है, कृपया कार्य पूर्ण होने तक धैर्य रखें।</p>
+                                    <p>09. कार्य में लगने वाले समय हेतु अभद्र व्यवहार स्वीकार्य नहीं होगा।</p>
+                                    <p>10. मैनेजमेंट के पास नियमों में बदलाव का पूर्ण अधिकार है।</p>
+                                </div>
+
                                 <a href="https://wa.me/917229874128" className="no-print w-full bg-green-600 text-white py-5 rounded-full font-black uppercase shadow-xl hover:bg-green-700 text-lg flex items-center justify-center gap-3"><i className="fa-brands fa-whatsapp text-3xl"></i> WhatsApp Support</a>
+                                <button onClick={()=>window.print()} className="no-print w-full bg-blue-600 text-white py-6 rounded-full font-black uppercase shadow-xl hover:bg-blue-700 text-lg mt-4">Print Official Receipt</button>
                             </div>
                         </div>
                     )}
