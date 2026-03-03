@@ -46,9 +46,9 @@
     };
 
     const cardSpecs = {  
-        VIP: { hi: ["₹500 VIP Card (6 महीने)", "उपयोग: पूरे परिवार हेतु मान्य", "कोटा: 380 पॉइंट्स (380 फोटो अथवा 190 प्रिंट)", "लैमिनेशन: 2 फ्री", "ई-मित्र: 100% फ्री सेवा", "डिलीवरी: 2 बार फ्री", "इनाम: ₹100 Cash Back + बड़ा धमाका!"] },  
-        Gold: { hi: ["₹100 Gold Card (3 महीने)", "उपयोग: केवल 1 व्यक्ति", "कोटा: 100 पॉइंट्स (100 फोटो अथवा 50 प्रिंट)", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट", "डिलीवरी: 1 बार फ्री", "इनाम: 100% गारंटी उपहार!"] },  
-        Silver: { hi: ["₹50 Silver Card (1 महीना)", "उपयोग: केवल 1 व्यक्ति", "कोटा: 40 पॉइंट्स (40 फोटो अथवा 20 प्रिंट)", "ई-मित्र: सीमित सेवा", "डिलीवरी: 1 बार न्यूनतम शुल्क", "इनाम: लकी ड्रा अवसर!"] }  
+        VIP: { hi: ["₹500 VIP Card (6 महीने)", "उपयोग: पूरे परिवार के लिए मान्य", "कोटा: 150 प्रिंट + 80 फोटो (या 380 फोटो / 190 प्रिंट)", "लैमिनेशन: 2 फ्री", "ई-मित्र: 100% फ्री सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 2 बार फ्री (न्यूनतम रेट)", "इनाम: 100 Cash Back + बड़ा धमाका!", "संपर्क: 7229874128"] },  
+        Gold: { hi: ["₹100 Gold Card (3 महीने)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 40 प्रिंट + 24 फोटो (या 100 फोटो / 52 प्रिंट)", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: 100% गारंटीड उपहार!", "संपर्क: 7229874128"] },  
+        Silver: { hi: ["₹50 Silver Card (1 महीना)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 15 प्रिंट + 12 फोटो (या 40 फोटो / 21 प्रिंट)", "ई-मित्र: सीमित सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: लकी ड्रा का शानदार अवसर!", "संपर्क: 7229874128"] }  
     };
 
     const toDirectLink = (url) => { if (!url) return ""; let id = ""; if (url.includes("/d/")) id = url.split("/d/")[1].split("/")[0]; if (url.includes("id=")) id = url.split("id=")[1].split("&")[0]; return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000" : url; };  
@@ -84,8 +84,17 @@
         const [member, setMember] = useState(null); const [headers, setHeaders] = useState([]);  
         const [isAdmin, setIsAdmin] = useState(false); const [showPin, setShowPin] = useState(false);  
         const [prize, setPrize] = useState({ img: "", msg: "", isLocked: true, highlight: "", colorClass: "" });  
+        
+        // फॉर्म के लिए नए स्टेट्स
+        const [showForm, setShowForm] = useState(false);
+        const [formType, setFormType] = useState("");
 
         const t = vocab.hi;
+
+        const openForm = (type) => {
+            setFormType(type);
+            setShowForm(true);
+        };
 
         const mapPrize = useCallback((row, maps) => {  
             const mID = (row[1] || "").toString().toLowerCase().trim();  
@@ -107,13 +116,13 @@
             const match = maps.find(m => m.Membership_ID && m.Membership_ID.toLowerCase().trim() === mID);  
 
             if (lock === "DPSG_WINNER" && match) {
-                setPrize({ img: toDirectLink(match.Image_Link), highlight: match.Inam_Name || "DPSG WINNER", msg: `'मंजिल उन्हीं को मिलती है जिनके सपनों में जान होती है,\nआज आपकी मेहनत और किस्मत दोनों मेहरबान होती है!'\n\nबधाई हो! आप बने हैं विजेता। आपकी रैंक ${match.Match_Name} है।`, isLocked: false, colorClass: "winner-glow bg-yellow-50" });  
+                setPrize({ img: toDirectLink(match.Image_Link), highlight: match.Inam_Name || "DPSG WINNER", msg: `"मंजिल उन्हीं को मिलती है जिनके सपनों में जान होती है, आज आपकी मेहनत और किस्मत दोनों मेहरबान होती है!"\n\nहार्दिक बधाई! आप डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप (DPSG) के गौरवशाली विजेता बने हैं और आपने ${match.Match_Name} प्राप्त की है। यह इनाम संस्था की ओर से आपके विश्वास का सम्मान है। हमें गर्व है कि आप हमारे डिजिटल परिवार का हिस्सा हैं। उज्जवल भविष्य की कामनाओं के साथ, धन्यवाद!`, isLocked: false, colorClass: "winner-glow bg-yellow-50" });  
             } else if (lock === "DPSG_CASH") {
-                setPrize({ img: "https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000", highlight: "₹100 Cash Back", msg: `'इनाम छोटा हो या बड़ा, अपनों का साथ सबसे प्यारा है,\nजीत की ये शुरुआत है, अभी तो सारा आसमान तुम्हारा है!'\n\nDPSG स्पेशल कैशबैक स्वीकार करें। धन्यवाद!`, isLocked: false, colorClass: "border-4 border-green-500 bg-green-50" });  
+                setPrize({ img: "https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000", highlight: "₹100 Cash Back", msg: `"इनाम छोटा हो या बड़ा, अपनों का साथ सबसे प्यारा है, जीत की ये शुरुआत है, अभी तो सारा आसमान तुम्हारा है!"\n\nमुस्कुराइए! DPSG संस्था की ओर से आपको यह विशेष कैशबैक भेंट किया जा रहा है। यह आपके और हमारे अटूट रिश्ते की एक छोटी सी पहचान है। भविष्य में भी हम आपकी समस्याओं के बेहतरीन समाधान के लिए तत्पर रहेंगे। हमारे साथ जुड़ने के लिए हृदय से धन्यवाद!`, isLocked: false, colorClass: "border-4 border-green-500 bg-green-50" });  
             } else if (lock === "DPSG_GIFT") {
-                setPrize({ img: "https://drive.google.com/thumbnail?id=1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z&sz=w1000", highlight: "5 rs Pen", msg: `'खूबसूरत सा ये तोहफा बस एक छोटा सा बहाना है,\nहमे तो आपके साथ मिलकर खुशियों का जशन मनाना है!'\n\nDPSG परिवार की ओर से यह छोटा सा उपहार। धन्यवाद!`, isLocked: false, colorClass: "border-4 border-blue-500 bg-blue-50" });  
+                setPrize({ img: "https://drive.google.com/thumbnail?id=1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z&sz=w1000", highlight: "5 rs Pen", msg: `"खूबसूरत सा ये तोहफा बस एक छोटा सा बहाना है, हमे तो आपके साथ मिलकर खुशियों का जशन मनाना है!"\n\nबधाई हो! DPSG परिवार की ओर से यह उपहार आपके डिजिटल सफर को और भी खास बनाने के लिए है। आपकी संतुष्टि ही हमारी असली सफलता है। हम आपके सुखद भविष्य की कामना करते हैं। हमारे साथ बने रहने के लिए बहुत-बहुत धन्यवाद!`, isLocked: false, colorClass: "border-4 border-blue-500 bg-blue-50" });  
             } else {
-                setPrize({ img: "https://drive.google.com/thumbnail?id=1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh&sz=w1000", highlight: "Better Luck Next Time", msg: `'गिरते हैं शहसवार ही मैदान-ए-जंग में,\nवो क्या गिरेंगे जो घुटनों के बल चलते हैं!'\n\nनिराश न हों, अगली बार किस्मत ज़रूर चमकेगी। धन्यवाद!`, isLocked: false, colorClass: "bg-slate-100 border-4" });  
+                setPrize({ img: "https://drive.google.com/thumbnail?id=1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh&sz=w1000", highlight: "Better Luck Next Time", msg: `"गिरते हैं शहसवार ही मैदान-ए-जंग में, वो क्या गिरेंगे जो घुटनों के बल चलते हैं!"\n\nनिराश न हों, यह केवल एक शुरुआत है। DPSG संस्था आपके निरंतर सहयोग की सराहना करती है। अगली बार आपकी किस्मत ज़रूर चमकेगी। हमारे साथ बने रहने और हम पर भरोसा जताने के लिए आपका धन्यवाद!`, isLocked: false, colorClass: "bg-slate-100 border-4" });  
             }
         }, [t.pending]);
 
@@ -150,7 +159,29 @@
                             <div className="text-center">  
                                 <h1 className="text-3xl font-black italic uppercase text-blue-900 dark:text-blue-400 leading-none">{t.brand}</h1>  
                                 <p className="text-yellow-600 font-bold tracking-widest mt-2 uppercase text-sm">Digital Seva Nimbahera</p>  
+                                <p className="text-blue-700 dark:text-blue-400 font-black mt-3 italic text-sm">समस्या आपकी, समाधान हमारा - उचित मूल्य, बेहतरीन सेवा !</p>
                             </div>  
+                            
+                            {/* 4 New Icons Section */}
+                            <div className="no-print grid grid-cols-4 gap-2 sm:gap-4 my-6">
+                                <button onClick={() => openForm('ई-मित्र')} className="flex flex-col items-center justify-center bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-md border hover:border-orange-500 transition-all">
+                                    <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-xl mb-2"><i className="fa-solid fa-desktop"></i></div>
+                                    <span className="text-[10px] sm:text-xs font-bold text-slate-700 dark:text-slate-300">ई-मित्र</span>
+                                </button>
+                                <button onClick={() => openForm('डेटा रिकवरी')} className="flex flex-col items-center justify-center bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-md border hover:border-blue-500 transition-all">
+                                    <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xl mb-2"><i className="fa-solid fa-hard-drive"></i></div>
+                                    <span className="text-[10px] sm:text-xs font-bold text-slate-700 dark:text-slate-300">डेटा रिकवरी</span>
+                                </button>
+                                <button onClick={() => openForm('मोबाइल सर्विसेज')} className="flex flex-col items-center justify-center bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-md border hover:border-purple-500 transition-all">
+                                    <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xl mb-2"><i className="fa-solid fa-mobile-screen-button"></i></div>
+                                    <span className="text-[10px] sm:text-xs font-bold text-slate-700 dark:text-slate-300">मोबाइल सर्विसेज</span>
+                                </button>
+                                <button onClick={() => openForm('सरकारी योजना')} className="flex flex-col items-center justify-center bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-md border hover:border-green-500 transition-all">
+                                    <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xl mb-2"><i className="fa-solid fa-building-columns"></i></div>
+                                    <span className="text-[10px] sm:text-xs font-bold text-slate-700 dark:text-slate-300">सरकारी योजना</span>
+                                </button>
+                            </div>
+
                             <div className="no-print bg-white dark:bg-slate-800 p-8 rounded-[3rem] shadow-xl border">
                                 <p className="text-red-600 font-black text-[12px] mb-4 text-center animate-pulse uppercase">{t.warning}</p>
                                 <div className={`p-2 rounded-[2.5rem] ${prize.isLocked ? 'bg-slate-100 dark:bg-slate-700' : prize.colorClass}`}>  
@@ -165,7 +196,18 @@
                                     )}  
                                 </div>
                             </div>
-                            <div id="receipt" className="receipt-card p-12 text-left dark:bg-white dark:text-slate-900 border-2 border-slate-100">  
+
+                            {/* WhatsApp & Location Buttons Section */}
+                            <div className="no-print grid grid-cols-2 gap-4 my-2">
+                                <button onClick={() => openForm('WhatsApp (HELP)')} className="bg-green-500 hover:bg-green-600 text-white font-black py-4 rounded-2xl shadow-md flex items-center justify-center text-sm transition-all">
+                                    <i className="fa-brands fa-whatsapp text-2xl mr-2"></i> HELP
+                                </button>
+                                <button onClick={() => openForm('LOCATION')} className="bg-red-500 hover:bg-red-600 text-white font-black py-4 rounded-2xl shadow-md flex items-center justify-center text-sm transition-all">
+                                    <i className="fa-solid fa-location-dot text-2xl mr-2"></i> LOCATION
+                                </button>
+                            </div>
+
+                            <div id="receipt" className="receipt-card p-12 text-left dark:bg-white dark:text-slate-900 border-2 border-slate-100 mt-6">  
                                 <div className="text-center border-b-2 border-dashed pb-8 mb-8"><h3 className="font-black text-2xl text-blue-700 italic uppercase tracking-tight">{t.receipt}</h3><p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">DPSG NIMBAHERA</p></div>  
                                 <div className="grid grid-cols-2 gap-y-12 text-sm border-b pb-10">  
                                     <div><p className="text-[10px] text-slate-400 font-black uppercase">ID IDENTITY</p><p className="text-2xl font-black">{clean(member[1])}</p></div>  
@@ -197,6 +239,32 @@
                                 {!isAdmin && <button onClick={()=>setShowPin(!showPin)} className="p-8 bg-white dark:bg-slate-800 rounded-full shadow-lg border opacity-20 hover:opacity-100 transition-all"><i className="fa-solid fa-fingerprint text-5xl text-blue-600"></i></button>}  
                                 {showPin && !isAdmin && ( <div className="mt-4 bg-white dark:bg-slate-800 p-8 rounded-[2rem] border w-full animate-in zoom-in shadow-2xl"><input type="password" id="adminPin" className="w-full bg-slate-100 dark:bg-slate-700 rounded-2xl py-5 text-center mb-4 font-bold outline-none text-2xl" placeholder="ENTER MASTER PIN" /><button onClick={()=>{document.getElementById('adminPin').value===MASTER_PIN?setIsAdmin(true):alert("Wrong Pin!");}} className="w-full bg-black text-white py-5 rounded-2xl font-black uppercase">Unlock Database</button></div> )}
                                 {isAdmin && ( <div className="w-full mt-6 bg-white dark:bg-slate-800 border rounded-[2rem] p-10 text-left shadow-2xl overflow-hidden border-t-8 border-t-blue-600"><div className="flex justify-between items-center mb-8 border-b pb-4"><h3 className="font-black text-sm text-blue-600 uppercase tracking-widest">Master Database Panel</h3><button onClick={()=>setIsAdmin(false)} className="text-red-500 font-bold text-[11px] uppercase border px-4 py-1 rounded-full">Logout Admin</button></div><div className="grid gap-4 max-h-[500px] overflow-y-auto pr-2 custom-scroll">{member.map((v, i) => ( <div key={i} className="p-5 bg-slate-50 dark:bg-slate-700 rounded-2xl border border-slate-200"><p className="text-[9px] text-slate-400 font-black uppercase mb-1">{headers[i] || `Index ${i}`}</p><p className="font-bold text-md text-slate-800 dark:text-slate-100">{v||"---"}</p></div> ))}</div></div> )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Formspree Popup Modal */}
+                    {showForm && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+                            <div className="bg-white dark:bg-slate-800 p-8 rounded-[2rem] w-full max-w-md relative shadow-2xl animate-in zoom-in duration-300 border-4 border-blue-100 dark:border-slate-700">
+                                <button onClick={() => setShowForm(false)} className="absolute top-4 right-4 w-10 h-10 bg-red-100 text-red-600 hover:bg-red-200 rounded-full font-black text-lg flex items-center justify-center transition-all"><i className="fa-solid fa-xmark"></i></button>
+                                <h3 className="text-2xl font-black text-blue-600 mb-6 uppercase text-center border-b-2 border-dashed pb-4">{formType}</h3>
+                                <form action="https://formspree.io/f/xwvndvoe" method="POST" encType="multipart/form-data" className="space-y-5 text-left">
+                                    <input type="hidden" name="Service_Requested" value={formType} />
+                                    <div>
+                                        <label className="block text-[13px] font-black uppercase text-slate-700 dark:text-slate-300 mb-2 tracking-wider">मोबाइल नंबर <span className="text-red-500">*</span></label>
+                                        <input type="tel" name="Mobile" required className="w-full border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 p-4 rounded-2xl outline-none focus:border-blue-500 font-bold text-lg transition-all" placeholder="अपना नंबर दर्ज करें" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[13px] font-black uppercase text-slate-700 dark:text-slate-300 mb-2 tracking-wider">समस्या / कार्य का विवरण <span className="text-red-500">*</span></label>
+                                        <textarea name="Problem" required rows="3" className="w-full border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 p-4 rounded-2xl outline-none focus:border-blue-500 font-bold text-md transition-all resize-none" placeholder="अपनी समस्या या जो काम करवाना है, वह लिखें..."></textarea>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[13px] font-black uppercase text-slate-700 dark:text-slate-300 mb-2 tracking-wider">फोटो/वीडियो अपलोड करें</label>
+                                        <input type="file" name="Files" multiple accept="image/*,video/*" className="w-full text-sm text-slate-500 file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-black file:uppercase file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 transition-all cursor-pointer bg-slate-50 dark:bg-slate-700 p-2 rounded-2xl border-2 border-slate-200 dark:border-slate-600" />
+                                    </div>
+                                    <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-5 rounded-2xl shadow-xl mt-4 text-lg uppercase tracking-widest transition-all">रिक्वेस्ट भेजें</button>
+                                </form>
                             </div>
                         </div>
                     )}
