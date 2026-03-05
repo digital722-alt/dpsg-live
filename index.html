@@ -128,8 +128,8 @@
     const MAPPING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";  
     const MASTER_PIN = "Shiv@6375";
     
-    // यहाँ अपना नया Web App URL और Tracking CSV डालें
-    const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwTOF1JAOeAfqYxpXg5FIekrcBdLAddSc72lzQMpcEJ0R86dmImvwMBH7Jgw13EAy5x/exec";
+    // Web App URL & Tracking CSV
+    const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzbGT8QdrTlBlNyN2m502f03N10VdwmBhNUYkDP6nWmqGi99Y5qwFYVfa91zA2UeNQ/exec";
     const TRACKING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSipWwoPkXkvIzv26S1GWGhnFhk_mvA-zSU2LeV4AJfe_Val9g3eMquN0Xxr7wx01bJguo-74yMOJSl/pub?gid=580941469&single=true&output=csv"; 
 
     // Advanced 100% Bilingual Dictionary
@@ -139,7 +139,7 @@
             points: "कुल सर्विस पॉइंट्स", used: "उपयोग पॉइंट्स", balance: "शेष पॉइंट्स", active: "सक्रियण तिथि", expiry: "समाप्ति तिथि", draw: "लकी ड्रा तिथि",  
             tTitle: "नियम व शर्तें", 
             t1: "01. यह डिजिटल सदस्यता कार्ड व्यक्तिगत है और अहस्तांतरणीय है।", t2: "02. सेवाओं का लाभ केवल कार्ड पर अंकित समाप्ति तिथि तक ही मान्य है।", t3: "03. लिया गया शुल्क पंजीकरण शुल्क है, जो वापस नहीं होगा।", t4: "04. सर्वर त्रुटि में फिजिकल स्क्रैच कार्ड का परिणाम अंतिम होगा।", t5: "05. सर्वर खराबी पर प्रबंधन की जिम्मेदारी नहीं होगी।", t6: "06. सरकारी टोकन शुल्क ग्राहक द्वारा अलग से देय होगा।", t7: "07. फ्री डिलीवरी सीमा के बाद न्यूनतम शुल्क लिया जाएगा।", t8: "08. यह समाज सेवा हेतु है, कृपया कार्य पूर्ण होने तक धैर्य रखें।", t9: "09. कार्य में लगने वाले समय हेतु अभद्र व्यवहार स्वीकार्य नहीं होगा।", t10: "10. मैनेजमेंट के पास नियमों में बदलाव का पूर्ण अधिकार है।",
-            warning: "आधिकारिक घोषणा होने तक कृपया कार्ड को स्क्रैच न करें", pending: "परिणाम जल्द घोषित होगा",
+            warning: "आधिकारिक घोषणा होने तक कृपया कार्ड को स्क्रैच न करें", pending: "परिणाम जल्द घोषित घोषणा होगा",
             slogan: "समस्या आपकी, समाधान हमारा - उचित मूल्य, बेहतरीन सेवा !",
             emptyData: "जानकारी अपडेट की जा रही है...", searchBtn: "DASHBOARD खोलें", searchTitle: "ID सर्च करें",
             cat: "कैटेगरी (Category)", cName: "ग्राहक का नाम", vill: "गाँव/शहर", sMob: "सुरक्षित मोबाइल", sAad: "सुरक्षित आधार",
@@ -580,7 +580,7 @@
                         </div>
                     )}
 
-                    {/* NEW UPDATED FORM */}
+                    {/* NEW UPDATED FORM WITH NAME FIELD */}
                     {showForm && (
                         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-4 overflow-y-auto">
                             <div className="glass-card p-8 sm:p-12 w-full max-w-lg relative animate-in zoom-in duration-300 border-4 border-blue-100 dark:border-slate-700 my-8">
@@ -598,25 +598,30 @@
                                     </div>
 
                                     <div>
+                                        <label className="block text-[13px] font-black uppercase text-slate-600 dark:text-slate-400 mb-2 tracking-widest">Grahak Ka Naam <span className="text-red-500">*</span></label>
+                                        <input type="text" name="name" required className="w-full border-2 border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-900/80 p-5 rounded-2xl outline-none focus:border-blue-500 focus:bg-white font-black text-xl transition-all shadow-inner uppercase" placeholder="Naam Darj Karein" />
+                                    </div>
+
+                                    <div>
                                         <label className="block text-[13px] font-black uppercase text-slate-600 dark:text-slate-400 mb-2 tracking-widest">Select Service <span className="text-red-500">*</span></label>
                                         <select name="service" required className="w-full border-2 border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-900/80 p-5 rounded-2xl outline-none focus:border-blue-500 focus:bg-white font-bold text-[16px] transition-all shadow-inner text-slate-700 dark:text-white" onChange={(e) => setDocHint(docList[e.target.value] || "")}>
-                                            <option value="">-- सेवा चुनें --</option>
+                                            <option value="">-- Seva Chunein --</option>
                                             <optgroup label="Airtel Payment Bank">
-                                                <option value="Airtel_Bank">🔴 एयरटेल बैंक खाता / KYC</option>
+                                                <option value="Airtel_Bank">🔴 Airtel Bank Khaata / KYC</option>
                                             </optgroup>
                                             <optgroup label="Central Government Services">
-                                                <option value="PAN_Card">💳 पैन कार्ड (PAN Card)</option>
-                                                <option value="Other">आयुष्मान कार्ड / पासपोर्ट</option>
+                                                <option value="PAN_Card">💳 PAN Card</option>
+                                                <option value="Other">Ayushman Card / Passport</option>
                                             </optgroup>
                                             <optgroup label="Rajasthan E-Mitra">
-                                                <option value="Birth_Cert">जन्म प्रमाण पत्र (Birth Cert.)</option>
-                                                <option value="Caste_Cert">जाति प्रमाण पत्र (Caste Cert.)</option>
-                                                <option value="Bonafide">मूल निवास (Bonafide)</option>
-                                                <option value="Other">जन आधार / राशन कार्ड</option>
+                                                <option value="Birth_Cert">Janam Praman Patra (Birth Cert.)</option>
+                                                <option value="Caste_Cert">Jati Praman Patra (Caste Cert.)</option>
+                                                <option value="Bonafide">Mool Niwas (Bonafide)</option>
+                                                <option value="Other">Jan Aadhar / Ration Card</option>
                                             </optgroup>
                                             <optgroup label="Other Services">
-                                                <option value="Other">ITR / कानूनी सलाह</option>
-                                                <option value="Other">स्कॉलरशिप फॉर्म</option>
+                                                <option value="Other">ITR / Kanooni Salah</option>
+                                                <option value="Other">Scholarship Form</option>
                                             </optgroup>
                                         </select>
                                     </div>
@@ -624,19 +629,19 @@
                                     {docHint && <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 p-4 rounded-xl text-blue-800 dark:text-blue-300 font-bold text-sm shadow-sm">{docHint}</div>}
 
                                     <div>
-                                        <label className="block text-[13px] font-black uppercase text-slate-600 dark:text-slate-400 mb-2 tracking-widest">मोबाइल नंबर <span className="text-red-500">*</span></label>
-                                        <input type="tel" name="mobile" required className="w-full border-2 border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-900/80 p-5 rounded-2xl outline-none focus:border-blue-500 focus:bg-white font-black text-xl transition-all shadow-inner" placeholder="अपना नंबर दर्ज करें" />
+                                        <label className="block text-[13px] font-black uppercase text-slate-600 dark:text-slate-400 mb-2 tracking-widest">Mobile Number <span className="text-red-500">*</span></label>
+                                        <input type="tel" name="mobile" required className="w-full border-2 border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-900/80 p-5 rounded-2xl outline-none focus:border-blue-500 focus:bg-white font-black text-xl transition-all shadow-inner" placeholder="Apna Number Darj Karein" />
                                     </div>
                                     <div>
-                                        <label className="block text-[13px] font-black uppercase text-slate-600 dark:text-slate-400 mb-2 tracking-widest">समस्या / कार्य <span className="text-red-500">*</span></label>
-                                        <textarea name="problem" required rows="4" className="w-full border-2 border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-900/80 p-5 rounded-2xl outline-none focus:border-blue-500 focus:bg-white font-bold text-lg transition-all resize-none shadow-inner" placeholder="अपनी समस्या या कार्य का विवरण यहाँ लिखें..."></textarea>
+                                        <label className="block text-[13px] font-black uppercase text-slate-600 dark:text-slate-400 mb-2 tracking-widest">Samasya / Kaarya <span className="text-red-500">*</span></label>
+                                        <textarea name="problem" required rows="4" className="w-full border-2 border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-900/80 p-5 rounded-2xl outline-none focus:border-blue-500 focus:bg-white font-bold text-lg transition-all resize-none shadow-inner" placeholder="Apni samasya ya kaarya ka vivran yahan likhein..."></textarea>
                                     </div>
                                     <div className="bg-blue-50/80 dark:bg-slate-900/80 p-6 rounded-2xl border-2 border-blue-100 dark:border-slate-700">
-                                        <label className="block text-[13px] font-black uppercase text-slate-700 dark:text-slate-300 mb-3 tracking-widest"><i className="fa-solid fa-paperclip mr-2 text-blue-600 text-lg"></i> फोटो/वीडियो अपलोड करें</label>
+                                        <label className="block text-[13px] font-black uppercase text-slate-700 dark:text-slate-300 mb-3 tracking-widest"><i className="fa-solid fa-paperclip mr-2 text-blue-600 text-lg"></i> Photo/Video Upload Karein</label>
                                         <input type="file" id="fileInput" accept="image/*,video/*" className="w-full text-md text-slate-500 file:mr-5 file:py-4 file:px-8 file:rounded-xl file:border-0 file:text-[12px] file:font-black file:uppercase file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:shadow-lg transition-all cursor-pointer" />
-                                        <p className="text-[11px] text-slate-500 mt-2 italic">* यदि कागज़ नहीं हैं तो इसे खाली छोड़ दें।</p>
+                                        <p className="text-[11px] text-slate-500 mt-2 italic">* Yadi kagaz nahi hain toh isey khali chhod dein.</p>
                                     </div>
-                                    <button type="submit" id="submitBtn" className="w-full bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white font-black py-6 rounded-2xl shadow-xl hover:shadow-2xl mt-6 text-xl uppercase tracking-widest transition-all"><i className="fa-solid fa-rocket mr-3"></i> रिक्वेस्ट भेजें</button>
+                                    <button type="submit" id="submitBtn" className="w-full bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white font-black py-6 rounded-2xl shadow-xl hover:shadow-2xl mt-6 text-xl uppercase tracking-widest transition-all"><i className="fa-solid fa-rocket mr-3"></i> Request Bhejein</button>
                                 </form>
                             </div>
                         </div>
