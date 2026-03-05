@@ -15,26 +15,15 @@
     <style> 
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Play:wght@700&family=Poppins:wght@500;700;900&display=swap');
         
-        /* Premium Gradient Body */
-        body { 
-            font-family: 'Inter', sans-serif;
-            transition: background-color 0.3s; margin: 0; 
-            background: linear-gradient(135deg, #f0f4f8, #e0e7ff, #f8fafc);
-        }  
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s; margin: 0; background: linear-gradient(135deg, #f0f4f8, #e0e7ff, #f8fafc); }  
         .dark body { background: linear-gradient(135deg, #0f172a, #1e1b4b, #0f172a); }
         
-        /* Glassmorphism Effect for Cards */
-        .glass-card { 
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 2.5rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 30px rgba(59, 130, 246, 0.1);
-        }  
+        .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 2.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 30px rgba(59, 130, 246, 0.1); }  
         .dark .glass-card { background: rgba(30, 41, 59, 0.85); border-color: rgba(255, 255, 255, 0.05); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); }
 
         .glass-lock { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(16px); border: 2px solid rgba(255, 255, 255, 0.8); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1); }
         .dark .glass-lock { background: rgba(30, 41, 59, 0.7); border: 2px solid rgba(255, 255, 255, 0.1); }
-        
+
         .date-font { font-family: 'Play', sans-serif;}
         .fancy-text { font-family: 'Poppins', sans-serif;}
         
@@ -67,12 +56,18 @@
         @keyframes popIn { 0% { opacity: 0; transform: scale(0.9);} 100% { opacity: 1; transform: scale(1); } }
 
         /* NUMBER GRID CSS */
-        .number-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 8px; max-height: 250px; overflow-y: auto; padding: 10px; border-radius: 1rem; }
-        .number-box { padding: 8px 4px; border-radius: 0.5rem; font-weight: 900; font-size: 0.85rem; text-align: center; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
-        .number-available { background: #dcfce7; color: #166534; border-color: #86efac; }
-        .number-available:hover { transform: scale(1.1); background: #22c55e; color: white; }
-        .number-selected { background: #2563eb !important; color: white !important; box-shadow: 0 4px 10px rgba(37,99,235,0.4); transform: scale(1.1); }
-        .number-sold { background: #fee2e2; color: #991b1b; cursor: not-allowed; opacity: 0.6; }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; max-height: 400px; overflow-y: auto; padding: 10px; }
+        .grid-item { padding: 15px 5px; text-align: center; border-radius: 10px; font-weight: 900; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border: 2px solid transparent; }
+        .grid-item:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .grid-item.available.vip { background: #e0e7ff; color: #1e3a8a; border-color: #c7d2fe; }
+        .grid-item.available.gold { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+        .grid-item.available.silver { background: #f1f5f9; color: #334155; border-color: #e2e8f0; }
+        .grid-item.sold { background: #fee2e2; color: #991b1b; border-color: #fecaca; opacity: 0.6; cursor: not-allowed; }
+        .grid-item.selected { border-color: #22c55e; background: #dcfce7; color: #166534; box-shadow: 0 0 15px rgba(34,197,94,0.5); transform: scale(1.1); }
+        
+        .custom-scroll::-webkit-scrollbar { width: 8px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.5); border-radius: 10px; }
 
         /* STAFF PANEL CSS */
         .staff-box { border-left: 8px solid #3b82f6; transition: all 0.3s; }
@@ -86,19 +81,35 @@
     <script type="text/babel">  
     const { useState, useEffect, useRef, useCallback } = React;
     
-    // --- 🚨 BACKEND URLS & CREDENTIALS ---
+    // --- 🚨 BACKEND URLS & IDS 🚨 ---
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrJDOqyreLQ3ylpumfUgnHe1DFBwoIIjPg-C8kc_2Lm9C43VLeZrN-uoBzATw20Kva/exec";
+    const APP_SCRIPT_FILE_UPLOAD_URL = "https://script.google.com/macros/s/AKfycbzbGT8QdrTlBlNyN2m502f03N10VdwmBhNUYkDP6nWmqGi99Y5qwFYVfa91zA2UeNQ/exec";
     const REQUEST_SHEET_CSV = "https://docs.google.com/spreadsheets/d/1mMQs6zU_EKRt1o8wEwZQnYrDhCHa-p-WthNdQDb4_Xk/export?format=csv";
+    const TRACKING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSipWwoPkXkvIzv26S1GWGhnFhk_mvA-zSU2LeV4AJfe_Val9g3eMquN0Xxr7wx01bJguo-74yMOJSl/pub?gid=580941469&single=true&output=csv"; 
     const MAIN_CSV = `https://docs.google.com/spreadsheets/d/1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo/export?format=csv`;  
     const MAPPING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";  
+    
     const MASTER_PIN = "Shiv@6375";
+    const STAFF_CREDENTIALS = { "Parkash": "DPS@Parkash6375#", "Rajkumar": "DPS@Rajkumar6375#", "Jorawar": "DPS@Jorawar6375#" };
 
-    const STAFF_CREDENTIALS = {
-        "Parkash": "DPS@Parkash6375#",
-        "Rajkumar": "DPS@Rajkumar6375#",
-        "Jorawar": "DPS@Jorawar6375#"
-    };
+    // --- INAM LIST (51 PRIZES) ---
+    const inamList = [
+        { rank: "1", name: "₹5000 Cash", msg: "किस्मत का ताला खुलेगा, जेब में गांधी मुस्कुराएंगे, DPSG के साथ हुकुम, आप मालामाल हो जाएंगे!" },
+        { rank: "2", name: "LED TV", msg: "घर बैठे सिनेमा का आनंद, हर तस्वीर में दिखेगा जान, LED टीवी जीतकर, बढ़ाइये अपने घर की शान!" },
+        { rank: "3", name: "Kids Bicycle", msg: "नन्हे क़दमों की तेज़ रफ़्तार, बचपन को दें खुशियों का उपहार!" },
+        { rank: "4", name: "Ceiling Fan", msg: "चलेगी जब ठंडी हवा, मिट जाएगी हर थकान, पंखा जीतेगा वो, जो है DPSG की जान!" },
+        { rank: "5", name: "Bati Oven", msg: "गरमा-गरम बाटी का स्वाद, निम्बाहेड़ा का है ये अनूठा अंदाज़!" },
+        { rank: "6", name: "Keypad Mobile Phone", msg: "बातें होंगी अपनों से, दूरियां सारी मिट जाएंगी, हाथ में होगा मोबाइल, तो खुशियां लौट आएंगी!" },
+        { rank: "7", name: "Smart Watch", msg: "वक्त बदलेगा आपका, अब घड़ी भी स्मार्ट होगी, जीत की आपकी हर तरफ, अब नई शुरुआत होगी!" },
+        { rank: "8", name: "Power Bank", msg: "बैटरी कभी न होगी लो, न रुकेगा कोई काम, DPSG का पावर बैंक, देगा आपको आराम!" },
+        { rank: "9", name: "Sports Shoes", msg: "रफ़्तार भरेगी आपके क़दमों में, मंज़िल होगी आपके पास!" },
+        { rank: "10", name: "Riding Helmet", msg: "सुरक्षा का वादा, जीत का इरादा!" },
+        { rank: "11-20", name: "Premium Gifts", msg: "स्टाइल भी होगा और चमक भी, जब जीतेंगे आप ये शाही इनाम!" },
+        { rank: "21-23", name: "Bumper Cash", msg: "नसीब में होगा नकद, तो हर काम होगा सफल!" },
+        { rank: "24-51", name: "Surprise Gifts", msg: "कोई खाली हाथ नहीं जाएगा, हर कार्ड में है दम!" }
+    ];
 
+    // --- DICTIONARY ---
     const vocab = {  
         hi: {  
             brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", service: "डिजिटल सेवा निम्बाहेड़ा", receipt: "प्रोफेशनल डिजिटल रसीद", idLabelFull: "MEMBERSHIP ID NUMBER",  
@@ -115,6 +126,8 @@
             welcomeTitle: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप (DPSG) निम्बाहेड़ा में आपका हार्दिक अभिनंदन है।",
             welcomeBody: "हमें गर्व है कि आप हमारे इस सुरक्षित और आधुनिक डिजिटल परिवार का हिस्सा हैं। आपकी हर समस्या का समाधान अब हमारे विशेषज्ञों की देखरेख में सुरक्षित है।",
             proceedBtn: "आगे बढ़ें",
+            airtelTitle: "एयरटेल पेमेंट बैंक", airtelSub: "नया खाता / KYC (24 Hrs)", payTitle: "डायरेक्ट पेमेंट", paySub: "UPI द्वारा भुगतान करें",
+            trackTitle: "लाइव स्टेटस चेक करें", serialHint: "सीरियल नंबर (अंतिम 4 अंक)", checkBtn: "चेक करें", statusOk: "OK ✅ (Confirmed)", statusProcess: "प्रक्रिया में है (Processing...)",
             prizes: {
                 WINNER: (rank) => `"मंजिल उन्हीं को मिलती है जिनके सपनों में जान होती है,\nआज आपकी मेहनत और किस्मत दोनों मेहरबान होती है!"\n\nहार्दिक बधाई! आप डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप (DPSG) के गौरवशाली विजेता बने हैं और आपने ${rank} प्राप्त की है। यह इनाम संस्था की ओर से आपके विश्वास का सम्मान है। हमें गर्व है कि आप हमारे डिजिटल परिवार का हिस्सा हैं। उज्जवल भविष्य की कामनाओं के साथ, धन्यवाद!`,
                 CASH: () => `"इनाम छोटा हो या बड़ा, अपनों का साथ सबसे प्यारा है,\nजीत की ये शुरुआत है, अभी तो सारा आसमान तुम्हारा है!"\n\nमुस्कुराइए! DPSG संस्था की ओर से आपको यह विशेष कैशबैक भेंट किया जा रहा है। यह आपके और हमारे अटूट रिश्ते की एक छोटी सी पहचान है। भविष्य में भी हम आपकी समस्याओं के बेहतरीन समाधान के लिए तत्पर रहेंगे। हमारे साथ जुड़ने के लिए हृदय से धन्यवाद!`,
@@ -137,6 +150,8 @@
             welcomeTitle: "Hearty Welcome to Digital Problem Solution Group (DPSG) Nimbahera.",
             welcomeBody: "We are proud that you are a part of our secure and modern digital family. The solution to every problem of yours is now safe under the supervision of our experts.",
             proceedBtn: "Proceed",
+            airtelTitle: "Airtel Payment Bank", airtelSub: "New Account / KYC (24 Hrs)", payTitle: "Direct Payment", paySub: "Pay Securely via UPI",
+            trackTitle: "Live Status Check", serialHint: "Serial No. (Last 4 Digits)", checkBtn: "Check", statusOk: "OK ✅ (Confirmed)", statusProcess: "Processing...",
             prizes: {
                 WINNER: (rank) => `"Success comes to those who dare to dream,\nToday your hard work and luck both beam!"\n\nHearty Congratulations! You are the proud winner of Digital Problem Solution Group (DPSG) and have secured ${rank}. This prize is a token of appreciation for your trust in our organization. We are proud to have you in our digital family. Wishing you a bright future, Thank you!`,
                 CASH: () => `"Whether the prize is big or small, the support of loved ones is best of all,\nThis is just the beginning of your victory, the whole sky is yours to see!"\n\nSmile! This special cashback is presented to you by DPSG. It is a small symbol of our unbreakable bond. We will always be ready to provide the best solutions for your problems in the future. Thank you from the bottom of our hearts for joining us!`,
@@ -147,9 +162,18 @@
     };
 
     const cardSpecs = {  
-        VIP: { hi: ["₹500 VIP Card (6 महीने)", "उपयोग: पूरे परिवार के लिए मान्य", "कोटा: 150 प्रिंट + 80 फोटो (या 380 फोटो / 190 प्रिंट)", "लैमिनेशन: 2 फ्री", "ई-मित्र: 100% फ्री सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 2 बार फ्री (न्यूनतम रेट)", "इनाम: 100 Cash Back + बड़ा धमाका!", "संपर्क: 7229874128"], en: ["₹500 VIP Card (6 Months)", "Usage: Valid for Entire Family", "Quota: 150 Print + 80 Photo (or 380 Photo / 190 Print)", "Lamination: 2 Free", "E-Mitra: 100% Free Service (Only token charge payable)", "Delivery: 2 Times Free (Min Rate)", "Prize: 100 Cash Back + Big Surprise!", "Contact: 7229874128"] },  
-        Gold: { hi: ["₹100 Gold Card (3 महीने)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 40 प्रिंट + 24 फोटो (या 100 फोटो / 52 प्रिंट)", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: 100% गारंटीड उपहार!", "संपर्क: 7229874128"], en: ["₹100 Gold Card (3 Months)", "Usage: Valid for 1 Person Only", "Quota: 40 Print + 24 Photo (or 100 Photo / 52 Print)", "Lamination: 1 Free", "E-Mitra: 50% Discount (Only token charge payable)", "Delivery: 1 Time (Min Rate)", "Prize: 100% Guaranteed Gift!", "Contact: 7229874128"] },  
-        Silver: { hi: ["₹50 Silver Card (1 महीना)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 15 प्रिंट + 12 फोटो (या 40 फोटो / 21 प्रिंट)", "ई-मित्र: सीमित सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: लकी ड्रा का शानदार अवसर!", "संपर्क: 7229874128"], en: ["₹50 Silver Card (1 Month)", "Usage: Valid for 1 Person Only", "Quota: 15 Print + 12 Photo (or 40 Photo / 21 Print)", "E-Mitra: Limited Service (Only token charge payable)", "Delivery: 1 Time (Min Rate)", "Prize: Great Chance for Lucky Draw!", "Contact: 7229874128"] }  
+        VIP: { hi: ["₹500 VIP Card (6 महीने)", "उपयोग: पूरे परिवार के लिए मान्य", "कोटा: 150 प्रिंट + 80 फोटो (या 380 फोटो / 190 प्रिंट)", "लैमिनेशन: 2 फ्री", "ई-मित्र: 100% फ्री सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 2 बार फ्री (न्यूनतम रेट)", "इनाम: 100 Cash Back + बड़ा धमाका!", "संपर्क: 7229874128"] },  
+        Gold: { hi: ["₹100 Gold Card (3 महीने)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 40 प्रिंट + 24 फोटो (या 100 फोटो / 52 प्रिंट)", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: 100% गारंटीड उपहार!", "संपर्क: 7229874128"] },  
+        Silver: { hi: ["₹50 Silver Card (1 महीना)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 15 प्रिंट + 12 फोटो (या 40 फोटो / 21 प्रिंट)", "ई-मित्र: सीमित सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: लकी ड्रा का शानदार अवसर!", "संपर्क: 7229874128"] }  
+    };
+
+    const docList = {
+        "Airtel_Bank": "🔴 आधार कार्ड और फिंगरप्रिंट/OTP अनिवार्य है।",
+        "PAN_Card": "✅ आधार कार्ड की दोनों तरफ की फोटो अपलोड करें।",
+        "Birth_Cert": "✅ हॉस्पिटल की रसीद, आधार कार्ड और फोटो अपलोड करें।",
+        "Caste_Cert": "✅ राशन कार्ड, आधार, जन आधार और पुरानी जाति का रिकॉर्ड।",
+        "Bonafide": "✅ 10 साल पुराने कागज़ और आधार चाहिए।",
+        "Other": "💬 अपनी समस्या नीचे विवरण में लिखें।"
     };
 
     const mask = (v) => { if (!v || v === "#REF!" || v.trim() === "") return "****-XXXX"; return v.length > 4 ? v.slice(0, 2) + "******" + v.slice(-2) : v; };
@@ -181,56 +205,42 @@
 
     const App = () => {  
         const [theme, setTheme] = useState('light'); const [lang, setLang] = useState('hi'); 
-        const [appState, setAppState] = useState("landing"); 
+        
+        // --- STATE MANAGEMENT ---
+        const [appState, setAppState] = useState("landing"); // landing, booking, search, view
+        const [appView, setAppView] = useState("portal"); // portal, staff_login, staff_dashboard
         
         const [member, setMember] = useState(null); const [headers, setHeaders] = useState([]);
         const [isAdmin, setIsAdmin] = useState(false); const [showPin, setShowPin] = useState(false);
         const [prizeState, setPrizeState] = useState({ isLocked: true, type: null, rank: "", img: "", highlight: "", colorClass: "" });
-        const [showForm, setShowForm] = useState(false); const [formType, setFormType] = useState("");
         const [showWelcome, setShowWelcome] = useState(true);
+
+        // Grid & Booking States
+        const [cardsData, setCardsData] = useState([]);
+        const [selectedFilter, setSelectedFilter] = useState('ALL');
+        const [selectedCardId, setSelectedCardId] = useState(null);
+        const [showBookingForm, setShowBookingForm] = useState(false);
+        const [bookingPaymentMode, setBookingPaymentMode] = useState('');
+
+        // Service Form States (50+ Services)
+        const [showServiceForm, setShowServiceForm] = useState(false);
+        const [formType, setFormType] = useState("");
+        const [docHint, setDocHint] = useState("");
+        const [isSubmitting, setIsSubmitting] = useState(false);
         
-        const [selectedCardNo, setSelectedCardNo] = useState(null);
-        const [paymentMode, setPaymentMode] = useState("Cash");
-        const cardsAvailable = 985;
-        
+        // Staff & Tracking States
+        const [statusCheckResult, setStatusCheckResult] = useState(null);
         const [liveTrackingStatus, setLiveTrackingStatus] = useState(null);
         const [staffName, setStaffName] = useState("");
         const [liveRequests, setLiveRequests] = useState([]);
-        const [isSubmitting, setIsSubmitting] = useState(false);
 
         const t = vocab[lang];
         const getGreeting = () => { const hour = new Date().getHours(); if (hour < 12) return t.gm; if (hour < 17) return t.ga; return t.ge; };
-        const openForm = (type) => { setFormType(type); setShowForm(true); };
+        const openServiceForm = (type) => { setFormType(type); setDocHint(""); setShowServiceForm(true); };
+        const handleCardSelect = (card) => { if(card.sold) return; setSelectedCardId(card); };
+        const generateAutoID = (card) => { if(!card) return ""; let prefix = card.type === 'VIP' ? 'DPSG-VIP' : (card.type === 'Gold' ? 'DPSG-GLD' : 'DPSG-SIL'); return `${prefix}-${card.id}`; };
 
-        // --- 🚨 LIVE SHEET + WHATSAPP SUBMISSION LOGIC ---
-        const sendToWhatsAppAndSheet = (e) => {
-            e.preventDefault();
-            setIsSubmitting(true);
-            const formData = new FormData(e.target);
-            const dataObj = Object.fromEntries(formData.entries());
-            
-            let waMsg = `🌟 DPSG नया सेवा अनुरोध 🌟\n${t.slogan}\n----------------------------------\n`;
-            waMsg += `👤 नाम: ${dataObj.Name || 'नया ग्राहक'}\n📱 मोबाइल: ${dataObj.Mobile}\n🆔 आधार: ${dataObj.Aadhar || 'N/A'}\n`;
-            if (paymentMode === "Airtel Payment Bank") waMsg += `💳 पैन: ${dataObj.Pan}\n`;
-            waMsg += `🛠️ सेवा/समस्या: ${dataObj.Problem}\n💳 माध्यम: ${paymentMode}\n✅ स्टेटस: पेंडिंग\n----------------------------------\nकृपया मेरा कार्य पूर्ण करें।`;
-            
-            const reqID = formType.includes('Card Booking') ? `DPSG-NEW-${selectedCardNo}` : (member ? member[1] : `REQ-${Date.now()}`);
-            const payload = { action: 'verifyBooking', id: reqID, status: 'PENDING', newName: dataObj.Name || 'New User', newMob: dataObj.Mobile };
-
-            fetch(GOOGLE_SCRIPT_URL, {
-                method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: new URLSearchParams(payload)
-            }).then(() => {
-                window.open(`https://wa.me/917229874128?text=${encodeURIComponent(waMsg)}`, '_blank');
-                alert("डेटा आपकी फाइल में सुरक्षित कर लिया गया है!\nअब व्हाट्सएप खुलेगा, कृपया वहां मैसेज सेंड करें।");
-                setShowForm(false); setIsSubmitting(false); setAppState('landing');
-            }).catch(err => {
-                alert("Error connecting to sheet. Sending via WhatsApp only.");
-                window.open(`https://wa.me/917229874128?text=${encodeURIComponent(waMsg)}`, '_blank');
-                setShowForm(false); setIsSubmitting(false); setAppState('landing');
-            });
-        };
-
+        // --- FETCH MASTER DATA & CARDS (1 to 1000) ---
         const mapPrize = useCallback((row, maps) => {  
             const mID = (row[1] || "").toString().toLowerCase().trim();  
             const dDateStr = (row[36] || "").toString().trim(); const lock = (row[37] || "").toString().toUpperCase().trim(); 
@@ -249,6 +259,18 @@
             fetch(MAIN_CSV + "&t=" + Date.now()).then(r => r.text()).then(txt => {  
                 Papa.parse(txt, { complete: (res) => {  
                     const rows = res.data; setHeaders(rows[0] || []);  
+                    
+                    // Generate 1000 Cards Grid
+                    let parsedCards = [];
+                    for(let i=1; i<=1000; i++) {
+                        let rowData = rows[i] || [];
+                        let sNo = String(i).padStart(4, '0');
+                        let type = i <= 100 ? 'VIP' : (i <= 600 ? 'Gold' : 'Silver');
+                        let isSold = (rowData[8] && rowData[8].trim() !== "") || (rowData[1] && rowData[1].trim() !== "");
+                        parsedCards.push({ id: sNo, type: type, sold: isSold });
+                    }
+                    setCardsData(parsedCards);
+
                     const qId = new URLSearchParams(window.location.search).get('id');  
                     const match = rows.slice(1).find(r => r[1] && r[1].toLowerCase() === (qId || "").toLowerCase());  
                     if (match) { 
@@ -258,7 +280,7 @@
                             Papa.parse(rtxt, { header: true, complete: (rRes) => {
                                 const liveMatch = rRes.data.find(d => d.Membership_ID && d.Membership_ID.toLowerCase() === qId.toLowerCase());
                                 if(liveMatch) { setLiveTrackingStatus(liveMatch); setAppState("search"); setShowWelcome(false); }
-                                else { setAppState("search"); setShowWelcome(false); alert("ID Not Found! Please check your ID."); }
+                                else { setAppState("search"); setShowWelcome(false); alert("ID Not Found!"); }
                             }});
                         });
                     }
@@ -266,263 +288,362 @@
             });  
         }, [mapPrize]);
 
-        const fetchStaffData = useCallback(() => {
-            fetch(REQUEST_SHEET_CSV + "&t=" + Date.now()).then(r => r.text()).then(txt => {
-                Papa.parse(txt, { header: true, complete: (res) => setLiveRequests(res.data) });
-            });
-        }, []);
-
-        useEffect(() => {
-            let interval;
-            if (appState === "staff_dashboard") { fetchStaffData(); interval = setInterval(fetchStaffData, 10000); }
-            return () => clearInterval(interval);
-        }, [appState, fetchStaffData]);
-
-        const handleStaffLogin = (e) => {
-            e.preventDefault();
-            const id = e.target.staffId.value; const pass = e.target.staffPass.value;
-            if (STAFF_CREDENTIALS[id] === pass) { setStaffName(id); setAppState("staff_dashboard"); } 
-            else { alert("गलत आईडी या पासवर्ड!"); }
+        // --- LIVE TRACKING (CSV) ---
+        const checkStatusFromCSV = async () => {
+            const sn = document.getElementById('liveStatusInput').value;
+            if(!sn) return;
+            setStatusCheckResult('PROCESSING');
+            if(!TRACKING_CSV) { setTimeout(() => { setStatusCheckResult('PENDING'); }, 1500); return; }
+            try {
+                const res = await fetch(TRACKING_CSV); const text = await res.text();
+                const rows = Papa.parse(text).data;
+                const match = rows.find(r => r[0] && r[0].toString() === sn);
+                if(match && match[5] && match[5].toUpperCase() === "YES") { setStatusCheckResult('OK'); } else { setStatusCheckResult('PENDING'); }
+            } catch(e) { setStatusCheckResult('PENDING'); }
         };
 
+        // --- STAFF PANEL LOGIC ---
+        const fetchStaffData = useCallback(() => {
+            fetch(REQUEST_SHEET_CSV + "&t=" + Date.now()).then(r => r.text()).then(txt => { Papa.parse(txt, { header: true, complete: (res) => setLiveRequests(res.data) }); });
+        }, []);
+        useEffect(() => {
+            let interval; if (appView === "staff_dashboard") { fetchStaffData(); interval = setInterval(fetchStaffData, 10000); }
+            return () => clearInterval(interval);
+        }, [appView, fetchStaffData]);
+
+        const loginToStaff = (e) => {
+            e.preventDefault(); const id = e.target.staffId.value; const pass = e.target.staffPass.value;
+            if (STAFF_CREDENTIALS[id] === pass) { setStaffName(id); setAppView("staff_dashboard"); } else { alert("गलत आईडी या पासवर्ड!"); }
+        };
         const handleVerifyAction = (item, newStatus) => {
+            fetch(GOOGLE_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ action: 'verifyBooking', id: item.Membership_ID, status: newStatus })
+            }).then(() => { alert(`SUCCESS: Marked as ${newStatus}`); fetchStaffData(); });
+        };
+
+        // --- SUBMIT 1: CARD BOOKING (Grid to Sheet + WA) ---
+        const submitCardBooking = (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const genId = generateAutoID(selectedCardId);
+            const pMethod = formData.get('Payment_Method');
+            
+            let waMsg = `🌟 DPSG NEW CARD BOOKING 🌟\nID: ${genId}\nCard: ${selectedCardId.type} (${selectedCardId.id})\nName: ${formData.get('Name')}\nMobile: ${formData.get('Mobile')}\nPayment: ${pMethod}`;
+            
             fetch(GOOGLE_SCRIPT_URL, {
                 method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: new URLSearchParams({ action: 'verifyBooking', id: item.Membership_ID, status: newStatus })
-            }).then(() => { alert(`SUCCESS: Card marked as ${newStatus}`); fetchStaffData(); });
+                body: new URLSearchParams({ action: 'verifyBooking', id: genId, status: 'PENDING', newName: formData.get('Name'), newMob: formData.get('Mobile') })
+            }).then(() => {
+                alert(`बधाई हो! आपकी जानकारी सुरक्षित कर ली गई है।\nआपकी ID: ${genId}`);
+                window.open(`https://wa.me/917229874128?text=${encodeURIComponent(waMsg)}`, '_blank');
+                setShowBookingForm(false); setSelectedCardId(null); setAppState('landing');
+            });
+        };
+
+        // --- SUBMIT 2: 50+ SERVICES SMART FORM (Icons to Sheet + WA) ---
+        const submitServiceRequest = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const btn = document.getElementById('submitBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class='fa-solid fa-spinner fa-spin mr-2'></i> Sending...`;
+            btn.disabled = true; setIsSubmitting(true);
+
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput ? fileInput.files[0] : null;
+            const params = new URLSearchParams(formData);
+            
+            const pushData = async (base64, type, name) => {
+                try {
+                    // Send file to APP_SCRIPT_FILE_UPLOAD_URL (Original 50+ Service logic)
+                    await fetch(APP_SCRIPT_FILE_UPLOAD_URL + "?" + params.toString(), {
+                        method: 'POST', body: JSON.stringify({ bytes: base64, contentType: type, fileName: name }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                    });
+                    // Also send to live Tracking Sheet (GOOGLE_SCRIPT_URL)
+                    const reqID = formData.get('id') || (member ? member[1] : `REQ-${Date.now()}`);
+                    await fetch(GOOGLE_SCRIPT_URL, {
+                        method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        body: new URLSearchParams({ action: 'verifyBooking', id: reqID, status: 'PENDING', newName: formData.get('name'), newMob: formData.get('mobile') })
+                    });
+                    
+                    alert("रिक्वेस्ट सफलतापूर्वक जमा हो गई है!\nOK दबाते ही व्हाट्सएप खुलेगा।");
+                    
+                    let waMsg = `🌟 DPSG नया सेवा अनुरोध 🌟\n👤 नाम: ${formData.get('name')}\n📱 मोबाइल: ${formData.get('mobile')}\n🆔 आईडी: ${reqID}\n🛠️ सेवा: ${formData.get('service')}\n📝 समस्या: ${formData.get('problem')}\n✅ स्टेटस: पेंडिंग`;
+                    window.open(`https://wa.me/917229874128?text=${encodeURIComponent(waMsg)}`, '_blank');
+                    setShowServiceForm(false);
+                } catch(err) { 
+                    alert("Sending to WhatsApp directly."); 
+                    window.open(`https://wa.me/917229874128?text=${encodeURIComponent("New Service Request: " + formData.get('name'))}`, '_blank');
+                    setShowServiceForm(false);
+                }
+                btn.innerHTML = originalText; btn.disabled = false; setIsSubmitting(false);
+            };
+
+            if (file) { const reader = new FileReader(); reader.onload = () => pushData(reader.result.split(',')[1], file.type, file.name); reader.readAsDataURL(file); } 
+            else { pushData("", "", "No_Document_Uploaded"); }
         };
 
         const clean = (val) => (val && val !== "#REF!" && val.trim() !== "") ? val : t.emptyData;
 
-        // --- VIEWS ---
-        const renderLandingPage = () => (
-            <div className="glass-card p-10 sm:p-14 text-center mt-10 animate-in zoom-in duration-500 shadow-2xl relative">
-                <button onClick={()=>setAppState("staff_login")} className="absolute top-4 left-4 bg-blue-100 text-blue-800 text-xs font-black px-3 py-1 rounded-lg border border-blue-200"><i className="fa-solid fa-shield-halved"></i> Staff</button>
-                <i className="fa-solid fa-building-shield text-7xl text-blue-600 mb-6 drop-shadow-lg mt-4"></i>
-                <h1 className="text-3xl sm:text-4xl font-black italic uppercase text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-600 mb-2">{t.brand}</h1>
-                <p className="text-amber-500 font-black tracking-widest mt-2 uppercase text-[15px] pb-6 mb-8 border-b-2 border-dashed border-slate-300 dark:border-slate-600">{t.service}</p>
-                <div className="space-y-6">
-                    <button onClick={() => setAppState("booking")} className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-black py-6 rounded-2xl shadow-xl text-xl uppercase tracking-widest transition-all hover:scale-[1.02] border-b-4 border-indigo-900">
-                        <i className="fa-solid fa-address-card mr-3 text-2xl"></i> नया कार्ड बुक करें (Book Card)
-                    </button>
-                    <button onClick={() => setAppState("search")} className="w-full bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 font-black py-6 rounded-2xl shadow-md text-lg uppercase tracking-widest transition-all hover:scale-[1.02] border-2 border-blue-200 dark:border-slate-600">
-                        <i className="fa-solid fa-magnifying-glass mr-3"></i> सर्विस स्टेटस / कार्ड डाउनलोड
-                    </button>
+        // 🚨 RETURN STAFF VIEWS IF ACTIVE
+        if (appView === "staff_login") return (
+            <div className={`min-h-screen pb-10 ${theme === 'dark' ? 'dark' : ''}`}>
+                <div className="flex items-center justify-center h-screen bg-slate-900 p-4">
+                    <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md border-4 border-blue-600">
+                        <h2 className="text-2xl font-black text-center mb-6 text-blue-800"><i className="fa-solid fa-user-shield mr-2"></i> STAFF LOGIN</h2>
+                        <form onSubmit={loginToStaff} className="space-y-4">
+                            <input name="staffId" placeholder="ID (Parkash/Rajkumar/Jorawar)" className="w-full p-4 border-2 border-slate-300 rounded-xl font-bold uppercase" required />
+                            <input name="staffPass" type="password" placeholder="Password" className="w-full p-4 border-2 border-slate-300 rounded-xl font-bold" required />
+                            <button className="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-lg">LOGIN</button>
+                            <button type="button" onClick={() => setAppView("portal")} className="w-full text-slate-500 font-bold hover:text-slate-800">BACK TO PORTAL</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         );
 
-        const renderBookingGrid = () => (
-            <div className="glass-card p-6 sm:p-10 text-center animate-in slide-in-from-right duration-500">
-                <button onClick={() => setAppState("landing")} className="text-slate-500 font-black mb-4 flex items-center hover:text-blue-600"><i className="fa-solid fa-arrow-left mr-2"></i> वापस जाएँ</button>
-                <div className="bg-red-100 border-2 border-red-500 text-red-700 px-4 py-3 rounded-xl mb-6 flex justify-center items-center blink-text">
-                    <i className="fa-solid fa-fire mr-3 text-2xl text-red-600"></i>
-                    <p className="font-black uppercase tracking-widest">🔥 जल्दी करें! 1000 में से केवल <span className="text-2xl">{cardsAvailable}</span> कार्ड शेष!</p>
-                </div>
-                <h3 className="text-2xl font-black mb-4 uppercase text-slate-800 dark:text-slate-100">अपना मनपसंद कार्ड नंबर चुनें</h3>
-                <p className="text-sm text-slate-500 font-bold mb-4">* हरे रंग के बॉक्स में से कोई भी एक नंबर चुनें</p>
-                <div className="number-grid bg-white/50 dark:bg-slate-900/50">
-                    {Array.from({ length: 150 }).map((_, i) => {
-                        let num = i + 1; let status = (num % 17 === 0 || num % 23 === 0) ? "sold" : "available";
-                        return ( <div key={num} onClick={() => status === "available" && setSelectedCardNo(num)} className={`number-box ${status === 'sold' ? 'number-sold' : selectedCardNo === num ? 'number-selected' : 'number-available'}`}>{num.toString().padStart(4, '0')}</div> )
-                    })}
-                </div>
-                {selectedCardNo && (
-                    <button onClick={() => openForm("Card Booking - " + selectedCardNo)} className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-black py-5 rounded-xl shadow-xl text-lg uppercase transition-all">
-                        नंबर {selectedCardNo.toString().padStart(4, '0')} के साथ आगे बढ़ें <i className="fa-solid fa-arrow-right ml-2"></i>
-                    </button>
-                )}
-            </div>
-        );
-
-        if (appState === "staff_login") return (
-            <div className="flex items-center justify-center h-screen bg-slate-900 p-4">
-                <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md border-4 border-blue-600">
-                    <h2 className="text-2xl font-black text-center mb-6 text-blue-800"><i className="fa-solid fa-user-shield mr-2"></i> STAFF LOGIN</h2>
-                    <form onSubmit={handleStaffLogin} className="space-y-4">
-                        <input name="staffId" placeholder="ID (Parkash/Rajkumar/Jorawar)" className="w-full p-4 border-2 border-slate-300 rounded-xl font-bold uppercase" required />
-                        <input name="staffPass" type="password" placeholder="Password" className="w-full p-4 border-2 border-slate-300 rounded-xl font-bold" required />
-                        <button className="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-lg">LOGIN</button>
-                        <button type="button" onClick={() => setAppState("landing")} className="w-full text-slate-500 font-bold hover:text-slate-800">BACK TO PORTAL</button>
-                    </form>
-                </div>
-            </div>
-        );
-
-        if (appState === "staff_dashboard") return (
-            <div className="min-h-screen bg-slate-100 p-6">
-                <div className="max-w-6xl mx-auto">
-                    <div className="flex justify-between items-center mb-8 bg-blue-800 p-6 rounded-2xl text-white shadow-lg">
-                        <h2 className="text-2xl font-black"><i className="fa-solid fa-satellite-dish blink-text mr-3"></i>LIVE DUTY BOARD</h2>
-                        <div className="flex items-center gap-4">
-                            <span className="font-bold bg-blue-900 px-4 py-2 rounded-full border border-blue-500">Welcome, {staffName}</span>
-                            <button onClick={() => setAppState("landing")} className="bg-red-500 hover:bg-red-600 px-6 py-2 rounded-lg font-black shadow-md">LOGOUT</button>
+        if (appView === "staff_dashboard") return (
+            <div className={`min-h-screen pb-10 ${theme === 'dark' ? 'dark' : ''}`}>
+                <div className="min-h-screen bg-slate-100 p-6">
+                    <div className="max-w-6xl mx-auto">
+                        <div className="flex justify-between items-center mb-8 bg-blue-800 p-6 rounded-2xl text-white shadow-lg">
+                            <h2 className="text-2xl font-black"><i className="fa-solid fa-satellite-dish blink-text mr-3"></i>LIVE DUTY BOARD</h2>
+                            <div className="flex items-center gap-4">
+                                <span className="font-bold bg-blue-900 px-4 py-2 rounded-full border border-blue-500">Welcome, {staffName}</span>
+                                <button onClick={() => setAppView("portal")} className="bg-red-500 hover:bg-red-600 px-6 py-2 rounded-lg font-black shadow-md">LOGOUT</button>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {liveRequests.filter(d => d.Membership_ID).map((item, idx) => (
+                                <div key={idx} className={`staff-box p-6 rounded-2xl shadow-md flex justify-between items-center ${item.Work_Status === 'PENDING' ? 'pending' : item.Work_Status === 'DONE' ? 'done bg-white' : 'sold'}`}>
+                                    <div>
+                                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{item.Membership_ID}</p>
+                                        <h3 className="text-xl font-black text-slate-800 mt-1">{item.Name || "No Name"}</h3>
+                                        <p className="font-bold text-blue-600 text-sm"><i className="fa-solid fa-phone mr-1"></i> {item.Mobile}</p>
+                                    </div>
+                                    <div className="text-right flex flex-col items-end gap-2">
+                                        <span className={`px-4 py-1 rounded-full text-xs font-black border ${item.Work_Status === 'PENDING' ? 'bg-yellow-100 text-yellow-700 border-yellow-300' : 'bg-green-100 text-green-700 border-green-300'}`}>{item.Work_Status || 'PENDING'}</span>
+                                        {item.Work_Status === 'PENDING' && (
+                                            <div className="flex gap-2 mt-2">
+                                                <button onClick={() => handleVerifyAction(item, 'DONE')} className="bg-blue-600 text-white px-4 py-2 rounded-xl font-black shadow text-xs">Verify</button>
+                                                <button onClick={() => handleVerifyAction(item, 'SOLD')} className="bg-red-500 text-white px-4 py-2 rounded-xl font-black shadow text-xs">Sold</button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {liveRequests.filter(d => d.Membership_ID).map((item, idx) => (
-                            <div key={idx} className={`staff-box p-6 rounded-2xl shadow-md flex justify-between items-center ${item.Work_Status === 'PENDING' ? 'pending' : item.Work_Status === 'DONE' ? 'done bg-white' : 'sold'}`}>
-                                <div>
-                                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{item.Membership_ID || "NEW BOOKING"}</p>
-                                    <h3 className="text-xl font-black text-slate-800 mt-1">{item.Name || "No Name"}</h3>
-                                    <p className="font-bold text-blue-600 text-sm"><i className="fa-solid fa-phone mr-1"></i> {item.Mobile}</p>
-                                    <p className="text-xs mt-2 font-bold text-red-500 bg-red-50 inline-block px-2 py-1 rounded">Task: {item.Problem || item.Service_Type}</p>
-                                </div>
-                                <div className="text-right flex flex-col items-end gap-2">
-                                    <span className={`px-4 py-1 rounded-full text-xs font-black border ${item.Work_Status === 'PENDING' ? 'bg-yellow-100 text-yellow-700 border-yellow-300' : 'bg-green-100 text-green-700 border-green-300'}`}>{item.Work_Status || 'PENDING'}</span>
-                                    {item.Work_Status === 'PENDING' && (
-                                        <div className="flex gap-2 mt-2">
-                                            <button onClick={() => handleVerifyAction(item, 'DONE')} className="bg-blue-600 text-white px-4 py-2 rounded-xl font-black shadow text-xs">Verify</button>
-                                            <button onClick={() => handleVerifyAction(item, 'SOLD')} className="bg-red-500 text-white px-4 py-2 rounded-xl font-black shadow text-xs">Sold</button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
                 </div>
             </div>
         );
+
+        if (status === "loading") return <div className="h-screen flex items-center justify-center font-black text-3xl text-blue-600 animate-pulse tracking-widest bg-slate-50 dark:bg-slate-900">DPSG LOADING...</div>;
 
         return (  
             <div className={`min-h-screen pb-10 ${theme === 'dark' ? 'dark' : ''}`}> 
+                
+                {/* WELCOME POPUP */}
                 {showWelcome && appState === "view" && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 fade-in-scale">
                         <div className="bg-white dark:bg-slate-800 p-10 sm:p-14 rounded-[3rem] w-full max-w-xl text-center shadow-[0_0_50px_rgba(59,130,246,0.5)] border-4 border-blue-400 relative overflow-hidden">
+                            <div className="absolute top-6 right-6">
+                                <button onClick={()=>setLang(lang==='hi'?'en':'hi')} className="px-4 py-1.5 bg-blue-50 dark:bg-slate-700 rounded-full text-xs font-black text-blue-700 border border-blue-200">
+                                    <i className="fa-solid fa-language"></i> {lang==='hi' ? 'EN' : 'HI'}
+                                </button>
+                            </div>
+                            <i className="fa-solid fa-hands-holding-circle text-7xl text-blue-600 mb-6 drop-shadow-md mt-4"></i>
                             <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-2 fancy-text">{getGreeting()}!</h2>
                             <p className="text-[17px] font-bold text-blue-800 dark:text-blue-300 mb-6 leading-relaxed">{t.welcomeTitle}</p>
-                            <button onClick={() => setShowWelcome(false)} className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-black py-5 rounded-2xl shadow-xl text-xl uppercase tracking-widest transition-all">
+                            <p className="text-[15px] text-slate-600 dark:text-slate-300 mb-8 font-medium">{t.welcomeBody}</p>
+                            <button onClick={() => setShowWelcome(false)} className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-black py-5 rounded-2xl shadow-xl text-xl uppercase tracking-widest">
                                 {t.proceedBtn} <i className="fa-solid fa-arrow-right ml-2"></i>
                             </button>
                         </div>
                     </div>
                 )}
 
+                {/* MARQUEE */}
                 <div className="no-print marquee flex justify-center items-center w-full">
                     <div className="marquee-content flex items-center">
-                        <i className="fa-solid fa-bullhorn text-5xl text-red-700 dark:text-red-900 mx-5 blink-text drop-shadow-lg"></i>
-                        <span className="blink-text text-xl font-black uppercase tracking-widest text-blue-900 dark:text-white">{t.official} :</span> 
-                        <span className="ml-4 text-[17px] font-bold text-slate-800 dark:text-slate-100">{member ? (member[38] || "Welcome to Digital Problem Solution Group Nimbahera") : "DPSG Dashboard Loading..."}</span>
-                        <i className="fa-solid fa-bullhorn text-5xl text-red-700 dark:text-red-900 mx-5 blink-text drop-shadow-lg"></i>
+                        <i className="fa-solid fa-bullhorn text-5xl text-red-700 mx-5 blink-text drop-shadow-lg"></i>
+                        <span className="blink-text text-xl font-black uppercase tracking-widest text-blue-900">{t.official} :</span> 
+                        <span className="ml-4 text-[17px] font-bold text-slate-800">{member ? (member[38] || "Welcome to DPSG Nimbahera") : "DPSG Dashboard Loading..."}</span>
                     </div>
                 </div>  
                 
                 <div className="max-w-3xl mx-auto p-4 sm:p-8 relative z-10">  
-                    <div className="no-print flex justify-end mb-4 gap-3">
-                        <button onClick={()=>setTheme(theme==='light'?'dark':'light')} className="w-12 h-12 flex items-center justify-center bg-white/90 dark:bg-slate-800/90 backdrop-blur-md rounded-full shadow-lg text-xl border-2 border-white hover:scale-105 transition-all">
-                            {theme==='light'?'🌙':'☀️'}
-                        </button>
+                    <div className="no-print flex justify-between items-center mb-8 gap-3">
+                        <button onClick={()=>setAppView("staff_login")} className="px-4 py-2 bg-blue-100 text-blue-800 font-black text-xs rounded-xl shadow border border-blue-200 uppercase"><i className="fa-solid fa-user-shield mr-2"></i>Staff Portal</button>
+                        <div className="flex gap-3">
+                            <button onClick={()=>setLang(lang==='hi'?'en':'hi')} className="px-6 py-2 bg-white/90 rounded-full shadow-lg text-sm font-black text-blue-700 border-2 border-white hover:scale-105 transition-all"><i className="fa-solid fa-language"></i> {lang==='hi' ? 'English' : 'हिंदी'}</button>
+                            <button onClick={()=>setTheme(theme==='light'?'dark':'light')} className="w-12 h-12 flex items-center justify-center bg-white/90 rounded-full shadow-lg text-xl border-2 border-white hover:scale-105 transition-all">{theme==='light'?'🌙':'☀️'}</button>
+                        </div>
                     </div>
 
+                    {/* LIVE TRACKING ALERT (IF APPLICABLE) */}
                     {appState === "search" && liveTrackingStatus && (
                         <div className={`p-6 rounded-2xl border-4 text-center shadow-xl animate-in zoom-in mb-6 ${liveTrackingStatus.Work_Status === 'PENDING' ? 'bg-amber-50 border-amber-300 text-amber-800' : 'bg-green-50 border-green-300 text-green-800'}`}>
                             <h3 className="text-xl font-black uppercase mb-2"><i className="fa-solid fa-satellite-dish mr-2"></i> Live Tracking Alert</h3>
                             <p className="font-bold">ID: {liveTrackingStatus.Membership_ID} | Name: {liveTrackingStatus.Name}</p>
                             <p className="text-3xl font-black mt-3 uppercase tracking-widest">{liveTrackingStatus.Work_Status || 'PENDING'}</p>
-                            <p className="text-sm mt-2 opacity-80">यह कार्य स्टाफ द्वारा प्रोसेस किया जा रहा है।</p>
+                            <p className="text-sm mt-2 opacity-80">This booking is being processed.</p>
                         </div>
                     )}
 
-                    {appState === "landing" && renderLandingPage()}
-                    {appState === "booking" && renderBookingGrid()}
+                    {/* 1. LANDING PAGE */}
+                    {appState === "landing" && (
+                        <div className="glass-card p-10 sm:p-14 text-center mt-10 animate-in zoom-in duration-500 shadow-2xl">
+                            <i className="fa-solid fa-building-shield text-7xl text-blue-600 mb-6 drop-shadow-lg"></i>
+                            <h1 className="text-3xl sm:text-4xl font-black italic uppercase text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-600 mb-2">{t.brand}</h1>
+                            <p className="text-amber-500 font-black tracking-widest mt-2 uppercase text-[15px] pb-6 mb-8 border-b-2 border-dashed border-slate-300">{t.service}</p>
+                            <div className="space-y-6">
+                                <button onClick={() => setAppState("booking")} className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-black py-6 rounded-2xl shadow-xl text-xl uppercase tracking-widest transition-all hover:scale-[1.02] border-b-4 border-indigo-900">
+                                    <i className="fa-solid fa-address-card mr-3 text-2xl"></i> नया कार्ड बुक करें (Book Card)
+                                </button>
+                                <button onClick={() => setAppState("search")} className="w-full bg-white text-blue-700 font-black py-6 rounded-2xl shadow-md text-lg uppercase tracking-widest transition-all hover:scale-[1.02] border-2 border-blue-200">
+                                    <i className="fa-solid fa-magnifying-glass mr-3"></i> सर्विस स्टेटस / कार्ड डाउनलोड
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 2. CARD BOOKING PAGE (1000 Grid + Plans + Prizes) */}
+                    {appState === "booking" && (
+                        <div className="space-y-8 animate-in slide-in-from-right duration-500">
+                            <button onClick={() => setAppState("landing")} className="text-slate-500 font-black flex items-center hover:text-blue-600"><i className="fa-solid fa-arrow-left mr-2"></i> वापस</button>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="glass-card p-6 border-t-8 border-t-slate-400 text-center"><h3 className="text-2xl font-black text-slate-700">SILVER</h3><p className="text-4xl font-black text-blue-600 my-2">₹50</p><p className="text-xs font-bold text-slate-500 mb-4">1 Month Validity</p><ul className="text-sm font-bold text-left space-y-2"><li><i className="fa-solid fa-check text-green-500 mr-2"></i>15 Print + 12 Photo</li><li><i className="fa-solid fa-check text-green-500 mr-2"></i>Lucky Draw Entry</li></ul></div>
+                                <div className="glass-card p-6 border-t-8 border-t-yellow-400 text-center transform scale-105 shadow-2xl relative"><div className="absolute top-0 right-0 bg-yellow-400 text-black text-[10px] font-black px-3 py-1 rounded-bl-lg">POPULAR</div><h3 className="text-2xl font-black text-yellow-600">GOLD</h3><p className="text-4xl font-black text-blue-600 my-2">₹100</p><p className="text-xs font-bold text-slate-500 mb-4">3 Months Validity</p><ul className="text-sm font-bold text-left space-y-2"><li><i className="fa-solid fa-check text-green-500 mr-2"></i>40 Print + 24 Photo</li><li><i className="fa-solid fa-star text-yellow-500 mr-2"></i>100% Guaranteed Gift</li></ul></div>
+                                <div className="glass-card p-6 border-t-8 border-t-blue-800 text-center"><h3 className="text-2xl font-black text-blue-900">VIP</h3><p className="text-4xl font-black text-blue-600 my-2">₹500</p><p className="text-xs font-bold text-slate-500 mb-4">6 Months (Family)</p><ul className="text-sm font-bold text-left space-y-2"><li><i className="fa-solid fa-check text-green-500 mr-2"></i>150 Print + 80 Photo</li><li><i className="fa-solid fa-crown text-yellow-500 mr-2"></i>Cashback + Big Prize</li></ul></div>
+                            </div>
+
+                            <div className="glass-card p-8">
+                                <h3 className="text-2xl font-black text-center text-blue-800 mb-6 uppercase"><i className="fa-solid fa-gift mr-2"></i> DPSG महा-इनाम गैलरी</h3>
+                                <div className="max-h-64 overflow-y-auto custom-scroll space-y-4 pr-2">
+                                    {inamList.map((inam, idx) => (
+                                        <div key={idx} className="bg-white/50 p-4 rounded-xl border border-blue-100 flex flex-col sm:flex-row items-center justify-between hover:scale-[1.01] transition-all">
+                                            <div className="font-black text-lg text-blue-700 w-full sm:w-1/3">Rank {inam.rank}: {inam.name}</div>
+                                            <div className="text-sm font-bold text-slate-600 italic text-center sm:text-right w-full sm:w-2/3">"{inam.msg}"</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="glass-card p-8 text-center">
+                                <div className="bg-red-100 border-2 border-red-500 text-red-700 px-4 py-3 rounded-xl mb-6 flex justify-center items-center blink-text"><i className="fa-solid fa-fire mr-3 text-2xl text-red-600"></i><p className="font-black uppercase tracking-widest">🔥 जल्दी करें! 1000 में से केवल <span className="text-2xl">{cardsAvailable}</span> कार्ड शेष!</p></div>
+                                <h3 className="text-2xl font-black mb-4 uppercase text-slate-800">अपना मनपसंद कार्ड नंबर चुनें</h3>
+                                <div className="flex justify-center gap-2 mb-6 flex-wrap">
+                                    <button onClick={()=>setSelectedFilter('ALL')} className={`px-4 py-2 rounded-full font-black text-sm border-2 ${selectedFilter==='ALL'?'bg-blue-600 text-white':'bg-transparent text-slate-600'}`}>ALL</button>
+                                    <button onClick={()=>setSelectedFilter('VIP')} className={`px-4 py-2 rounded-full font-black text-sm border-2 ${selectedFilter==='VIP'?'bg-blue-900 text-white':'bg-transparent text-blue-900'}`}>VIP</button>
+                                    <button onClick={()=>setSelectedFilter('Gold')} className={`px-4 py-2 rounded-full font-black text-sm border-2 ${selectedFilter==='Gold'?'bg-yellow-500 text-white':'bg-transparent text-yellow-600'}`}>GOLD</button>
+                                    <button onClick={()=>setSelectedFilter('Silver')} className={`px-4 py-2 rounded-full font-black text-sm border-2 ${selectedFilter==='Silver'?'bg-slate-400 text-white':'bg-transparent text-slate-500'}`}>SILVER</button>
+                                </div>
+                                <div className="card-grid custom-scroll bg-slate-50 rounded-2xl border-2 border-slate-200">
+                                    {cardsData.filter(c => selectedFilter === 'ALL' || c.type === selectedFilter).map((card, idx) => (
+                                        <div key={idx} onClick={() => handleCardSelect(card)} className={`grid-item ${card.sold ? 'sold' : `available ${card.type.toLowerCase()}`} ${selectedCardId?.id === card.id ? 'selected' : ''}`}>{card.id}</div>
+                                    ))}
+                                </div>
+                                {selectedCardId && (
+                                    <button onClick={()=>setShowBookingForm(true)} className="w-full mt-8 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black py-5 rounded-xl shadow-xl text-lg uppercase transition-all">नंबर {selectedCardId.id} के साथ बुक करें <i className="fa-solid fa-arrow-right ml-2"></i></button>
+                                )}
+                            </div>
+                        </div>
+                    )}
                     
+                    {/* 3. SEARCH PAGE */}
                     {appState === "search" && (  
                         <div className="glass-card p-12 text-center animate-in slide-in-from-left duration-500">  
                             <button onClick={() => setAppState("landing")} className="text-slate-500 font-black mb-6 flex items-center hover:text-blue-600"><i className="fa-solid fa-arrow-left mr-2"></i> वापस</button>
                             <i className="fa-solid fa-id-card text-7xl text-blue-600 mb-6 drop-shadow-lg"></i>  
-                            <h2 className="text-2xl font-black mb-8 uppercase text-slate-800 dark:text-slate-100">{t.searchTitle}</h2>  
-                            <input id="sid" type="text" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 rounded-2xl py-5 text-center mb-6 text-2xl font-black uppercase focus:border-blue-500 transition-all outline-none" placeholder="DPSG-26-XXXX" />  
-                            <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 py-5 rounded-2xl font-black text-white shadow-xl text-xl tracking-widest transition-all">{t.searchBtn}</button>  
+                            <h2 className="text-2xl font-black mb-8 uppercase text-slate-800">{t.searchTitle}</h2>  
+                            <input id="sid" type="text" className="w-full bg-slate-50 border-2 border-slate-300 rounded-2xl py-5 text-center mb-6 text-2xl font-black uppercase focus:border-blue-500 transition-all outline-none" placeholder="DPSG-26-XXXX" />  
+                            <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 py-5 rounded-2xl font-black text-white shadow-xl text-xl tracking-widest">{t.searchBtn}</button>  
                         </div>  
                     )}
 
-                    {/* 🚨 THE 100% ORIGINAL VIEW STATE WITH FULL DASHBOARD, SCRATCH CARD, T&C, POINTS 🚨 */}
+                    {/* 4. USER DASHBOARD (VIEW PAGE) - 50+ SERVICES, ICONS, RECEIPT */}
                     {appState === "view" && (  
                         <div className="space-y-8 animate-in slide-in-from-bottom-6 duration-700">  
                             <div className="text-center glass-card p-8">  
-                                <h1 className="text-3xl sm:text-4xl font-black italic uppercase text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-600 dark:from-blue-400 dark:to-indigo-300 leading-tight drop-shadow-sm">{t.brand}</h1>  
-                                <p className="text-amber-500 font-black tracking-widest mt-2 uppercase text-[15px] border-b-2 border-dashed border-amber-200 dark:border-amber-800 inline-block pb-2">{t.service}</p>  
-                                <p className="text-slate-700 dark:text-slate-200 font-black mt-5 italic text-[14px] bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm py-3 px-5 rounded-full inline-block border border-white/50 dark:border-slate-700 shadow-sm"><i className="fa-solid fa-quote-left text-blue-500 mr-2 text-lg"></i>{t.slogan}<i className="fa-solid fa-quote-right text-blue-500 ml-2 text-lg"></i></p>
+                                <h1 className="text-3xl sm:text-4xl font-black italic uppercase text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-600">{t.brand}</h1>  
+                                <p className="text-amber-500 font-black tracking-widest mt-2 uppercase text-[15px] border-b-2 border-dashed border-amber-200 inline-block pb-2">{t.service}</p>  
+                                <p className="text-slate-700 font-black mt-5 italic text-[14px] bg-white/50 py-3 px-5 rounded-full inline-block border border-white/50 shadow-sm"><i className="fa-solid fa-quote-left text-blue-500 mr-2 text-lg"></i>{t.slogan}<i className="fa-solid fa-quote-right text-blue-500 ml-2 text-lg"></i></p>
                             </div>  
-                            
+    
                             <div className="no-print grid grid-cols-4 gap-3 my-6">
-                                <button onClick={() => openForm(t.icon1)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-orange-400 hover:-translate-y-1 transition-all !border-[1px]">
-                                    <div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-50 text-orange-500 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-desktop"></i></div>
-                                    <span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon1}</span>
+                                <button onClick={() => openServiceForm(t.icon1)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-orange-400 hover:-translate-y-1 transition-all !border-[1px]"><div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-50 text-orange-500 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-desktop"></i></div><span className="text-[11px] sm:text-[12px] font-black text-slate-800 uppercase text-center leading-tight">{t.icon1}</span></button>
+                                <button onClick={() => openServiceForm(t.icon2)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-blue-400 hover:-translate-y-1 transition-all !border-[1px]"><div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-hard-drive"></i></div><span className="text-[11px] sm:text-[12px] font-black text-slate-800 uppercase text-center leading-tight">{t.icon2}</span></button>
+                                <button onClick={() => openServiceForm(t.icon3)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-purple-400 hover:-translate-y-1 transition-all !border-[1px]"><div className="w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-mobile-screen-button"></i></div><span className="text-[11px] sm:text-[12px] font-black text-slate-800 uppercase text-center leading-tight">{t.icon3}</span></button>
+                                <button onClick={() => openServiceForm(t.icon4)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-green-400 hover:-translate-y-1 transition-all !border-[1px]"><div className="w-14 h-14 bg-gradient-to-br from-green-100 to-green-50 text-green-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-building-columns"></i></div><span className="text-[11px] sm:text-[12px] font-black text-slate-800 uppercase text-center leading-tight">{t.icon4}</span></button>
+                            </div>
+
+                            <div className="no-print grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                                <button onClick={() => openServiceForm('Airtel Payment Bank')} className="group flex flex-row items-center justify-between glass-card !rounded-3xl py-4 px-6 hover:border-red-500 hover:-translate-y-1 transition-all !border-l-8 !border-l-red-600 bg-gradient-to-r from-red-50/50 to-transparent shadow-md">
+                                    <div className="text-left"><h3 className="font-black text-lg sm:text-[19px] uppercase text-slate-800">{t.airtelTitle}</h3><p className="text-[11px] font-bold text-red-600 mt-1 uppercase tracking-widest">{t.airtelSub}</p></div>
+                                    <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-xl shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-building-columns"></i></div>
                                 </button>
-                                <button onClick={() => openForm(t.icon2)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-blue-400 hover:-translate-y-1 transition-all !border-[1px]">
-                                    <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-hard-drive"></i></div>
-                                    <span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon2}</span>
-                                </button>
-                                <button onClick={() => openForm(t.icon3)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-purple-400 hover:-translate-y-1 transition-all !border-[1px]">
-                                    <div className="w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-mobile-screen-button"></i></div>
-                                    <span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon3}</span>
-                                </button>
-                                <button onClick={() => openForm(t.icon4)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-green-400 hover:-translate-y-1 transition-all !border-[1px]">
-                                    <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-green-50 text-green-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-building-columns"></i></div>
-                                    <span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon4}</span>
-                                </button>
+                                <a href="upi://pay?pa=7229874128@ybl&pn=DPSG" className="group flex flex-row items-center justify-between glass-card !rounded-3xl py-4 px-6 hover:border-slate-800 hover:-translate-y-1 transition-all !border-l-8 !border-l-slate-800 shadow-md">
+                                    <div className="text-left"><h3 className="font-black text-lg sm:text-[19px] uppercase text-slate-800">{t.payTitle}</h3><p className="text-[11px] font-bold text-slate-500 mt-1 uppercase tracking-widest">{t.paySub}</p></div>
+                                    <div className="w-12 h-12 bg-slate-200 text-slate-800 rounded-full flex items-center justify-center text-2xl shadow-inner group-hover:scale-110 transition-transform"><i className="fa-brands fa-google-pay text-green-600"></i></div>
+                                </a>
+                            </div>
+
+                            <div className="no-print glass-card p-6 mb-8 relative overflow-hidden text-center border-t-4 border-blue-500">
+                                <h3 className="font-black text-lg mb-4 text-blue-900 uppercase tracking-widest flex items-center justify-center"><i className="fa-solid fa-radar mr-2 text-xl"></i> {t.trackTitle}</h3>
+                                <div className="flex gap-2 max-w-md mx-auto">
+                                    <input type="text" id="liveStatusInput" placeholder={t.serialHint} maxLength="4" className="flex-1 bg-white/80 border-2 border-slate-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 font-black text-center uppercase tracking-widest shadow-inner text-slate-800" />
+                                    <button onClick={checkStatusFromCSV} className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-6 rounded-xl font-black uppercase tracking-widest transition-all shadow-xl">{t.checkBtn}</button>
+                                </div>
+                                {statusCheckResult && (
+                                    <div className={`mt-5 p-4 rounded-xl text-center font-black text-xl border-2 animate-in zoom-in shadow-lg ${statusCheckResult === 'OK' ? 'border-green-500 bg-green-50 text-green-600' : 'border-amber-500 bg-amber-50 text-amber-600'}`}>
+                                        {statusCheckResult === 'OK' ? t.statusOk : t.statusProcess}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="no-print glass-card p-8 relative overflow-hidden">
                                 <p className="text-red-500 font-black text-[13px] mb-6 text-center blink-text uppercase tracking-widest flex justify-center items-center"><i className="fa-solid fa-triangle-exclamation mr-2 text-xl"></i> {t.warning}</p>
                                 <div className={`p-2 rounded-[2.5rem] relative z-10 ${prizeState.isLocked ? 'glass-lock' : prizeState.colorClass}`}>  
                                     {prizeState.isLocked ? ( 
-                                        <div className="p-16 text-center flex flex-col items-center justify-center min-h-[350px]"> 
-                                            <div className="relative mb-8 mt-4">
-                                                <div className="absolute inset-0 bg-yellow-400 blur-3xl opacity-50 rounded-full"></div>
-                                                <i className="fa-solid fa-lock text-[10rem] text-transparent bg-clip-text bg-gradient-to-br from-yellow-200 via-yellow-500 to-yellow-800 drop-shadow-[0_15px_15px_rgba(0,0,0,0.4)] relative z-10"></i> 
-                                            </div>
-                                            <p className="font-black text-red-600 dark:text-red-500 text-3xl uppercase tracking-[0.2em] drop-shadow-md mt-6">{t.pending}</p> 
-                                        </div> 
+                                        <div className="p-16 text-center flex flex-col items-center justify-center min-h-[350px]"><div className="relative mb-8 mt-4"><div className="absolute inset-0 bg-yellow-400 blur-3xl opacity-50 rounded-full"></div><i className="fa-solid fa-lock text-[10rem] text-transparent bg-clip-text bg-gradient-to-br from-yellow-200 via-yellow-500 to-yellow-800 drop-shadow-[0_15px_15px_rgba(0,0,0,0.4)] relative z-10"></i></div><p className="font-black text-red-600 text-3xl uppercase tracking-[0.2em] drop-shadow-md mt-6">{t.pending}</p></div> 
                                     ) : (  
                                         <ScratchCard onComplete={() => confetti({particleCount:400, spread:120, origin:{y:0.6}, colors: ['#FFD700', '#FFA500', '#FF4500', '#00FF00']})}>  
-                                            <div className="p-8 text-center w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md flex flex-col items-center h-full justify-center">
-                                                <div className="bg-gradient-to-r from-blue-800 via-indigo-600 to-blue-800 text-white px-10 py-3 rounded-full font-black text-xl mb-8 uppercase shadow-[0_10px_20px_rgba(79,70,229,0.4)] tracking-widest border-2 border-indigo-300 fancy-text">{prizeState.highlight}</div>  
-                                                <img src={prizeState.img} className="w-full max-h-[400px] object-contain mb-8 drop-shadow-2xl rounded-2xl" alt="Prize" />  
-                                                <p className="text-[16px] font-black leading-relaxed whitespace-pre-line px-2 text-gradient-prize fancy-text">{t.prizes[prizeState.type] ? t.prizes[prizeState.type](prizeState.rank) : ""}</p>
-                                            </div>
+                                            <div className="p-8 text-center w-full bg-white/95 backdrop-blur-md flex flex-col items-center h-full justify-center"><div className="bg-gradient-to-r from-blue-800 via-indigo-600 to-blue-800 text-white px-10 py-3 rounded-full font-black text-xl mb-8 uppercase shadow-[0_10px_20px_rgba(79,70,229,0.4)] tracking-widest border-2 border-indigo-300 fancy-text">{prizeState.highlight}</div><img src={prizeState.img} className="w-full max-h-[400px] object-contain mb-8 drop-shadow-2xl rounded-2xl" alt="Prize" /><p className="text-[16px] font-black leading-relaxed whitespace-pre-line px-2 text-gradient-prize fancy-text">{t.prizes[prizeState.type] ? t.prizes[prizeState.type](prizeState.rank) : ""}</p></div>
                                         </ScratchCard>  
                                     )}  
                                 </div>
                             </div>
 
                             <div className="no-print grid grid-cols-2 gap-4 my-2">
-                                <button onClick={() => openForm('WhatsApp (HELP)')} className="bg-gradient-to-b from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-black py-5 rounded-2xl shadow-[0_10px_20px_rgba(34,197,94,0.3)] flex items-center justify-center text-md transition-all border border-green-300 uppercase tracking-widest">
-                                    <i className="fa-brands fa-whatsapp text-3xl mr-3 drop-shadow-md"></i> HELP
-                                </button>
-                                <button onClick={() => openForm('LOCATION')} className="bg-gradient-to-b from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white font-black py-5 rounded-2xl shadow-[0_10px_20px_rgba(239,68,68,0.3)] flex items-center justify-center text-md transition-all border border-red-400 uppercase tracking-widest">
-                                    <i className="fa-solid fa-location-dot text-2xl mr-3 drop-shadow-md"></i> LOCATION
-                                </button>
+                                <button onClick={() => openForm('WhatsApp (HELP)')} className="bg-gradient-to-b from-green-400 to-green-600 hover:from-green-500 text-white font-black py-5 rounded-2xl shadow-[0_10px_20px_rgba(34,197,94,0.3)] flex items-center justify-center text-md transition-all border border-green-300 uppercase tracking-widest"><i className="fa-brands fa-whatsapp text-3xl mr-3 drop-shadow-md"></i> HELP</button>
+                                <button onClick={() => openForm('LOCATION')} className="bg-gradient-to-b from-red-500 to-red-700 hover:from-red-600 text-white font-black py-5 rounded-2xl shadow-[0_10px_20px_rgba(239,68,68,0.3)] flex items-center justify-center text-md transition-all border border-red-400 uppercase tracking-widest"><i className="fa-solid fa-location-dot text-2xl mr-3 drop-shadow-md"></i> LOCATION</button>
                             </div>
 
+                            {/* PROFESSIONAL RECEIPT */}
                             <div id="receipt" className="glass-card p-8 sm:p-12 text-left relative mt-8">  
-                                <div className="text-center border-b-4 border-slate-200 dark:border-slate-700 border-dashed pb-8 mb-10">
-                                    <h3 className="font-black text-3xl text-blue-900 dark:text-blue-400 italic uppercase tracking-tight drop-shadow-sm">{t.receipt}</h3>
-                                    <p className="text-[12px] font-black text-slate-500 uppercase tracking-[0.5em] mt-3 bg-white/50 dark:bg-slate-800/50 inline-block px-4 py-1 rounded-full border border-white/50">DPSG NIMBAHERA</p>
+                                <div className="text-center border-b-4 border-slate-200 border-dashed pb-8 mb-10">
+                                    <h3 className="font-black text-3xl text-blue-900 italic uppercase tracking-tight drop-shadow-sm">{t.receipt}</h3>
+                                    <p className="text-[12px] font-black text-slate-500 uppercase tracking-[0.5em] mt-3 bg-white/50 inline-block px-4 py-1 rounded-full border border-white/50">DPSG NIMBAHERA</p>
                                 </div>  
                                 
-                                <div className="grid grid-cols-2 gap-y-12 gap-x-4 text-sm border-b-2 border-slate-200 dark:border-slate-700 pb-12">  
-                                    <div className="col-span-2 text-center bg-blue-50/70 dark:bg-blue-900/30 backdrop-blur-sm border-2 border-blue-400 dark:border-blue-600 rounded-[2rem] p-8 shadow-[0_0_25px_rgba(59,130,246,0.3)] transform transition hover:scale-[1.01]">
-                                        <p className="text-[15px] sm:text-[17px] font-black text-blue-800 dark:text-blue-300 tracking-[0.2em] uppercase mb-4 fancy-text flex justify-center items-center"><i className="fa-solid fa-fingerprint mr-3 text-2xl"></i> {t.idLabelFull}</p>
-                                        <p className="text-4xl sm:text-5xl font-black text-blue-600 dark:text-blue-400 drop-shadow-md tracking-wider fancy-text">{clean(member[1])}</p>
+                                <div className="grid grid-cols-2 gap-y-12 gap-x-4 text-sm border-b-2 border-slate-200 pb-12">  
+                                    <div className="col-span-2 text-center bg-blue-50/70 border-2 border-blue-400 rounded-[2rem] p-8 shadow-[0_0_25px_rgba(59,130,246,0.3)] transform transition hover:scale-[1.01]">
+                                        <p className="text-[15px] sm:text-[17px] font-black text-blue-800 tracking-[0.2em] uppercase mb-4 fancy-text flex justify-center items-center"><i className="fa-solid fa-fingerprint mr-3 text-2xl"></i> {t.idLabelFull}</p>
+                                        <p className="text-4xl sm:text-5xl font-black text-blue-600 drop-shadow-md tracking-wider fancy-text">{clean(member[1])}</p>
                                     </div>
-
-                                    <div className="col-span-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm p-6 rounded-2xl border border-white/50 dark:border-slate-700">
+                                    <div className="col-span-2 bg-white/60 p-6 rounded-2xl border border-white/50">
                                         <div className="grid grid-cols-2 gap-4">
-                                            <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text"><i className="fa-solid fa-user text-blue-500 mr-2"></i>{t.cName}</p><p className="font-black uppercase text-2xl text-indigo-900 dark:text-indigo-300 drop-shadow-sm">{clean(member[8])}</p></div>  
-                                            <div className="text-right"><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text"><i className="fa-solid fa-map-location-dot text-red-500 mr-2"></i>{t.vill}</p><p className="font-black uppercase text-2xl text-slate-800 dark:text-slate-200">{clean(member[5])}</p></div>  
+                                            <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 tracking-[0.1em] uppercase mb-2 fancy-text"><i className="fa-solid fa-user text-blue-500 mr-2"></i>{t.cName}</p><p className="font-black uppercase text-2xl text-indigo-900 drop-shadow-sm">{clean(member[8])}</p></div>  
+                                            <div className="text-right"><p className="text-[14px] sm:text-[15px] font-black text-slate-600 tracking-[0.1em] uppercase mb-2 fancy-text"><i className="fa-solid fa-map-location-dot text-red-500 mr-2"></i>{t.vill}</p><p className="font-black uppercase text-2xl text-slate-800">{clean(member[5])}</p></div>  
                                         </div>
                                     </div>
-                                    
-                                    <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.cat}</p><p className="font-black text-blue-900 dark:text-blue-200 px-5 py-2 border-2 border-blue-200 dark:border-blue-800 rounded-xl bg-blue-50/80 dark:bg-blue-900/50 inline-block shadow-sm text-lg">{clean(member[3])}</p></div>  
-                                    <div className="text-right"><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.sMob}</p><p className="font-black tracking-[0.2em] text-xl text-slate-700 dark:text-slate-300 bg-white/50 dark:bg-slate-800/50 px-3 py-1 rounded-lg inline-block border border-white/50">{mask(member[9])}</p></div>
-                                    
-                                    <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.sAad}</p><p className="font-black tracking-[0.2em] text-xl text-slate-700 dark:text-slate-300 bg-white/50 dark:bg-slate-800/50 px-3 py-1 rounded-lg inline-block border border-white/50">{mask(member[11])}</p></div>
+                                    <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 tracking-[0.1em] uppercase mb-2 fancy-text">{t.cat}</p><p className="font-black text-blue-900 px-5 py-2 border-2 border-blue-200 rounded-xl bg-blue-50/80 inline-block shadow-sm text-lg">{clean(member[3])}</p></div>  
+                                    <div className="text-right"><p className="text-[14px] sm:text-[15px] font-black text-slate-600 tracking-[0.1em] uppercase mb-2 fancy-text">{t.sMob}</p><p className="font-black tracking-[0.2em] text-xl text-slate-700 bg-white/50 px-3 py-1 rounded-lg inline-block border border-white/50">{mask(member[9])}</p></div>
+                                    <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 tracking-[0.1em] uppercase mb-2 fancy-text">{t.sAad}</p><p className="font-black tracking-[0.2em] text-xl text-slate-700 bg-white/50 px-3 py-1 rounded-lg inline-block border border-white/50">{mask(member[11])}</p></div>
                                     <div className="text-right"></div>
-                                    
-                                    <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.active}</p><p className="font-black text-2xl text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-2 rounded-xl border-2 border-emerald-300 dark:border-emerald-700 inline-block shadow-md date-font tracking-wider">{clean(member[15])}</p></div>  
-                                    <div className="text-right"><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.expiry}</p><p className="font-black text-2xl text-white bg-red-600 px-5 py-2 rounded-xl border-2 border-red-800 inline-block shadow-[0_5px_15px_rgba(220,38,38,0.4)] date-font tracking-wider animate-pulse">{clean(member[16])}</p></div>  
+                                    <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 tracking-[0.1em] uppercase mb-2 fancy-text">{t.active}</p><p className="font-black text-2xl text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl border-2 border-emerald-300 inline-block shadow-md date-font tracking-wider">{clean(member[15])}</p></div>  
+                                    <div className="text-right"><p className="text-[14px] sm:text-[15px] font-black text-slate-600 tracking-[0.1em] uppercase mb-2 fancy-text">{t.expiry}</p><p className="font-black text-2xl text-white bg-red-600 px-5 py-2 rounded-xl border-2 border-red-800 inline-block shadow-[0_5px_15px_rgba(220,38,38,0.4)] date-font tracking-wider animate-pulse">{clean(member[16])}</p></div>  
                                 </div>
                                 
                                 <div className="grid grid-cols-3 gap-5 my-12">
@@ -531,9 +652,9 @@
                                     <div className="bg-gradient-to-b from-emerald-500 to-emerald-700 text-white p-6 rounded-3xl text-center shadow-[0_10px_20px_rgba(16,185,129,0.3)] border-t-4 border-emerald-300"><p className="text-[11px] sm:text-[12px] font-bold opacity-80 uppercase tracking-widest mb-2 fancy-text">{t.balance}</p><p className="text-4xl font-black drop-shadow-md">{clean(member[21])}</p></div>
                                 </div>
                                 
-                                <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-slate-800/80 dark:to-slate-700/80 backdrop-blur-md p-8 rounded-[2.5rem] border-2 border-blue-200 dark:border-slate-600 my-8 font-bold italic text-[13px] space-y-4 shadow-inner">
-                                    <p className="text-blue-900 dark:text-blue-300 font-black uppercase mb-6 flex items-center italic text-lg"><i className="fa-solid fa-crown mr-3 text-yellow-500 text-2xl drop-shadow-sm"></i> {t.ben}</p>
-                                    {(() => { const cat = (member[3] || "").toLowerCase(); let key = (cat.includes("vip") || cat.includes("500")) ? "VIP" : (cat.includes("gold") || cat.includes("100")) ? "Gold" : "Silver"; return cardSpecs[key][lang].map((ben, i) => ( <div key={i} className="flex items-start py-3 border-b-2 border-blue-200/50 dark:border-slate-600/50 last:border-0 text-slate-800 dark:text-slate-200"><i className="fa-solid fa-circle-check text-green-500 mr-4 mt-0.5 text-lg drop-shadow-sm"></i>{ben}</div> )); })()}
+                                <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 backdrop-blur-md p-8 rounded-[2.5rem] border-2 border-blue-200 my-8 font-bold italic text-[13px] space-y-4 shadow-inner">
+                                    <p className="text-blue-900 font-black uppercase mb-6 flex items-center italic text-lg"><i className="fa-solid fa-crown mr-3 text-yellow-500 text-2xl drop-shadow-sm"></i> {t.ben}</p>
+                                    {(() => { const cat = (member[3] || "").toLowerCase(); let key = (cat.includes("vip") || cat.includes("500")) ? "VIP" : (cat.includes("gold") || cat.includes("100")) ? "Gold" : "Silver"; return cardSpecs[key][lang].map((ben, i) => ( <div key={i} className="flex items-start py-3 border-b-2 border-blue-200/50 last:border-0 text-slate-800"><i className="fa-solid fa-circle-check text-green-500 mr-4 mt-0.5 text-lg drop-shadow-sm"></i>{ben}</div> )); })()}
                                 </div>
                                 
                                 <div className="bg-gradient-to-br from-slate-900 via-black to-slate-900 text-white p-12 rounded-[3rem] text-center mb-10 shadow-2xl border-4 border-slate-700 relative overflow-hidden">
@@ -542,93 +663,87 @@
                                     <p className="text-5xl font-black text-yellow-400 italic uppercase tracking-widest drop-shadow-[0_0_20px_rgba(250,204,21,0.6)] date-font mt-2">{clean(member[36])}</p>
                                 </div>
                                 
-                                <div className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-10 rounded-[2.5rem] border-2 border-white/60 dark:border-slate-700 mb-10 text-[12px] font-bold italic space-y-4 text-slate-600 dark:text-slate-400 shadow-inner">
-                                    <h4 className="text-[15px] font-black uppercase mb-6 border-b-2 border-slate-200 dark:border-slate-600 pb-4 flex items-center text-slate-900 dark:text-slate-100"><i className="fa-solid fa-scale-balanced mr-3 text-blue-600 text-xl"></i> {t.tTitle}</h4>
+                                <div className="bg-white/50 p-10 rounded-[2.5rem] border-2 border-white/60 mb-10 text-[12px] font-bold italic space-y-4 text-slate-600 shadow-inner">
+                                    <h4 className="text-[15px] font-black uppercase mb-6 border-b-2 border-slate-200 pb-4 flex items-center text-slate-900"><i className="fa-solid fa-scale-balanced mr-3 text-blue-600 text-xl"></i> {t.tTitle}</h4>
                                     <p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t1}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t2}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t3}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t4}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t5}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t6}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t7}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t8}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t9}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t10}</p>
                                 </div>
-                                
-                                <button onClick={()=>window.print()} className="no-print w-full bg-gradient-to-r from-blue-700 to-indigo-800 hover:from-blue-800 hover:to-indigo-900 text-white py-6 rounded-2xl font-black uppercase shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all text-xl tracking-widest border-b-4 border-indigo-950"><i className="fa-solid fa-print mr-3 text-2xl"></i> {t.printBtn}</button>
-                            </div>
-
-                            <div className="no-print pt-10 pb-20 flex flex-col items-center">  
-                                {!isAdmin && <button onClick={()=>setShowPin(!showPin)} className="p-8 glass-card !rounded-full opacity-50 hover:opacity-100 transition-all hover:scale-110 !border-[1px]"><i className="fa-solid fa-fingerprint text-6xl text-blue-600"></i></button>}  
-                                {showPin && !isAdmin && ( <div className="mt-8 glass-card p-10 w-full animate-in zoom-in shadow-2xl"><input type="password" id="adminPin" className="w-full bg-slate-50/80 dark:bg-slate-900/80 border-4 border-slate-200 dark:border-slate-600 rounded-2xl py-6 text-center mb-6 font-black outline-none text-3xl tracking-widest focus:border-blue-500 transition-all" placeholder="MASTER PIN" /><button onClick={()=>{document.getElementById('adminPin').value===MASTER_PIN?setIsAdmin(true):alert("Wrong Pin!");}} className="w-full bg-slate-900 dark:bg-black text-white py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-slate-800 transition-all text-xl"><i className="fa-solid fa-unlock mr-3"></i> Unlock Database</button></div> )}
-                                {isAdmin && ( <div className="w-full mt-8 glass-card p-10 text-left overflow-hidden border-t-8 border-t-blue-600"><div className="flex justify-between items-center mb-8 border-b-2 border-slate-200 dark:border-slate-700 pb-5"><h3 className="font-black text-lg text-blue-600 uppercase tracking-widest"><i className="fa-solid fa-database mr-3"></i> Master Database Panel</h3><button onClick={()=>setIsAdmin(false)} className="text-red-600 font-black text-[13px] uppercase border-2 border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20 px-6 py-2 rounded-full transition-all">Logout</button></div><div className="grid gap-4 max-h-[600px] overflow-y-auto pr-2 custom-scroll">{member.map((v, i) => ( <div key={i} className="p-6 bg-white/50 dark:bg-slate-900/50 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 transition-all"><p className="text-[11px] text-slate-500 font-black uppercase mb-2 tracking-widest">{headers[i] || `Index ${i}`}</p><p className="font-black text-lg text-slate-800 dark:text-slate-100">{v||"---"}</p></div> ))}</div></div> )}
+                                <button onClick={()=>window.print()} className="no-print w-full bg-gradient-to-r from-blue-700 to-indigo-800 text-white py-6 rounded-2xl font-black uppercase shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all text-xl tracking-widest border-b-4 border-indigo-950"><i className="fa-solid fa-print mr-3 text-2xl"></i> {t.printBtn}</button>
                             </div>
                         </div>
                     )}
 
-                    {/* NEW UPDATED SMART FORM MODAL (WhatsApp + Google Sheet) */}
-                    {showForm && (
-                        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-4 overflow-y-auto pt-20 pb-20">
-                            <div className="glass-card p-8 sm:p-12 w-full max-w-lg relative animate-in zoom-in duration-300 border-4 border-blue-400">
-                                <button onClick={() => setShowForm(false)} className="absolute top-6 right-6 w-12 h-12 bg-red-100 text-red-600 rounded-full font-black text-2xl"><i className="fa-solid fa-xmark"></i></button>
-                                
-                                <div className="text-center mb-8 border-b-2 border-slate-200 border-dashed pb-6">
-                                    <h3 className="text-2xl font-black text-slate-800 uppercase tracking-wider">{formType}</h3>
+                    {/* MODAL 1: CARD BOOKING (Airtel Pan logic included) */}
+                    {showBookingForm && selectedCardId && (
+                        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/95 backdrop-blur-xl p-4 overflow-y-auto">
+                            <div className="glass-card p-8 w-full max-w-2xl relative my-8 border-4 border-green-400">
+                                <button onClick={() => {setShowBookingForm(false); setSelectedCardId(null);}} className="absolute top-4 right-4 text-red-500 hover:text-red-700 text-3xl"><i className="fa-solid fa-circle-xmark"></i></button>
+                                <h2 className="text-3xl font-black text-center mb-6 uppercase text-slate-800"><i className="fa-solid fa-address-card text-blue-600 mr-2"></i> Card Booking</h2>
+                                <div className="bg-blue-50 p-6 rounded-2xl mb-8 border-2 border-blue-200 flex justify-between items-center">
+                                    <div><p className="text-sm font-bold text-slate-500 uppercase">Selected Card</p><p className="text-3xl font-black text-blue-700">{selectedCardId.type} - {selectedCardId.id}</p></div>
+                                    <div className="text-right"><p className="text-sm font-bold text-slate-500 uppercase">Payable</p><p className="text-4xl font-black text-green-600">₹{selectedCardId.type === 'VIP' ? '500' : selectedCardId.type === 'Gold' ? '100' : '50'}</p></div>
                                 </div>
+                                <form onSubmit={submitCardBooking} className="space-y-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                        <div><label className="block text-sm font-black text-slate-600 mb-2">Customer Name *</label><input type="text" name="Name" required className="w-full p-4 rounded-xl border-2 border-slate-300 font-bold outline-none" /></div>
+                                        <div><label className="block text-sm font-black text-slate-600 mb-2">Mobile Number *</label><input type="tel" name="Mobile" required className="w-full p-4 rounded-xl border-2 border-slate-300 font-bold outline-none" /></div>
+                                        <div className="sm:col-span-2"><label className="block text-sm font-black text-slate-600 mb-2">Aadhar Number</label><input type="text" name="Aadhar" className="w-full p-4 rounded-xl border-2 border-slate-300 font-bold outline-none" /></div>
+                                    </div>
+                                    <div className="bg-red-50 p-6 rounded-2xl border-2 border-red-200 mt-6">
+                                        <h4 className="font-black text-red-600 text-lg mb-4 uppercase"><i className="fa-solid fa-bolt mr-2 text-yellow-500"></i> Payment Method</h4>
+                                        <div className="space-y-4">
+                                            <label className="flex items-start cursor-pointer group"><input type="radio" name="Payment_Method" value="UPI" required onChange={(e)=>setBookingPaymentMode(e.target.value)} className="mt-1 w-5 h-5" /><div className="ml-3"><p className="font-black text-slate-800">Standard UPI / QR Code</p></div></label>
+                                            <label className="flex items-start cursor-pointer group bg-white p-4 rounded-xl border border-red-100"><input type="radio" name="Payment_Method" value="Airtel_Bank_IS50" required onChange={(e)=>setBookingPaymentMode(e.target.value)} className="mt-1 w-5 h-5 text-red-600" /><div className="ml-3"><p className="font-black text-red-700 flex items-center"><i className="fa-solid fa-building-columns mr-2"></i> Airtel Payment Bank (IS 50 Offer)</p></div></label>
+                                        </div>
+                                    </div>
+                                    {bookingPaymentMode === 'Airtel_Bank_IS50' && (
+                                        <div><label className="block text-sm font-black text-slate-600 mb-2">PAN Card <span className="text-red-500 animate-pulse">(Mandatory for Airtel)</span></label><input type="text" name="Pan" required className="w-full p-4 rounded-xl border-2 border-red-300 font-bold uppercase" /></div>
+                                    )}
+                                    <button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-black py-6 rounded-2xl shadow-xl text-xl uppercase tracking-widest mt-8"><i className="fa-solid fa-check-circle mr-2"></i> Submit & Save</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL 2: 50+ SERVICES SMART FORM */}
+                    {showServiceForm && (
+                        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-4 overflow-y-auto">
+                            <div className="glass-card p-8 sm:p-12 w-full max-w-lg relative animate-in zoom-in duration-300 border-4 border-blue-100 my-8">
+                                <button onClick={() => setShowServiceForm(false)} className="absolute top-6 right-6 w-12 h-12 bg-red-50 text-red-600 rounded-full font-black text-2xl"><i className="fa-solid fa-xmark"></i></button>
+                                <div className="text-center mb-8 border-b-2 border-slate-200 border-dashed pb-6"><h3 className="text-3xl font-black text-slate-800 uppercase">{formType || "Service Request"}</h3></div>
                                 
-                                <form onSubmit={sendToWhatsAppAndSheet} className="space-y-6 text-left">
-                                    <input type="hidden" name="Service" value={formType} />
+                                <form onSubmit={submitServiceRequest} className="space-y-6 text-left">
+                                    <input type="hidden" name="id" value={member ? member[1] : "NEW"} />
+                                    <div><label className="block text-[13px] font-black uppercase text-slate-600 mb-2 tracking-widest">Grahak Ka Naam <span className="text-red-500">*</span></label><input type="text" name="name" required className="w-full border-2 border-slate-300 p-5 rounded-2xl font-black text-xl shadow-inner uppercase" /></div>
                                     
                                     <div>
-                                        <label className="block text-[13px] font-black uppercase text-slate-600 mb-2 tracking-widest">पूरा नाम <span className="text-red-500">*</span></label>
-                                        <input type="text" name="Name" required pattern="[A-Za-z ]+" title="केवल अक्षर (Alphabets) दर्ज करें" className="w-full border-2 border-slate-300 p-4 rounded-xl font-bold text-lg" placeholder="अपना नाम लिखें" />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-[13px] font-black uppercase text-slate-600 mb-2 tracking-widest">आधार लिंक मोबाइल <span className="text-red-500">*</span></label>
-                                        <input type="tel" name="Mobile" required pattern="[6-9][0-9]{9}" title="सही 10 अंकों का मोबाइल नंबर दर्ज करें" className="w-full border-2 border-slate-300 p-4 rounded-xl font-bold text-xl" placeholder="10 Digit Mobile No" />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-[13px] font-black uppercase text-slate-600 mb-2 tracking-widest">आधार कार्ड नंबर <span className="text-red-500">*</span></label>
-                                        <input type="text" name="Aadhar" required pattern="[0-9]{12}" title="सही 12 अंकों का आधार दर्ज करें" className="w-full border-2 border-slate-300 p-4 rounded-xl font-bold text-xl tracking-[0.2em]" placeholder="XXXX XXXX XXXX" />
-                                    </div>
-                                    
-                                    <div>
-                                        <label className="block text-[13px] font-black uppercase text-slate-600 mb-2 tracking-widest">जन्म तिथि (DOB) <span className="text-red-500">*</span></label>
-                                        <input type="date" name="DOB" required className="w-full border-2 border-slate-300 p-4 rounded-xl font-bold text-lg" />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-[13px] font-black uppercase text-slate-600 mb-2 tracking-widest">पेमेंट का माध्यम <span className="text-red-500">*</span></label>
-                                        <select value={paymentMode} onChange={(e)=>setPaymentMode(e.target.value)} name="Payment" className="w-full border-2 border-slate-300 p-4 rounded-xl font-bold text-lg">
-                                            <option value="Cash">Cash (नकद)</option>
-                                            <option value="UPI">UPI (PhonePe/Google Pay)</option>
-                                            <option value="Airtel Payment Bank">Airtel Payment Bank</option>
+                                        <label className="block text-[13px] font-black uppercase text-slate-600 mb-2 tracking-widest">Select Service <span className="text-red-500">*</span></label>
+                                        <select name="service" required className="w-full border-2 border-slate-300 p-5 rounded-2xl font-bold text-[16px] shadow-inner text-slate-700" onChange={(e) => setDocHint(docList[e.target.value] || "")}>
+                                            <option value="">-- Seva Chunein --</option>
+                                            <optgroup label="Airtel Payment Bank"><option value="Airtel_Bank">🔴 Airtel Bank Khaata / KYC</option></optgroup>
+                                            <optgroup label="Central Government Services"><option value="PAN_Card">💳 PAN Card</option><option value="Other">Ayushman Card / Passport</option></optgroup>
+                                            <optgroup label="Rajasthan E-Mitra"><option value="Birth_Cert">Janam Praman Patra</option><option value="Caste_Cert">Jati Praman Patra</option><option value="Bonafide">Mool Niwas</option><option value="Other">Jan Aadhar / Ration Card</option></optgroup>
+                                            <optgroup label="Other Services"><option value="Other">ITR / Kanooni Salah</option><option value="Other">Scholarship Form</option></optgroup>
                                         </select>
                                     </div>
-
-                                    {/* AIRTEL SPECIAL PAN CONDITION */}
-                                    <div className={`transition-all ${paymentMode === 'Airtel Payment Bank' ? 'block bg-red-50 p-4 rounded-xl border-2 border-red-300' : 'block'}`}>
-                                        <label className="block text-[13px] font-black uppercase text-slate-600 mb-2 tracking-widest">
-                                            पैन कार्ड (PAN) {paymentMode === 'Airtel Payment Bank' && <span className="text-red-600 ml-2 animate-pulse">(अनिवार्य)</span>}
-                                        </label>
-                                        <input type="text" name="Pan" required={paymentMode === 'Airtel Payment Bank'} pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="ABCDE1234F फॉर्मेट में दर्ज करें" className="w-full border-2 border-slate-300 p-4 rounded-xl font-bold text-xl uppercase" placeholder="ABCDE1234F" />
-                                        {paymentMode === 'Airtel Payment Bank' && <p className="text-xs text-red-600 font-bold mt-2"><i className="fa-solid fa-triangle-exclamation"></i> एयरटेल पेमेंट बैंक के लिए पैन अनिवार्य है।</p>}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-[13px] font-black uppercase text-slate-600 mb-2 tracking-widest">समस्या / कार्य (कलम 12) <span className="text-red-500">*</span></label>
-                                        <textarea name="Problem" required rows="3" className="w-full border-2 border-slate-300 p-4 rounded-xl font-bold text-lg resize-none" placeholder="कार्य का विवरण..."></textarea>
+                                    
+                                    {docHint && <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl text-blue-800 font-bold text-sm shadow-sm">{docHint}</div>}
+                                    
+                                    <div><label className="block text-[13px] font-black uppercase text-slate-600 mb-2 tracking-widest">Mobile Number <span className="text-red-500">*</span></label><input type="tel" name="mobile" required className="w-full border-2 border-slate-300 p-5 rounded-2xl font-black text-xl shadow-inner" /></div>
+                                    <div><label className="block text-[13px] font-black uppercase text-slate-600 mb-2 tracking-widest">Samasya / Kaarya <span className="text-red-500">*</span></label><textarea name="problem" required rows="4" className="w-full border-2 border-slate-300 p-5 rounded-2xl font-bold text-lg shadow-inner"></textarea></div>
+                                    
+                                    <div className="bg-blue-50/80 p-6 rounded-2xl border-2 border-blue-100">
+                                        <label className="block text-[13px] font-black uppercase text-slate-700 mb-3 tracking-widest"><i className="fa-solid fa-paperclip mr-2 text-blue-600 text-lg"></i> Photo/Video Upload Karein</label>
+                                        <input type="file" id="fileInput" accept="image/*,video/*" className="w-full text-md text-slate-500 file:mr-5 file:py-4 file:px-8 file:rounded-xl file:bg-blue-600 file:text-white cursor-pointer" />
                                     </div>
                                     
-                                    <div className="bg-blue-50 p-4 rounded-xl border-2 border-blue-200">
-                                        <label className="block text-[13px] font-black uppercase text-slate-700 mb-2 tracking-widest"><i className="fa-solid fa-paperclip"></i> डॉक्यूमेंट / वीडियो (कलम 13)</label>
-                                        <input type="file" name="Files" multiple accept="image/*,video/*,application/pdf" className="w-full text-sm font-bold" />
-                                    </div>
-
-                                    <button type="submit" disabled={isSubmitting} className="w-full bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white font-black py-6 rounded-2xl shadow-xl mt-6 text-xl uppercase tracking-widest disabled:opacity-50">
-                                        {isSubmitting ? "सबमिट हो रहा है..." : <><i className="fa-brands fa-whatsapp mr-3 text-2xl"></i> व्हाट्सएप + शीट में भेजें</>}
-                                    </button>
+                                    <button type="submit" id="submitBtn" disabled={isSubmitting} className="w-full bg-gradient-to-r from-blue-700 to-indigo-700 text-white font-black py-6 rounded-2xl shadow-xl mt-6 text-xl uppercase tracking-widest disabled:opacity-50"><i className="fa-brands fa-whatsapp mr-3"></i> Request Bhejein</button>
                                 </form>
                             </div>
                         </div>
                     )}
                 </div>
             </div>  
-        );  
+        );
     };  
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<App />);  
