@@ -15,56 +15,24 @@
     <style>  
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Play:wght@700&family=Poppins:wght@500;700;900&display=swap');  
         
-        /* PREMIUM APP-STYLE BACKGROUND (NO MORE PLAIN WHITE) */
-        body { 
-            font-family: 'Inter', sans-serif; transition: background-color 0.3s; margin: 0; 
-            /* A highly professional, slightly dark premium slate/blue gradient */
-            background: linear-gradient(135deg, #cbd5e1 0%, #f1f5f9 50%, #cbd5e1 100%);
-        }  
-        .dark body {
-            background: linear-gradient(135deg, #0f172a, #1e293b, #020617);
-        }
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s; margin: 0; background: linear-gradient(135deg, #f0f4f8, #e0e7ff, #f8fafc); }  
+        .dark body { background: linear-gradient(135deg, #0f172a, #1e1b4b, #0f172a); }
         
-        /* Glassmorphism Effect for the Cards to make them pop against the background */
-        .glass-card { 
-            background: rgba(255, 255, 255, 0.95); 
-            backdrop-filter: blur(20px); 
-            -webkit-backdrop-filter: blur(20px);
-            border: 2px solid rgba(255, 255, 255, 1); 
-            border-radius: 2.5rem; 
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 40px rgba(59, 130, 246, 0.1); 
-        }  
-        .dark .glass-card {
-            background: rgba(30, 41, 59, 0.85);
-            border-color: rgba(255, 255, 255, 0.05);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
-        }
+        .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 2.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 30px rgba(59, 130, 246, 0.1); }  
+        .dark .glass-card { background: rgba(30, 41, 59, 0.85); border-color: rgba(255, 255, 255, 0.05); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); }
 
-        .glass-lock {
-            background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(16px);
-            border: 2px solid rgba(255, 255, 255, 0.8); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
-        }
+        .glass-lock { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(16px); border: 2px solid rgba(255, 255, 255, 0.8); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1); }
         .dark .glass-lock { background: rgba(30, 41, 59, 0.7); border: 2px solid rgba(255, 255, 255, 0.1); }
 
-        /* Unique Fonts */
         .date-font { font-family: 'Play', sans-serif; }
         .fancy-text { font-family: 'Poppins', sans-serif; }
         
-        .text-gradient-prize {
-            background: linear-gradient(to right, #1e3a8a, #4338ca, #1e3a8a);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0px 4px 10px rgba(67, 56, 202, 0.2);
-        }
+        .text-gradient-prize { background: linear-gradient(to right, #1e3a8a, #4338ca, #1e3a8a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0px 4px 10px rgba(67, 56, 202, 0.2); }
         .dark .text-gradient-prize { background: linear-gradient(to right, #60a5fa, #c084fc, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        @media print { .no-print { display: none !important; } body { background: white !important; } .glass-card { border: none !important; box-shadow: none !important; width: 100% !important; margin: 0 !important; background: white !important; } }  
+        @media print { .no-print { display: none !important; } .glass-card { border: none !important; box-shadow: none !important; width: 100% !important; margin: 0 !important; background: white !important; } }  
         
-        .marquee { 
-            white-space: nowrap; overflow: hidden; 
-            background: linear-gradient(90deg, #b45309, #f59e0b, #b45309); 
-            color: #000; padding: 18px 0; border-bottom: 4px solid #78350f; 
-            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.3); position: relative; display: flex; align-items: center;
-            z-index: 40;
-        }  
+        .marquee { white-space: nowrap; overflow: hidden; background: linear-gradient(90deg, #d97706, #fbbf24, #d97706); color: #000; padding: 18px 0; border-bottom: 4px solid #92400e; box-shadow: 0 6px 10px -2px rgba(0, 0, 0, 0.2); position: relative; display: flex; align-items: center; }  
         .marquee-content { display: inline-block; padding-left: 100%; animation: marquee 25s linear infinite; display: flex; align-items: center;}  
         @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }  
         
@@ -93,17 +61,17 @@
     <script type="text/babel">  
     const { useState, useEffect, useRef, useCallback } = React;  
     
-    // 100% SECURE OLD DATA LINKS
+    // --- YOUR CONSTANTS ---
     const SHEET_ID = "1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo";  
     const MAIN_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;  
     const MAPPING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";  
     const MASTER_PIN = "Shiv@6375";  
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwTOF1JAOeAfqYxpXg5FIekrcBdLAddSc72lzQMpcEJ0R86dmImvwMBH7Jgw13EAy5x/exec";
 
     // Advanced 100% Bilingual Dictionary
     const vocab = {  
         hi: {  
-            brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", service: "डिजिटल सेवा निम्बाहेड़ा", receipt: "प्रोफेशनल डिजिटल रसीद", 
-            idLabelFull: "MEMBERSHIP ID NUMBER",  
+            brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", service: "डिजिटल सेवा निम्बाहेड़ा", receipt: "प्रोफेशनल डिजिटल रसीद", idLabelFull: "MEMBERSHIP ID NUMBER",  
             points: "कुल सर्विस पॉइंट्स", used: "उपयोग पॉइंट्स", balance: "शेष पॉइंट्स", active: "सक्रियण तिथि", expiry: "समाप्ति तिथि", draw: "लकी ड्रा तिथि",  
             tTitle: "नियम व शर्तें", 
             t1: "01. यह डिजिटल सदस्यता कार्ड व्यक्तिगत है और अहस्तांतरणीय है।", t2: "02. सेवाओं का लाभ केवल कार्ड पर अंकित समाप्ति तिथि तक ही मान्य है।", t3: "03. लिया गया शुल्क पंजीकरण शुल्क है, जो वापस नहीं होगा।", t4: "04. सर्वर त्रुटि में फिजिकल स्क्रैच कार्ड का परिणाम अंतिम होगा।", t5: "05. सर्वर खराबी पर प्रबंधन की जिम्मेदारी नहीं होगी।", t6: "06. सरकारी टोकन शुल्क ग्राहक द्वारा अलग से देय होगा।", t7: "07. फ्री डिलीवरी सीमा के बाद न्यूनतम शुल्क लिया जाएगा।", t8: "08. यह समाज सेवा हेतु है, कृपया कार्य पूर्ण होने तक धैर्य रखें।", t9: "09. कार्य में लगने वाले समय हेतु अभद्र व्यवहार स्वीकार्य नहीं होगा।", t10: "10. मैनेजमेंट के पास नियमों में बदलाव का पूर्ण अधिकार है।",
@@ -116,17 +84,16 @@
             gm: "सुप्रभात", ga: "नमस्कार", ge: "शुभ संध्या",
             welcomeTitle: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप (DPSG) निम्बाहेड़ा में आपका हार्दिक अभिनंदन है।",
             welcomeBody: "हमें गर्व है कि आप हमारे इस सुरक्षित और आधुनिक डिजिटल परिवार का हिस्सा हैं। आपकी हर समस्या का समाधान अब हमारे विशेषज्ञों की देखरेख में सुरक्षित है।",
-            proceedBtn: "आगे बढ़ें",
+            proceedBtn: "आगे बढ़ें",
             prizes: {
                 WINNER: (rank) => `"मंजिल उन्हीं को मिलती है जिनके सपनों में जान होती है,\nआज आपकी मेहनत और किस्मत दोनों मेहरबान होती है!"\n\nहार्दिक बधाई! आप डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप (DPSG) के गौरवशाली विजेता बने हैं और आपने ${rank} प्राप्त की है। यह इनाम संस्था की ओर से आपके विश्वास का सम्मान है। हमें गर्व है कि आप हमारे डिजिटल परिवार का हिस्सा हैं। उज्जवल भविष्य की कामनाओं के साथ, धन्यवाद!`,
-                CASH: () => `"इनाम छोटा हो या बड़ा, अपनों का साथ सबसे प्यारा है,\nजीत की ये शुरुआत है, अभी तो सारा आसमान तुम्हारा है!"\n\nमुस्कुराइए! DPSG संस्था की ओर से आपको यह विशेष कैशबैक भेंट किया जा रहा है। यह आपके और हमारे अटूट रिश्ते की एक छोटी सी पहचान है। भविष्य में भी हम आपकी समस्याओं के बेहतरीन समाधान के लिए तत्पर रहेंगे। हमारे साथ जुड़ने के लिए हृदय से धन्यवाद!`,
+                CASH: () => `"इनाम छोटा हो या बड़ा, अपनों का साथ सबसे प्यारा है,\nजीत की ये शुरुआत है, अभी तो सारा आसमान तुम्हारा है!"\n\nमुस्कुराइए! DPSG संस्था की ओर से आपको यह विशेष कैशबैक भेंट किया जा रहा है। यह आपके और हमारे अटूट रिश्ते की एक छोटी सी पहचान है। भविष्य में भी हम आपकी समस्याओं के बेहतरीन समाधान के लिए तत्पर रहेंगे। हमारे साथ जुड़ने के लिए हृदय से धन्यवाद!`,
                 GIFT: () => `"खूबसूरत सा ये तोहफा बस एक छोटा सा बहाना है,\nहमे तो आपके साथ मिलकर खुशियों का जशन मनाना है!"\n\nबधाई हो! DPSG परिवार की ओर से यह उपहार आपके डिजिटल सफर को और भी खास बनाने के लिए है। आपकी संतुष्टि ही हमारी असली सफलता है। हम आपके सुखद भविष्य की कामना करते हैं। हमारे साथ बने रहने के लिए बहुत-बहुत धन्यवाद!`,
-                LOSS: () => `"गिरते हैं शहसवार ही मैदान-ए-जंग में,\nवो क्या गिरेंगे जो घुटनों के बल चलते हैं!"\n\nनिराश न हों, यह केवल एक शुरुआत है। DPSG संस्था आपके निरंतर सहयोग की सराहना करती है। अगली बार आपकी किस्मत ज़रूर चमकेगी। हमारे साथ बने रहने और हम पर भरोसा जताने के लिए आपका धन्यवाद!`
+                LOSS: () => `"गिरते हैं शहसवार ही मैदान-ए-जंग में,\nवो क्या गिरेंगे जो घुटनों के बल चलते हैं!"\n\nनिराश न हों, यह केवल एक शुरुआत है। DPSG संस्था आपके निरंतर सहयोग की सराहना करती है। अगली बार आपकी किस्मत ज़रूर चमकेगी। हमारे साथ बने रहने और हम पर भरोसा जताने के लिए आपका धन्यवाद!`
             }
         },
         en: {
-            brand: "Digital Problem Solution Group", service: "Digital Seva Nimbahera", receipt: "Professional Digital Receipt", 
-            idLabelFull: "MEMBERSHIP ID NUMBER",  
+            brand: "Digital Problem Solution Group", service: "Digital Seva Nimbahera", receipt: "Professional Digital Receipt", idLabelFull: "MEMBERSHIP ID NUMBER",  
             points: "Total Service Points", used: "Used Points", balance: "Balance Points", active: "Activation Date", expiry: "Expiry Date", draw: "Lucky Draw Date",  
             tTitle: "Terms & Conditions", 
             t1: "01. This digital membership card is personal and non-transferable.", t2: "02. Services are valid only until the expiry date on the card.", t3: "03. The registration fee is non-refundable.", t4: "04. In case of server error, physical scratch card result is final.", t5: "05. Management is not responsible for server malfunctions.", t6: "06. Government token fees will be payable separately.", t7: "07. Minimum fee applies after free delivery limit.", t8: "08. This is for social service, please be patient.", t9: "09. Misbehavior regarding processing time is unacceptable.", t10: "10. Management reserves the right to change rules.",
@@ -150,13 +117,12 @@
     };
 
     const cardSpecs = {  
-        VIP: { hi: ["₹500 VIP Card (6 महीने)", "उपयोग: पूरे परिवार के लिए मान्य", "कोटा: 150 प्रिंट + 80 फोटो (या 380 फोटो / 190 प्रिंट)", "लैमिनेशन: 2 फ्री", "ई-मित्र: 100% फ्री सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 2 बार फ्री (न्यूनतम रेट)", "इनाम: 100 Cash Back + बड़ा धमाका!", "संपर्क: 7229874128"], en: ["₹500 VIP Card (6 Months)", "Usage: Valid for Entire Family", "Quota: 150 Print + 80 Photo (or 380 Photo / 190 Print)", "Lamination: 2 Free", "E-Mitra: 100% Free Service (Only token charge payable)", "Delivery: 2 Times Free (Min Rate)", "Prize: 100 Cash Back + Big Surprise!", "Contact: 7229874128"] },  
+        VIP: { hi: ["₹500 VIP Card (6 महीने)", "उपयोग: पूरे परिवार के लिए मान्य", "कोटा: 150 प्रिंट + 80 फोटो (या 380 फोटो / 190 प्रिंट)", "लैमिनेशन: 2 फ्री", "ई-मित्र: 100% फ्री सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 2 बार फ्री (न्यूनतम रेट)", "इनाम: 100 Cash Back + बड़ा धमाका!", "संपर्क: 7229874128"], en: ["₹500 VIP Card (6 Months)", "Usage: Valid for Entire Family", "Quota: 150 Print + 80 Photo (or 380 Photo / 190 Print)", "Lamination: 2 Free", "E-Mitra: 100% Free Service (Only token charge payable)", "Delivery: 2 Times Free (Min Rate)", "Prize: 100 Cash Back + Big Surprise!", "Contact: 7229874128"] },  
         Gold: { hi: ["₹100 Gold Card (3 महीने)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 40 प्रिंट + 24 फोटो (या 100 फोटो / 52 प्रिंट)", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: 100% गारंटीड उपहार!", "संपर्क: 7229874128"], en: ["₹100 Gold Card (3 Months)", "Usage: Valid for 1 Person Only", "Quota: 40 Print + 24 Photo (or 100 Photo / 52 Print)", "Lamination: 1 Free", "E-Mitra: 50% Discount (Only token charge payable)", "Delivery: 1 Time (Min Rate)", "Prize: 100% Guaranteed Gift!", "Contact: 7229874128"] },  
         Silver: { hi: ["₹50 Silver Card (1 महीना)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 15 प्रिंट + 12 फोटो (या 40 फोटो / 21 प्रिंट)", "ई-मित्र: सीमित सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: लकी ड्रा का शानदार अवसर!", "संपर्क: 7229874128"], en: ["₹50 Silver Card (1 Month)", "Usage: Valid for 1 Person Only", "Quota: 15 Print + 12 Photo (or 40 Photo / 21 Print)", "E-Mitra: Limited Service (Only token charge payable)", "Delivery: 1 Time (Min Rate)", "Prize: Great Chance for Lucky Draw!", "Contact: 7229874128"] }  
     };
 
     const toDirectLink = (url) => { if (!url) return ""; let id = ""; if (url.includes("/d/")) id = url.split("/d/")[1].split("/")[0]; if (url.includes("id=")) id = url.split("id=")[1].split("&")[0]; return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000" : url; };  
-    
     const mask = (v) => { if (!v || v === "#REF!" || v.trim() === "") return "****-XXXX"; return v.length > 4 ? v.slice(0, 2) + "******" + v.slice(-2) : v; };
 
     const ScratchCard = ({ onComplete, children }) => {  
@@ -193,10 +159,20 @@
         const [prizeState, setPrizeState] = useState({ isLocked: true, type: null, rank: "", img: "", highlight: "", colorClass: "" });  
         const [showForm, setShowForm] = useState(false); const [formType, setFormType] = useState("");
         const [showWelcome, setShowWelcome] = useState(true); 
+        
+        // --- NEW STATES FOR AIRTEL & GOOGLE SCRIPT ---
+        const [isSubmitting, setIsSubmitting] = useState(false);
+        const [checkSerial, setCheckSerial] = useState("");
+        const [statusRes, setStatusRes] = useState("");
 
         const t = vocab[lang];
         
-        const getGreeting = () => { const hour = new Date().getHours(); if (hour < 12) return t.gm; if (hour < 17) return t.ga; return t.ge; };
+        const getGreeting = () => {
+            const hour = new Date().getHours();
+            if (hour < 12) return t.gm;
+            if (hour < 17) return t.ga;
+            return t.ge;
+        };
 
         const openForm = (type) => { setFormType(type); setShowForm(true); };
 
@@ -229,35 +205,100 @@
 
         const clean = (val) => (val && val !== "#REF!" && val.trim() !== "") ? val : t.emptyData;
 
-        if (status === "loading") return <div className="h-screen flex items-center justify-center font-black text-3xl text-blue-600 animate-pulse tracking-widest bg-slate-100 dark:bg-slate-900">DPSG LOADING...</div>;  
+        // --- NEW: AUTO GOOGLE SHEET SUBMISSION FORM LOGIC ---
+        const handleFormSubmit = async (e) => {
+            e.preventDefault();
+            setIsSubmitting(true);
+            const form = e.target;
+            const fileInput = form.Files;
+            let base64 = ""; let fileType = ""; let fileName = "";
+
+            const sendDataToSheet = async (b64, fType, fName) => {
+                try {
+                    // ID के आखिरी 4 अंक सीरियल नंबर के तौर पर 
+                    const serialNo = member ? (member[1] || "0000").slice(-4) : "NEW";
+                    const uName = member ? member[8] : "Guest";
+                    
+                    const payload = {
+                        id: serialNo,
+                        name: uName,
+                        mobile: form.Mobile.value,
+                        service: formType,
+                        problem: form.Problem.value
+                    };
+                    const params = new URLSearchParams(payload);
+                    await fetch(WEB_APP_URL + "?" + params.toString(), {
+                        method: 'POST',
+                        body: JSON.stringify({ bytes: b64, contentType: fType, fileName: fName })
+                    });
+                    alert("✅ कार्य सफलतापूर्वक जमा हो गया! जोरवार बना जल्द ही आपसे संपर्क करेंगे।");
+                    setShowForm(false);
+                } catch(err) {
+                    alert("Error! कृपया फिर से प्रयास करें।");
+                }
+                setIsSubmitting(false);
+            };
+
+            if(fileInput && fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                fileType = file.type; fileName = file.name;
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => {
+                    base64 = reader.result.split(',')[1];
+                    sendDataToSheet(base64, fileType, fileName);
+                };
+            } else {
+                sendDataToSheet("", "", "");
+            }
+        };
+
+        // --- NEW: LIVE STATUS CHECKER LOGIC ---
+        const handleCheckStatus = async () => {
+            if(!checkSerial) return;
+            setStatusRes("<i class='fas fa-spinner fa-spin text-blue-500'></i> खोज रहे हैं...");
+            try {
+                const res = await fetch(MAIN_CSV + "&t=" + Date.now());
+                const txt = await res.text();
+                Papa.parse(txt, {
+                    complete: (result) => {
+                        const match = result.data.find(r => r[1] && r[1].endsWith(checkSerial));
+                        // Column Index 5 (F) represents Status in your sheet layout
+                        if (match) {
+                            if (match[5] && match[5].trim().toUpperCase() === "YES") {
+                                setStatusRes("<span class='text-green-500 font-black tracking-widest'>OK ✅ (Confirmed)</span>");
+                            } else {
+                                setStatusRes("<span class='text-yellow-500 font-bold'>प्रक्रिया में है (Processing...)</span>");
+                            }
+                        } else {
+                            setStatusRes("<span class='text-red-500 font-bold'>नंबर नहीं मिला!</span>");
+                        }
+                    }
+                });
+            } catch(e) { setStatusRes("Error"); }
+        };
+
+        if (status === "loading") return <div className="h-screen flex items-center justify-center font-black text-3xl text-blue-600 animate-pulse tracking-widest bg-slate-50 dark:bg-slate-900">DPSG LOADING...</div>;  
 
         return (  
             <div className={`min-h-screen pb-10 ${theme === 'dark' ? 'dark' : ''}`}> 
                 
-                {/* WELCOME POPUP MODAL (OPTION 1) */}
                 {showWelcome && status === "view" && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 fade-in-scale">
                         <div className="bg-white dark:bg-slate-800 p-10 sm:p-14 rounded-[3rem] w-full max-w-xl text-center shadow-[0_0_50px_rgba(59,130,246,0.5)] border-4 border-blue-400 dark:border-blue-600 relative overflow-hidden">
                             <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600"></div>
-                            
                             <div className="absolute top-6 right-6">
                                 <button onClick={()=>setLang(lang==='hi'?'en':'hi')} className="px-4 py-1.5 bg-blue-50 dark:bg-slate-700 rounded-full text-xs font-black text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-slate-600 shadow-sm">
                                     <i className="fa-solid fa-language"></i> {lang==='hi' ? 'EN' : 'HI'}
                                 </button>
                             </div>
-
                             <i className="fa-solid fa-hands-holding-circle text-7xl text-blue-600 dark:text-blue-400 mb-6 drop-shadow-md mt-4"></i>
                             <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-2 fancy-text">{getGreeting()}!</h2>
                             <p className="text-[17px] font-bold text-blue-800 dark:text-blue-300 mb-6 leading-relaxed">{t.welcomeTitle}</p>
-                            
-                            <p className="text-[15px] text-slate-600 dark:text-slate-300 mb-8 font-medium leading-relaxed px-2">
-                                {t.welcomeBody}
-                            </p>
-                            
+                            <p className="text-[15px] text-slate-600 dark:text-slate-300 mb-8 font-medium leading-relaxed px-2">{t.welcomeBody}</p>
                             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-800 p-4 rounded-2xl border border-blue-100 dark:border-slate-600 mb-8 shadow-inner">
                                 <p className="font-black italic text-blue-700 dark:text-blue-400 text-sm"><i className="fa-solid fa-quote-left mr-2 opacity-50"></i> {t.slogan} <i className="fa-solid fa-quote-right ml-2 opacity-50"></i></p>
                             </div>
-
                             <button onClick={() => setShowWelcome(false)} className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-black py-5 rounded-2xl shadow-xl text-xl uppercase tracking-widest transition-all hover:scale-[1.02]">
                                 {t.proceedBtn} <i className="fa-solid fa-arrow-right ml-2"></i>
                             </button>
@@ -265,13 +306,12 @@
                     </div>
                 )}
 
-                {/* BIG BLINKING MIKE & MARQUEE */}
                 <div className="no-print marquee flex justify-center items-center w-full">
                     <div className="marquee-content flex items-center">
-                        <i className="fa-solid fa-bullhorn text-4xl sm:text-5xl text-red-900 mx-5 blink-text drop-shadow-lg"></i>
-                        <span className="blink-text text-xl font-black uppercase tracking-widest text-white">{t.official} :</span> 
-                        <span className="ml-4 text-[17px] font-bold text-yellow-100">{member ? (member[38] || "Welcome to Digital Problem Solution Group Nimbahera") : "DPSG Dashboard Loading..."}</span>
-                        <i className="fa-solid fa-bullhorn text-4xl sm:text-5xl text-red-900 mx-5 blink-text drop-shadow-lg"></i>
+                        <i className="fa-solid fa-bullhorn text-5xl text-red-700 dark:text-red-900 mx-5 blink-text drop-shadow-lg"></i>
+                        <span className="blink-text text-xl font-black uppercase tracking-widest text-blue-900 dark:text-white">{t.official} :</span> 
+                        <span className="ml-4 text-[17px] font-bold text-slate-800 dark:text-slate-100">{member ? (member[38] || "Welcome to Digital Problem Solution Group Nimbahera") : "DPSG Dashboard Loading..."}</span>
+                        <i className="fa-solid fa-bullhorn text-5xl text-red-700 dark:text-red-900 mx-5 blink-text drop-shadow-lg"></i>
                     </div>
                 </div>  
                 
@@ -296,32 +336,52 @@
                         <div className="space-y-8 animate-in slide-in-from-bottom-6 duration-700">  
                             <div className="text-center glass-card p-8">  
                                 <h1 className="text-3xl sm:text-4xl font-black italic uppercase text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-600 dark:from-blue-400 dark:to-indigo-300 leading-tight drop-shadow-sm">{t.brand}</h1>  
-                                <p className="text-amber-600 dark:text-amber-500 font-black tracking-widest mt-2 uppercase text-[15px] border-b-2 border-dashed border-amber-300 dark:border-amber-800 inline-block pb-2">{t.service}</p>  
-                                <p className="text-slate-700 dark:text-slate-200 font-black mt-5 italic text-[14px] bg-slate-100/50 dark:bg-slate-900/50 backdrop-blur-sm py-3 px-5 rounded-full inline-block border border-white/50 dark:border-slate-700 shadow-sm"><i className="fa-solid fa-quote-left text-blue-500 mr-2 text-lg"></i>{t.slogan}<i className="fa-solid fa-quote-right text-blue-500 ml-2 text-lg"></i></p>
+                                <p className="text-amber-500 font-black tracking-widest mt-2 uppercase text-[15px] border-b-2 border-dashed border-amber-200 dark:border-amber-800 inline-block pb-2">{t.service}</p>  
+                                <p className="text-slate-700 dark:text-slate-200 font-black mt-5 italic text-[14px] bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm py-3 px-5 rounded-full inline-block border border-white/50 dark:border-slate-700 shadow-sm"><i className="fa-solid fa-quote-left text-blue-500 mr-2 text-lg"></i>{t.slogan}<i className="fa-solid fa-quote-right text-blue-500 ml-2 text-lg"></i></p>
                             </div>  
+
+                            {/* --- NEW AIRTEL PAYMENT BANK & LIVE STATUS PANEL --- */}
+                            <div className="no-print glass-card p-6 border-t-8 border-red-600 bg-gradient-to-b from-red-50 to-white dark:from-red-900/20 dark:to-slate-800 shadow-xl relative overflow-hidden">
+                                <i className="fa-solid fa-building-columns absolute -right-6 -bottom-6 text-8xl opacity-10 text-red-500"></i>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                                    <div className="flex flex-col justify-center border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700 pb-6 md:pb-0 md:pr-6">
+                                        <h3 className="text-2xl font-black text-red-600 dark:text-red-500 flex items-center mb-2"><i className="fa-solid fa-wallet mr-3"></i> Airtel Payment Bank</h3>
+                                        <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-5 leading-relaxed">नया खाता खुलवाने या KYC के लिए यहाँ से सीधे रिक्वेस्ट भेजें।</p>
+                                        <button onClick={() => openForm('Airtel Payment Bank')} className="bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white font-black py-4 px-6 rounded-2xl shadow-[0_10px_20px_rgba(220,38,38,0.3)] transition-all text-sm uppercase tracking-widest"><i className="fa-solid fa-plus-circle mr-2 text-lg"></i> बैंक रिक्वेस्ट भेजें</button>
+                                    </div>
+                                    <div className="flex flex-col justify-center">
+                                        <h4 className="text-[14px] font-black uppercase text-slate-700 dark:text-slate-300 mb-3 tracking-widest"><i className="fa-solid fa-satellite-dish text-blue-500 mr-2"></i> लाइव स्टेटस चेक</h4>
+                                        <div className="flex gap-2">
+                                            <input type="text" value={checkSerial} onChange={(e)=>setCheckSerial(e.target.value)} placeholder="सीरियल नंबर (उदा: 0083)" className="flex-1 bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 p-4 rounded-xl outline-none focus:border-red-500 font-black text-slate-800 dark:text-white transition-all text-center uppercase" />
+                                            <button onClick={handleCheckStatus} className="bg-slate-800 dark:bg-slate-700 hover:bg-black text-white px-6 rounded-xl font-black shadow-lg transition-all text-lg"><i className="fa-solid fa-magnifying-glass"></i></button>
+                                        </div>
+                                        {statusRes && <div className="mt-4 text-center text-lg bg-white/50 dark:bg-black/50 py-2 rounded-lg border border-slate-200 dark:border-slate-700" dangerouslySetInnerHTML={{__html: statusRes}}></div>}
+                                    </div>
+                                </div>
+                            </div>
                             
                             {/* BILINGUAL ICONS */}
                             <div className="no-print grid grid-cols-4 gap-3 my-6">
-                                <button onClick={() => openForm(t.icon1)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-orange-400 hover:-translate-y-1 transition-all !border-[1px] !border-white/50">
+                                <button onClick={() => openForm(t.icon1)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-orange-400 hover:-translate-y-1 transition-all !border-[1px]">
                                     <div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-50 text-orange-500 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-desktop"></i></div>
-                                    <span className="text-[12px] sm:text-[13px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon1}</span>
+                                    <span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon1}</span>
                                 </button>
-                                <button onClick={() => openForm(t.icon2)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-blue-400 hover:-translate-y-1 transition-all !border-[1px] !border-white/50">
+                                <button onClick={() => openForm(t.icon2)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-blue-400 hover:-translate-y-1 transition-all !border-[1px]">
                                     <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-hard-drive"></i></div>
-                                    <span className="text-[12px] sm:text-[13px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon2}</span>
+                                    <span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon2}</span>
                                 </button>
-                                <button onClick={() => openForm(t.icon3)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-purple-400 hover:-translate-y-1 transition-all !border-[1px] !border-white/50">
+                                <button onClick={() => openForm(t.icon3)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-purple-400 hover:-translate-y-1 transition-all !border-[1px]">
                                     <div className="w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-mobile-screen-button"></i></div>
-                                    <span className="text-[12px] sm:text-[13px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon3}</span>
+                                    <span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon3}</span>
                                 </button>
-                                <button onClick={() => openForm(t.icon4)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-green-400 hover:-translate-y-1 transition-all !border-[1px] !border-white/50">
+                                <button onClick={() => openForm(t.icon4)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-green-400 hover:-translate-y-1 transition-all !border-[1px]">
                                     <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-green-50 text-green-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-building-columns"></i></div>
-                                    <span className="text-[12px] sm:text-[13px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon4}</span>
+                                    <span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon4}</span>
                                 </button>
                             </div>
 
                             <div className="no-print glass-card p-8 relative overflow-hidden">
-                                <p className="text-red-600 dark:text-red-400 font-black text-[13px] mb-6 text-center blink-text uppercase tracking-widest flex justify-center items-center"><i className="fa-solid fa-triangle-exclamation mr-2 text-xl"></i> {t.warning}</p>
+                                <p className="text-red-500 font-black text-[13px] mb-6 text-center blink-text uppercase tracking-widest flex justify-center items-center"><i className="fa-solid fa-triangle-exclamation mr-2 text-xl"></i> {t.warning}</p>
                                 
                                 <div className={`p-2 rounded-[2.5rem] relative z-10 ${prizeState.isLocked ? 'glass-lock' : prizeState.colorClass}`}>  
                                     {prizeState.isLocked ? ( 
@@ -345,7 +405,7 @@
                             </div>
 
                             <div className="no-print grid grid-cols-2 gap-4 my-2">
-                                <button onClick={() => openForm('WhatsApp (HELP)')} className="bg-gradient-to-b from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white font-black py-5 rounded-2xl shadow-[0_10px_20px_rgba(34,197,94,0.3)] flex items-center justify-center text-md transition-all border border-green-400 uppercase tracking-widest">
+                                <button onClick={() => openForm('WhatsApp (HELP)')} className="bg-gradient-to-b from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-black py-5 rounded-2xl shadow-[0_10px_20px_rgba(34,197,94,0.3)] flex items-center justify-center text-md transition-all border border-green-300 uppercase tracking-widest">
                                     <i className="fa-brands fa-whatsapp text-3xl mr-3 drop-shadow-md"></i> HELP
                                 </button>
                                 <button onClick={() => openForm('LOCATION')} className="bg-gradient-to-b from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white font-black py-5 rounded-2xl shadow-[0_10px_20px_rgba(239,68,68,0.3)] flex items-center justify-center text-md transition-all border border-red-400 uppercase tracking-widest">
@@ -355,56 +415,54 @@
 
                             {/* MAIN RECEIPT WITH GLASSMORPHISM */}
                             <div id="receipt" className="glass-card p-8 sm:p-12 text-left relative mt-8">  
-                                <div className="text-center border-b-4 border-slate-300 dark:border-slate-700 border-dashed pb-8 mb-10">
+                                <div className="text-center border-b-4 border-slate-200 dark:border-slate-700 border-dashed pb-8 mb-10">
                                     <h3 className="font-black text-3xl text-blue-900 dark:text-blue-400 italic uppercase tracking-tight drop-shadow-sm">{t.receipt}</h3>
-                                    <p className="text-[12px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-[0.5em] mt-3 bg-slate-200/50 dark:bg-slate-800/50 inline-block px-4 py-1 rounded-full border border-slate-300/50">DPSG NIMBAHERA</p>
+                                    <p className="text-[12px] font-black text-slate-500 uppercase tracking-[0.5em] mt-3 bg-white/50 dark:bg-slate-800/50 inline-block px-4 py-1 rounded-full border border-white/50">DPSG NIMBAHERA</p>
                                 </div>  
                                 
-                                <div className="grid grid-cols-2 gap-y-12 gap-x-4 text-sm border-b-2 border-slate-300 dark:border-slate-700 pb-12">  
+                                <div className="grid grid-cols-2 gap-y-12 gap-x-4 text-sm border-b-2 border-slate-200 dark:border-slate-700 pb-12">  
                                     
-                                    {/* HUGE BLUE CENTERED MEMBERSHIP ID */}
-                                    <div className="col-span-2 text-center bg-blue-100/70 dark:bg-blue-900/40 backdrop-blur-md border-2 border-blue-400 dark:border-blue-500 rounded-[2rem] p-8 shadow-[0_0_30px_rgba(59,130,246,0.2)] transform transition hover:scale-[1.01]">
-                                        <p className="text-[16px] sm:text-[18px] font-black text-blue-900 dark:text-blue-300 tracking-[0.2em] uppercase mb-4 fancy-text flex justify-center items-center"><i className="fa-solid fa-fingerprint mr-3 text-2xl"></i> {t.idLabelFull}</p>
-                                        <p className="text-4xl sm:text-5xl font-black text-blue-700 dark:text-blue-400 drop-shadow-lg tracking-wider fancy-text">{clean(member[1])}</p>
+                                    <div className="col-span-2 text-center bg-blue-50/70 dark:bg-blue-900/30 backdrop-blur-sm border-2 border-blue-400 dark:border-blue-600 rounded-[2rem] p-8 shadow-[0_0_25px_rgba(59,130,246,0.3)] transform transition hover:scale-[1.01]">
+                                        <p className="text-[15px] sm:text-[17px] font-black text-blue-800 dark:text-blue-300 tracking-[0.2em] uppercase mb-4 fancy-text flex justify-center items-center"><i className="fa-solid fa-fingerprint mr-3 text-2xl"></i> {t.idLabelFull}</p>
+                                        <p className="text-4xl sm:text-5xl font-black text-blue-600 dark:text-blue-400 drop-shadow-md tracking-wider fancy-text">{clean(member[1])}</p>
                                     </div>
 
-                                    {/* LARGER, STYLISH LABELS EVERYWHERE */}
-                                    <div className="col-span-2 bg-slate-100/60 dark:bg-slate-800/60 backdrop-blur-sm p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+                                    <div className="col-span-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm p-6 rounded-2xl border border-white/50 dark:border-slate-700">
                                         <div className="grid grid-cols-2 gap-4">
-                                            <div><p className="text-[15px] sm:text-[16px] font-black text-slate-700 dark:text-slate-300 tracking-[0.1em] uppercase mb-2 fancy-text"><i className="fa-solid fa-user text-blue-500 mr-2"></i>{t.cName}</p><p className="font-black uppercase text-2xl text-indigo-900 dark:text-indigo-300 drop-shadow-sm">{clean(member[8])}</p></div>  
-                                            <div className="text-right"><p className="text-[15px] sm:text-[16px] font-black text-slate-700 dark:text-slate-300 tracking-[0.1em] uppercase mb-2 fancy-text"><i className="fa-solid fa-map-location-dot text-red-500 mr-2"></i>{t.vill}</p><p className="font-black uppercase text-2xl text-slate-900 dark:text-slate-100">{clean(member[5])}</p></div>  
+                                            <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text"><i className="fa-solid fa-user text-blue-500 mr-2"></i>{t.cName}</p><p className="font-black uppercase text-2xl text-indigo-900 dark:text-indigo-300 drop-shadow-sm">{clean(member[8])}</p></div>  
+                                            <div className="text-right"><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text"><i className="fa-solid fa-map-location-dot text-red-500 mr-2"></i>{t.vill}</p><p className="font-black uppercase text-2xl text-slate-800 dark:text-slate-200">{clean(member[5])}</p></div>  
                                         </div>
                                     </div>
                                     
-                                    <div><p className="text-[15px] sm:text-[16px] font-black text-slate-700 dark:text-slate-300 tracking-[0.1em] uppercase mb-2 fancy-text">{t.cat}</p><p className="font-black text-blue-900 dark:text-blue-200 px-5 py-2 border-2 border-blue-300 dark:border-blue-700 rounded-xl bg-blue-100/80 dark:bg-blue-900/60 inline-block shadow-sm text-lg">{clean(member[3])}</p></div>  
-                                    <div className="text-right"><p className="text-[15px] sm:text-[16px] font-black text-slate-700 dark:text-slate-300 tracking-[0.1em] uppercase mb-2 fancy-text">{t.sMob}</p><p className="font-black tracking-[0.2em] text-xl text-slate-800 dark:text-slate-200 bg-slate-200/50 dark:bg-slate-800/50 px-3 py-1 rounded-lg inline-block border border-slate-300/50">{mask(member[9])}</p></div>
+                                    <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.cat}</p><p className="font-black text-blue-900 dark:text-blue-200 px-5 py-2 border-2 border-blue-200 dark:border-blue-800 rounded-xl bg-blue-50/80 dark:bg-blue-900/50 inline-block shadow-sm text-lg">{clean(member[3])}</p></div>  
+                                    <div className="text-right"><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.sMob}</p><p className="font-black tracking-[0.2em] text-xl text-slate-700 dark:text-slate-300 bg-white/50 dark:bg-slate-800/50 px-3 py-1 rounded-lg inline-block border border-white/50">{mask(member[9])}</p></div>
                                     
-                                    <div><p className="text-[15px] sm:text-[16px] font-black text-slate-700 dark:text-slate-300 tracking-[0.1em] uppercase mb-2 fancy-text">{t.sAad}</p><p className="font-black tracking-[0.2em] text-xl text-slate-800 dark:text-slate-200 bg-slate-200/50 dark:bg-slate-800/50 px-3 py-1 rounded-lg inline-block border border-slate-300/50">{mask(member[11])}</p></div>
+                                    <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.sAad}</p><p className="font-black tracking-[0.2em] text-xl text-slate-700 dark:text-slate-300 bg-white/50 dark:bg-slate-800/50 px-3 py-1 rounded-lg inline-block border border-white/50">{mask(member[11])}</p></div>
                                     <div className="text-right"></div>
                                     
-                                    <div><p className="text-[15px] sm:text-[16px] font-black text-slate-700 dark:text-slate-300 tracking-[0.1em] uppercase mb-2 fancy-text">{t.active}</p><p className="font-black text-2xl text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 px-4 py-2 rounded-xl border-2 border-emerald-400 dark:border-emerald-600 inline-block shadow-md date-font tracking-wider">{clean(member[15])}</p></div>  
-                                    <div className="text-right"><p className="text-[15px] sm:text-[16px] font-black text-slate-700 dark:text-slate-300 tracking-[0.1em] uppercase mb-2 fancy-text">{t.expiry}</p><p className="font-black text-2xl text-white bg-red-600 px-5 py-2 rounded-xl border-2 border-red-800 inline-block shadow-[0_5px_15px_rgba(220,38,38,0.4)] date-font tracking-wider animate-pulse">{clean(member[16])}</p></div>  
+                                    <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.active}</p><p className="font-black text-2xl text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-2 rounded-xl border-2 border-emerald-300 dark:border-emerald-700 inline-block shadow-md date-font tracking-wider">{clean(member[15])}</p></div>  
+                                    <div className="text-right"><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.expiry}</p><p className="font-black text-2xl text-white bg-red-600 px-5 py-2 rounded-xl border-2 border-red-800 inline-block shadow-[0_5px_15px_rgba(220,38,38,0.4)] date-font tracking-wider animate-pulse">{clean(member[16])}</p></div>  
                                 </div>
                                 
                                 <div className="grid grid-cols-3 gap-5 my-12">
-                                    <div className="bg-gradient-to-b from-blue-700 to-blue-900 text-white p-6 rounded-3xl text-center shadow-[0_10px_20px_rgba(29,78,216,0.4)] border-t-4 border-blue-400"><p className="text-[11px] sm:text-[13px] font-bold opacity-90 uppercase tracking-widest mb-2 fancy-text">{t.points}</p><p className="text-4xl font-black drop-shadow-md">{clean(member[18])}</p></div>
-                                    <div className="bg-gradient-to-b from-slate-700 to-slate-900 text-white p-6 rounded-3xl text-center shadow-lg border-t-4 border-slate-500"><p className="text-[11px] sm:text-[13px] font-bold opacity-90 uppercase tracking-widest mb-2 fancy-text">{t.used}</p><p className="text-4xl font-black drop-shadow-md">{(parseInt(member[18])-parseInt(member[21]))||0}</p></div>
-                                    <div className="bg-gradient-to-b from-emerald-500 to-emerald-700 text-white p-6 rounded-3xl text-center shadow-[0_10px_20px_rgba(16,185,129,0.4)] border-t-4 border-emerald-300"><p className="text-[11px] sm:text-[13px] font-bold opacity-90 uppercase tracking-widest mb-2 fancy-text">{t.balance}</p><p className="text-4xl font-black drop-shadow-md">{clean(member[21])}</p></div>
+                                    <div className="bg-gradient-to-b from-blue-700 to-blue-900 text-white p-6 rounded-3xl text-center shadow-[0_10px_20px_rgba(29,78,216,0.3)] border-t-4 border-blue-400"><p className="text-[11px] sm:text-[12px] font-bold opacity-80 uppercase tracking-widest mb-2 fancy-text">{t.points}</p><p className="text-4xl font-black drop-shadow-md">{clean(member[18])}</p></div>
+                                    <div className="bg-gradient-to-b from-slate-700 to-slate-900 text-white p-6 rounded-3xl text-center shadow-lg border-t-4 border-slate-500"><p className="text-[11px] sm:text-[12px] font-bold opacity-80 uppercase tracking-widest mb-2 fancy-text">{t.used}</p><p className="text-4xl font-black drop-shadow-md">{(parseInt(member[18])-parseInt(member[21]))||0}</p></div>
+                                    <div className="bg-gradient-to-b from-emerald-500 to-emerald-700 text-white p-6 rounded-3xl text-center shadow-[0_10px_20px_rgba(16,185,129,0.3)] border-t-4 border-emerald-300"><p className="text-[11px] sm:text-[12px] font-bold opacity-80 uppercase tracking-widest mb-2 fancy-text">{t.balance}</p><p className="text-4xl font-black drop-shadow-md">{clean(member[21])}</p></div>
                                 </div>
                                 
-                                <div className="bg-gradient-to-r from-blue-100/80 to-indigo-100/80 dark:from-slate-800/80 dark:to-slate-700/80 backdrop-blur-md p-8 rounded-[2.5rem] border-2 border-blue-300 dark:border-slate-500 my-8 font-bold italic text-[13px] space-y-4 shadow-inner">
+                                <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-slate-800/80 dark:to-slate-700/80 backdrop-blur-md p-8 rounded-[2.5rem] border-2 border-blue-200 dark:border-slate-600 my-8 font-bold italic text-[13px] space-y-4 shadow-inner">
                                     <p className="text-blue-900 dark:text-blue-300 font-black uppercase mb-6 flex items-center italic text-lg"><i className="fa-solid fa-crown mr-3 text-yellow-500 text-2xl drop-shadow-sm"></i> {t.ben}</p>
-                                    {(() => { const cat = (member[3] || "").toLowerCase(); let key = (cat.includes("vip") || cat.includes("500")) ? "VIP" : (cat.includes("gold") || cat.includes("100")) ? "Gold" : "Silver"; return cardSpecs[key][lang].map((ben, i) => ( <div key={i} className="flex items-start py-3 border-b-2 border-blue-300/50 dark:border-slate-500/50 last:border-0 text-slate-800 dark:text-slate-200"><i className="fa-solid fa-circle-check text-green-600 mr-4 mt-0.5 text-lg drop-shadow-sm"></i>{ben}</div> )); })()}
+                                    {(() => { const cat = (member[3] || "").toLowerCase(); let key = (cat.includes("vip") || cat.includes("500")) ? "VIP" : (cat.includes("gold") || cat.includes("100")) ? "Gold" : "Silver"; return cardSpecs[key][lang].map((ben, i) => ( <div key={i} className="flex items-start py-3 border-b-2 border-blue-200/50 dark:border-slate-600/50 last:border-0 text-slate-800 dark:text-slate-200"><i className="fa-solid fa-circle-check text-green-500 mr-4 mt-0.5 text-lg drop-shadow-sm"></i>{ben}</div> )); })()}
                                 </div>
                                 
                                 <div className="bg-gradient-to-br from-slate-900 via-black to-slate-900 text-white p-12 rounded-[3rem] text-center mb-10 shadow-2xl border-4 border-slate-700 relative overflow-hidden">
                                     <i className="fa-solid fa-gift absolute -right-10 -bottom-10 text-9xl opacity-20 text-yellow-500"></i>
-                                    <p className="text-[18px] sm:text-[20px] text-yellow-300 uppercase mb-4 tracking-[0.4em] font-black drop-shadow-md"><i className="fa-solid fa-star mr-3 animate-pulse text-yellow-400"></i> {t.draw} <i className="fa-solid fa-star ml-3 animate-pulse text-yellow-400"></i></p>
+                                    <p className="text-[16px] sm:text-[18px] text-yellow-300 uppercase mb-4 tracking-[0.4em] font-black drop-shadow-md"><i className="fa-solid fa-star mr-3 animate-pulse text-yellow-400"></i> {t.draw} <i className="fa-solid fa-star ml-3 animate-pulse text-yellow-400"></i></p>
                                     <p className="text-5xl font-black text-yellow-400 italic uppercase tracking-widest drop-shadow-[0_0_20px_rgba(250,204,21,0.6)] date-font mt-2">{clean(member[36])}</p>
                                 </div>
                                 
-                                <div className="bg-slate-200/50 dark:bg-slate-800/50 backdrop-blur-sm p-10 rounded-[2.5rem] border-2 border-slate-300/60 dark:border-slate-600 mb-10 text-[12px] font-bold italic space-y-4 text-slate-700 dark:text-slate-300 shadow-inner">
-                                    <h4 className="text-[16px] font-black uppercase mb-6 border-b-2 border-slate-300 dark:border-slate-500 pb-4 flex items-center text-slate-900 dark:text-slate-100"><i className="fa-solid fa-scale-balanced mr-3 text-blue-600 text-xl"></i> {t.tTitle}</h4>
+                                <div className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-10 rounded-[2.5rem] border-2 border-white/60 dark:border-slate-700 mb-10 text-[12px] font-bold italic space-y-4 text-slate-600 dark:text-slate-400 shadow-inner">
+                                    <h4 className="text-[15px] font-black uppercase mb-6 border-b-2 border-slate-200 dark:border-slate-600 pb-4 flex items-center text-slate-900 dark:text-slate-100"><i className="fa-solid fa-scale-balanced mr-3 text-blue-600 text-xl"></i> {t.tTitle}</h4>
                                     <p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t1}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t2}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t3}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t4}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t5}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t6}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t7}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t8}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t9}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t10}</p>
                                 </div>
                                 
@@ -412,38 +470,40 @@
                             </div>
 
                             <div className="no-print pt-10 pb-20 flex flex-col items-center">  
-                                {!isAdmin && <button onClick={()=>setShowPin(!showPin)} className="p-8 glass-card !rounded-full opacity-60 hover:opacity-100 transition-all hover:scale-110 !border-[1px]"><i className="fa-solid fa-fingerprint text-6xl text-blue-600"></i></button>}  
-                                {showPin && !isAdmin && ( <div className="mt-8 glass-card p-10 w-full animate-in zoom-in shadow-2xl"><input type="password" id="adminPin" className="w-full bg-slate-100/80 dark:bg-slate-900/80 border-4 border-slate-300 dark:border-slate-600 rounded-2xl py-6 text-center mb-6 font-black outline-none text-3xl tracking-widest focus:border-blue-500 transition-all" placeholder="MASTER PIN" /><button onClick={()=>{document.getElementById('adminPin').value===MASTER_PIN?setIsAdmin(true):alert("Wrong Pin!");}} className="w-full bg-slate-900 dark:bg-black text-white py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-slate-800 transition-all text-xl"><i className="fa-solid fa-unlock mr-3"></i> Unlock Database</button></div> )}
-                                {isAdmin && ( <div className="w-full mt-8 glass-card p-10 text-left overflow-hidden border-t-8 border-t-blue-600"><div className="flex justify-between items-center mb-8 border-b-2 border-slate-300 dark:border-slate-600 pb-5"><h3 className="font-black text-lg text-blue-600 uppercase tracking-widest"><i className="fa-solid fa-database mr-3"></i> Master Database Panel</h3><button onClick={()=>setIsAdmin(false)} className="text-red-600 font-black text-[13px] uppercase border-2 border-red-300 dark:border-red-900/50 hover:bg-red-100 dark:hover:bg-red-900/20 px-6 py-2 rounded-full transition-all">Logout</button></div><div className="grid gap-4 max-h-[600px] overflow-y-auto pr-2 custom-scroll">{member.map((v, i) => ( <div key={i} className="p-6 bg-slate-100/50 dark:bg-slate-900/50 rounded-2xl border-2 border-slate-300 dark:border-slate-600 hover:border-blue-400 transition-all"><p className="text-[11px] text-slate-500 font-black uppercase mb-2 tracking-widest">{headers[i] || `Index ${i}`}</p><p className="font-black text-lg text-slate-900 dark:text-slate-100">{v||"---"}</p></div> ))}</div></div> )}
+                                {!isAdmin && <button onClick={()=>setShowPin(!showPin)} className="p-8 glass-card !rounded-full opacity-50 hover:opacity-100 transition-all hover:scale-110 !border-[1px]"><i className="fa-solid fa-fingerprint text-6xl text-blue-600"></i></button>}  
+                                {showPin && !isAdmin && ( <div className="mt-8 glass-card p-10 w-full animate-in zoom-in shadow-2xl"><input type="password" id="adminPin" className="w-full bg-slate-50/80 dark:bg-slate-900/80 border-4 border-slate-200 dark:border-slate-600 rounded-2xl py-6 text-center mb-6 font-black outline-none text-3xl tracking-widest focus:border-blue-500 transition-all" placeholder="MASTER PIN" /><button onClick={()=>{document.getElementById('adminPin').value===MASTER_PIN?setIsAdmin(true):alert("Wrong Pin!");}} className="w-full bg-slate-900 dark:bg-black text-white py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-slate-800 transition-all text-xl"><i className="fa-solid fa-unlock mr-3"></i> Unlock Database</button></div> )}
+                                {isAdmin && ( <div className="w-full mt-8 glass-card p-10 text-left overflow-hidden border-t-8 border-t-blue-600"><div className="flex justify-between items-center mb-8 border-b-2 border-slate-200 dark:border-slate-700 pb-5"><h3 className="font-black text-lg text-blue-600 uppercase tracking-widest"><i className="fa-solid fa-database mr-3"></i> Master Database Panel</h3><button onClick={()=>setIsAdmin(false)} className="text-red-600 font-black text-[13px] uppercase border-2 border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20 px-6 py-2 rounded-full transition-all">Logout</button></div><div className="grid gap-4 max-h-[600px] overflow-y-auto pr-2 custom-scroll">{member.map((v, i) => ( <div key={i} className="p-6 bg-white/50 dark:bg-slate-900/50 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 transition-all"><p className="text-[11px] text-slate-500 font-black uppercase mb-2 tracking-widest">{headers[i] || `Index ${i}`}</p><p className="font-black text-lg text-slate-800 dark:text-slate-100">{v||"---"}</p></div> ))}</div></div> )}
                             </div>
                         </div>
                     )}
 
+                    {/* --- UPDATED FORM (Connected to Google Apps Script) --- */}
                     {showForm && (
                         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-4">
-                            <div className="glass-card p-8 sm:p-12 w-full max-w-lg relative animate-in zoom-in duration-300 border-4 border-blue-200 dark:border-slate-600">
-                                <button onClick={() => setShowForm(false)} className="absolute top-6 right-6 w-12 h-12 bg-red-100 dark:bg-red-900/30 text-red-600 hover:bg-red-200 hover:scale-110 rounded-full font-black text-2xl flex items-center justify-center transition-all border border-red-300 dark:border-red-800"><i className="fa-solid fa-xmark"></i></button>
+                            <div className="glass-card p-8 sm:p-12 w-full max-w-lg relative animate-in zoom-in duration-300 border-4 border-blue-100 dark:border-slate-700">
+                                <button onClick={() => setShowForm(false)} className="absolute top-6 right-6 w-12 h-12 bg-red-50 dark:bg-red-900/30 text-red-600 hover:bg-red-100 hover:scale-110 rounded-full font-black text-2xl flex items-center justify-center transition-all border border-red-200 dark:border-red-800"><i className="fa-solid fa-xmark"></i></button>
                                 
-                                <div className="text-center mb-8 border-b-2 border-slate-300 dark:border-slate-600 border-dashed pb-6">
-                                    <div className="w-20 h-20 bg-gradient-to-br from-blue-200 to-indigo-200 dark:from-blue-900/50 dark:to-indigo-900/50 text-blue-700 rounded-full flex items-center justify-center text-4xl mx-auto mb-5 shadow-inner"><i className="fa-regular fa-paper-plane"></i></div>
-                                    <h3 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-wider">{formType}</h3>
+                                <div className="text-center mb-8 border-b-2 border-slate-200 dark:border-slate-700 border-dashed pb-6">
+                                    <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/50 dark:to-indigo-900/50 text-blue-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-5 shadow-inner"><i className="fa-regular fa-paper-plane"></i></div>
+                                    <h3 className="text-3xl font-black text-slate-800 dark:text-white uppercase tracking-wider">{formType}</h3>
                                 </div>
                                 
-                                <form action="https://formspree.io/f/xwvndvoe" method="POST" encType="multipart/form-data" className="space-y-6 text-left">
-                                    <input type="hidden" name="Service_Requested" value={formType} />
+                                <form onSubmit={handleFormSubmit} className="space-y-6 text-left">
                                     <div>
-                                        <label className="block text-[14px] font-black uppercase text-slate-700 dark:text-slate-300 mb-2 tracking-widest">मोबाइल नंबर <span className="text-red-500">*</span></label>
-                                        <input type="tel" name="Mobile" required className="w-full border-2 border-slate-300 dark:border-slate-500 bg-white/90 dark:bg-slate-900/90 p-5 rounded-2xl outline-none focus:border-blue-500 focus:bg-white font-black text-xl transition-all shadow-inner" placeholder="अपना नंबर दर्ज करें" />
+                                        <label className="block text-[13px] font-black uppercase text-slate-600 dark:text-slate-400 mb-2 tracking-widest">मोबाइल नंबर <span className="text-red-500">*</span></label>
+                                        <input type="tel" name="Mobile" required className="w-full border-2 border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-900/80 p-5 rounded-2xl outline-none focus:border-blue-500 focus:bg-white font-black text-xl transition-all shadow-inner" placeholder="अपना नंबर दर्ज करें" />
                                     </div>
                                     <div>
-                                        <label className="block text-[14px] font-black uppercase text-slate-700 dark:text-slate-300 mb-2 tracking-widest">समस्या / कार्य <span className="text-red-500">*</span></label>
-                                        <textarea name="Problem" required rows="4" className="w-full border-2 border-slate-300 dark:border-slate-500 bg-white/90 dark:bg-slate-900/90 p-5 rounded-2xl outline-none focus:border-blue-500 focus:bg-white font-bold text-lg transition-all resize-none shadow-inner" placeholder="अपनी समस्या या कार्य का विवरण यहाँ लिखें..."></textarea>
+                                        <label className="block text-[13px] font-black uppercase text-slate-600 dark:text-slate-400 mb-2 tracking-widest">समस्या / कार्य <span className="text-red-500">*</span></label>
+                                        <textarea name="Problem" required rows="4" className="w-full border-2 border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-900/80 p-5 rounded-2xl outline-none focus:border-blue-500 focus:bg-white font-bold text-lg transition-all resize-none shadow-inner" placeholder="अपनी समस्या या कार्य का विवरण यहाँ लिखें..."></textarea>
                                     </div>
-                                    <div className="bg-blue-100/80 dark:bg-slate-800/80 p-6 rounded-2xl border-2 border-blue-200 dark:border-slate-600">
-                                        <label className="block text-[14px] font-black uppercase text-slate-800 dark:text-slate-200 mb-3 tracking-widest"><i className="fa-solid fa-paperclip mr-2 text-blue-600 text-lg"></i> फोटो/वीडियो अपलोड करें</label>
-                                        <input type="file" name="Files" multiple accept="image/*,video/*" className="w-full text-md text-slate-600 file:mr-5 file:py-4 file:px-8 file:rounded-xl file:border-0 file:text-[13px] file:font-black file:uppercase file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:shadow-lg transition-all cursor-pointer" />
+                                    <div className="bg-blue-50/80 dark:bg-slate-900/80 p-6 rounded-2xl border-2 border-blue-100 dark:border-slate-700">
+                                        <label className="block text-[13px] font-black uppercase text-slate-700 dark:text-slate-300 mb-3 tracking-widest"><i className="fa-solid fa-paperclip mr-2 text-blue-600 text-lg"></i> फोटो/वीडियो अपलोड करें</label>
+                                        <input type="file" name="Files" accept="image/*,video/*,application/pdf" className="w-full text-md text-slate-500 file:mr-5 file:py-4 file:px-8 file:rounded-xl file:border-0 file:text-[12px] file:font-black file:uppercase file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:shadow-lg transition-all cursor-pointer" />
                                     </div>
-                                    <button type="submit" className="w-full bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white font-black py-6 rounded-2xl shadow-xl hover:shadow-2xl mt-6 text-xl uppercase tracking-widest transition-all"><i className="fa-solid fa-rocket mr-3"></i> रिक्वेस्ट भेजें</button>
+                                    <button type="submit" disabled={isSubmitting} className="w-full bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white font-black py-6 rounded-2xl shadow-xl hover:shadow-2xl mt-6 text-xl uppercase tracking-widest transition-all">
+                                        {isSubmitting ? <><i className="fas fa-spinner fa-spin mr-3"></i> भेजा जा रहा है...</> : <><i className="fa-solid fa-rocket mr-3"></i> रिक्वेस्ट भेजें</>}
+                                    </button>
                                 </form>
                             </div>
                         </div>
@@ -452,7 +512,8 @@
             </div>  
         );  
     };  
-    const root = ReactDOM.createRoot(document.getElementById('root')); root.render(<App />);  
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);  
     </script>
 </body>  
 </html>
