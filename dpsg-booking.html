@@ -1,1 +1,356 @@
-<h1>DPSG बुकिंग पोर्टल जल्द ही लाइव होगा!</h1>
+<!DOCTYPE html>  
+<html lang="hi">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>DPSG Master Portal - Digital Seva Nimbahera</title>  
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>  
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>  
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>  
+    <script src="https://cdn.tailwindcss.com"></script>  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>  
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">  
+    <style> 
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Poppins:wght@500;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; margin: 0; }
+        .fancy-text { font-family: 'Poppins', sans-serif; }
+        .glass-card { background: white; border-radius: 2.5rem; border: 2px solid #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.08); }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); gap: 8px; max-height: 450px; overflow-y: auto; padding: 15px; background: #fff; border-radius: 1.5rem; border: 2px inset #edf2f7; }
+        .grid-item { padding: 15px 2px; text-align: center; border-radius: 12px; font-weight: 900; cursor: pointer; border: 2px solid transparent; transition: 0.2s; font-size: 13px; }
+        .grid-item.sold { background: #fee2e2; color: #991b1b; cursor: not-allowed; text-decoration: line-through; }
+        .grid-item.pending { background: #fef3c7; color: #92400e; border-color: #fde68a; animation: pulse 2s infinite; }
+        .grid-item.vip { background: #e0e7ff; color: #1e3a8a; }
+        .grid-item.gold { background: #fef3c7; color: #92400e; }
+        .grid-item.silver { background: #f1f5f9; color: #475569; }
+        .grid-item.selected { border: 3px solid #22c55e !important; transform: scale(1.1); box-shadow: 0 0 20px rgba(34,197,94,0.4); }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .prize-card { border-left: 8px solid #d97706; background: #fff; transition: 0.3s; margin-bottom: 12px; padding: 15px; border-radius: 0 1rem 1rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .prize-card:hover { transform: translateX(8px); background: #fffbeb; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        @media print {
+            body * { visibility: hidden; }
+            #digital-card, #digital-card * { visibility: visible; }
+            #digital-card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 500px; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>  
+<body>  
+    <div id="root"></div>  
+    <script type="text/babel">  
+        const { useState, useEffect, useRef } = React;
+        
+        // आपका नया सर्वर लिंक यहाँ सेट कर दिया गया है
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwUmLkC7Pt1wP6vqEb2qIHO4G6JbDca6OCe9ZWR3n4GETpJFO5zYBVrklD_EbLS-zxuRg/exec";
+        const SHEET_CSV = "https://docs.google.com/spreadsheets/d/11UVWUzSUwI2mm9tsBMaNARgUnfwIZ5TKDaHsKb4Cl58/export?format=csv";
+
+        const STAFF_CREDENTIALS = { "Jorawar@DPS": "Jorawar@6020", "Parkash@DPS": "Parkash@6020", "Rajkumar@DPS": "Rajkumar@6020" };
+
+        const fullPrizeGallery = [
+            { r: "1", n: "₹5000 Cash", e: "💰", m: "किस्मत का ताला खुलेगा, जेब में गांधी मुस्कुराएंगे, DPSG के साथ हुकुम, आप मालामाल हो जाएंगे!" },
+            { r: "2", n: "LED TV (32 Inch)", e: "📺", m: "घर बैठे सिनेमा का आनंद, हर तस्वीर में दिखेगा जान, LED टीवी जीतकर, बढ़ाइये अपने घर की शान!" },
+            { r: "3", n: "Kids Bicycle", e: "🚲", m: "नन्हे क़दमों की तेज़ रफ़्तार, बचपन को दें खुशियों का उपहार!" },
+            { r: "4", n: "Ceiling Fan", e: "🌀", m: "चलेगी जब ठंडी हवा, मिट जाएगी हर थकान, पंखा जीतेगा वो, जो है DPSG की जान!" },
+            { r: "5", n: "Bati Oven", e: "🍳", m: "गरमा-गरम बाटी का स्वाद, निम्बाहेड़ा का है ये अनूठा अंदाज़!" },
+            { r: "6", n: "Keypad Mobile Phone", e: "📱", m: "बातें होंगी अपनों से, दूरियां सारी मिट जाएंगी, हाथ में होगा मोबाइल, तो खुशियां लौट आएंगी!" },
+            { r: "7", n: "Smart Watch", e: "⌚", m: "वक्त बदलेगा आपका, अब घड़ी भी स्मार्ट होगी, जीत की आपकी हर तरफ, अब नई शुरुआत होगी!" },
+            { r: "8", n: "Power Bank", e: "🔋", m: "बैटरी कभी न होगी लो, न रुकेगा कोई काम, DPSG का पावर बैंक, देगा आपको आराम!" },
+            { r: "9", n: "Sports Shoes", e: "👟", m: "रफ़्तार भरेगी आपके क़दमों में, मंज़िल होगी आपके पास!" },
+            { r: "10", n: "Riding Helmet", e: "🪖", m: "सुरक्षा का वादा, जीत का इरादा!" },
+            { r: "11-20", n: "Premium Gift Set", e: "🎁", m: "Earbuds, Trimmer, Wrist Watch - स्टाइल भी होगा और चमक भी!" },
+            { r: "21-30", n: "Special Cash Bonus", e: "💸", m: "₹301, ₹201, ₹101 - नसीब में होगा नकद, तो हर काम होगा सफल!" },
+            { r: "31-51", n: "Surprise Mega Gifts", e: "⭐", m: "कोई खाली हाथ नहीं जाएगा! दीवार घड़ी, छाता, मोबाइल रिचार्ज और 20+ अन्य उपहार!" }
+        ];
+
+        const App = () => {
+            const [cards, setCards] = useState([]);
+            const [selected, setSelected] = useState(null);
+            const [view, setView] = useState("user"); 
+            const [counts, setCounts] = useState({ v: 0, g: 0, s: 0 });
+            const [loading, setLoading] = useState(true);
+            const [submitting, setSubmitting] = useState(false);
+            const [staffID, setStaffID] = useState("");
+            const [search, setSearch] = useState("");
+            
+            const [statusModal, setStatusModal] = useState(false);
+            const [checkInput, setCheckInput] = useState("");
+            const [foundCard, setFoundCard] = useState(null);
+
+            const loadData = () => {
+                fetch(SHEET_CSV + "?t=" + Date.now()).then(r => r.text()).then(csv => {
+                    const rows = Papa.parse(csv).data;
+                    let parsed = [], v=0, g=0, s=0;
+                    for(let i=1; i<=1000; i++) {
+                        let row = rows[i] || [];
+                        let stat = (row[4] || "").trim();
+                        let type = i <= 100 ? 'VIP' : (i <= 600 ? 'Gold' : 'Silver');
+                        let finalStat = stat === "Sold" ? "sold" : (stat === "Pending" ? "pending" : "available");
+                        if(finalStat==="available"){ if(type==='VIP') v++; else if(type==='Gold') g++; else s++; }
+                        parsed.push({ num: i, id: `DPSG-26-113-${String(i).padStart(4,'0')}`, type, status: finalStat, data: { name: row[6], mob: row[7], vill: row[9], aadhar: row[10] } });
+                    }
+                    setCards(parsed); setCounts({v,g,s}); setLoading(false);
+                });
+            };
+
+            useEffect(() => {
+                loadData();
+                const interval = setInterval(loadData, 10000); 
+                return () => clearInterval(interval);
+            }, []);
+
+            const handleStaffLogin = async () => {
+                const user = prompt("स्टाफ आईडी (जैसे: Parkash@DPS):");
+                const pass = prompt("पासवर्ड:");
+                const params = new URLSearchParams({ action: "LOGIN", username: user, password: pass });
+                const res = await fetch(SCRIPT_URL + "?" + params);
+                const txt = await res.text();
+                if(txt === "LOGIN_SUCCESS") { setStaffID(user); setView("staff"); } else { alert("गलत आईडी या पासवर्ड हुकुम!"); }
+            };
+
+            const handleAction = async (e, act) => {
+                e.preventDefault();
+                setSubmitting(true);
+                const fd = new FormData(e.target);
+                const params = new URLSearchParams(fd);
+                params.append("membershipId", selected.id);
+                params.append("action", act);
+                if(staffID) params.append("staffID", staffID);
+
+                try {
+                    await fetch(SCRIPT_URL, { method: 'POST', body: params, mode: 'no-cors' });
+                    if (act === "BOOK") {
+                        const shareWA = window.confirm("बुकिंग सफल!\nक्या आप रसीद व्हाट्सएप पर शेयर करना चाहते हैं?");
+                        if (shareWA) {
+                            const msg = `🔔 नई बुकिंग!\nID: ${selected.id}\nनाम: ${fd.get('name')}\nमोबाइल: ${fd.get('mobile')}\nगाँव: ${fd.get('village')}`;
+                            window.open(`https://wa.me/917229874128?text=${encodeURIComponent(msg)}`, '_blank');
+                        }
+                    } else { alert("कार्ड सफलतापूर्वक वेरिफाई हो गया!"); }
+                    setSelected(null);
+                    loadData();
+                    setSubmitting(false);
+                } catch (err) { alert("त्रुटि! नेटवर्क चेक करें।"); setSubmitting(false); }
+            };
+
+            const checkMyCard = () => {
+                if(!checkInput) return;
+                const found = cards.find(c => c.id.toLowerCase() === checkInput.toLowerCase() || (c.data.mob && c.data.mob === checkInput));
+                setFoundCard(found || "NOT_FOUND");
+            };
+
+            if (loading) return <div className="h-screen flex items-center justify-center font-black text-3xl animate-pulse text-slate-800">DPSG PORTAL LOADING...</div>;
+
+            return (
+                <div className="pb-20">
+                    <div className="bg-slate-900 text-white p-10 text-center border-b-[12px] border-amber-600 shadow-2xl relative">
+                        {view === "user" && (
+                            <button onClick={()=>setStatusModal(true)} className="absolute top-4 right-4 bg-amber-500 text-slate-900 px-4 py-2 rounded-full font-black text-xs md:text-sm shadow-lg hover:bg-amber-400">
+                                🔍 कार्ड डाउनलोड / स्टेटस
+                            </button>
+                        )}
+                        <h1 className="text-4xl md:text-6xl font-black italic fancy-text mt-4">डिजिटल प्रॉब्लम सोल्यूशन ग्रुप</h1>
+                        <p className="text-amber-400 font-black mt-2 tracking-widest uppercase text-sm">समस्या आपकी, समाधान हमारा - नीमबाहेड़ा</p>
+                        <div className="mt-8 inline-block bg-red-600 px-10 py-3 rounded-full font-black animate-bounce shadow-xl">
+                            🚀 आज ही अपना कार्ड बुक करें और 51 इनामों में से एक जीतें!
+                        </div>
+                    </div>
+
+                    <div className="max-w-6xl mx-auto px-4 mt-10">
+                        <div className="grid grid-cols-3 gap-6 mb-12">
+                            <div className="bg-indigo-700 text-white p-6 rounded-[2.5rem] text-center shadow-lg border-b-4 border-indigo-900">
+                                <p className="text-[10px] font-black uppercase">VIP बचे हैं</p>
+                                <h3 className="text-4xl font-black">{counts.v}</h3>
+                            </div>
+                            <div className="bg-amber-500 text-white p-6 rounded-[2.5rem] text-center shadow-lg border-b-4 border-amber-700">
+                                <p className="text-[10px] font-black uppercase">Gold बचे हैं</p>
+                                <h3 className="text-4xl font-black">{counts.g}</h3>
+                            </div>
+                            <div className="bg-slate-700 text-white p-6 rounded-[2.5rem] text-center shadow-lg border-b-4 border-slate-900">
+                                <p className="text-[10px] font-black uppercase">Silver बचे हैं</p>
+                                <h3 className="text-4xl font-black">{counts.s}</h3>
+                            </div>
+                        </div>
+
+                        {view === "user" ? (
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                                <div className="lg:col-span-7 glass-card p-6 md:p-10">
+                                    <h2 className="text-2xl font-black mb-8 border-l-8 border-indigo-600 pl-4 italic uppercase">कार्ड ग्रिड (1-1000)</h2>
+                                    <div className="card-grid custom-scroll">
+                                        {cards.map(c => (
+                                            <div key={c.num} className={`grid-item ${c.status} ${c.type.toLowerCase()} ${selected?.num === c.num ? 'selected' : ''}`}
+                                                 onClick={() => c.status === "available" && setSelected(c)}>
+                                                {c.num}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="mt-8 flex justify-between text-[11px] font-black uppercase text-slate-400">
+                                        <span>🔵 VIP</span>
+                                        <span>🟠 GOLD</span>
+                                        <span>⚪ SILVER</span>
+                                        <span className="text-yellow-600">🟡 PENDING</span>
+                                        <span className="text-red-600">🔴 SOLD</span>
+                                    </div>
+                                </div>
+
+                                <div className="lg:col-span-5 space-y-10">
+                                    {selected ? (
+                                        <div className="glass-card p-8 border-4 border-indigo-600 shadow-2xl">
+                                            <div className="flex justify-between items-center mb-6">
+                                                <h3 className="text-2xl font-black text-indigo-800">बुक करें ID: {selected.id}</h3>
+                                                <button onClick={()=>setSelected(null)} className="text-red-500 font-black">X</button>
+                                            </div>
+                                            <div className="bg-blue-50 p-4 rounded-2xl mb-6 border border-blue-100">
+                                                <p className="text-[11px] font-black text-indigo-700 mb-2 uppercase">✨ {selected.type} कार्ड की सुविधाएं:</p>
+                                                <ul className="text-[11px] font-bold text-slate-600 space-y-1">
+                                                    {selected.type==='VIP' ? <><li>✅ 6 महीने तक पूरे परिवार हेतु मान्य</li><li>✅ 150 प्रिंट + 80 फोटो + 2 लैमिनेशन</li><li>✅ 100% फ्री ई-मित्र सेवा + 2 डिलीवरी</li></> : 
+                                                     selected.type==='Gold' ? <><li>✅ 3 महीने / 1 व्यक्ति हेतु</li><li>✅ 40 प्रिंट + 24 फोटो + 1 लैमिनेशन</li><li>✅ 50% ई-मित्र छूट + 1 डिलीवरी</li></> :
+                                                     <><li>✅ 1 महीना / 1 व्यक्ति हेतु</li><li>✅ 15 प्रिंट + 12 फोटो</li><li>✅ सीमित सेवा + लकी ड्रा अवसर</li></>}
+                                                </ul>
+                                            </div>
+                                            <form onSubmit={(e) => handleAction(e, "BOOK")} className="space-y-5">
+                                                <input name="name" placeholder="नाम" required className="w-full p-4 border-2 rounded-2xl font-bold focus:border-indigo-600 outline-none" />
+                                                <input name="mobile" pattern="[0-9]{10}" maxLength="10" placeholder="मोबाइल (10 अंक)" required className="w-full p-4 border-2 rounded-2xl font-bold focus:border-indigo-600 outline-none" />
+                                                <input name="village" placeholder="गाँव/शहर" required className="w-full p-4 border-2 rounded-2xl font-bold focus:border-indigo-600 outline-none" />
+                                                <input name="aadhaar" pattern="[0-9]{12}" maxLength="12" placeholder="आधार (12 अंक)" required className="w-full p-4 border-2 rounded-2xl font-bold focus:border-indigo-600 outline-none" />
+                                                <button disabled={submitting} className="w-full bg-slate-900 text-white font-black py-6 rounded-[2.5rem] text-xl shadow-xl hover:bg-green-600">
+                                                    {submitting ? "प्रोसेस हो रहा है..." : "सबमिट करें ✅"}
+                                                </button>
+                                            </form>
+                                        </div>
+                                    ) : (
+                                        <div className="glass-card p-8 bg-white border-t-[12px] border-amber-600 shadow-2xl">
+                                            <h4 className="text-2xl font-black text-center text-amber-800 mb-8 italic underline">🏆 संपूर्ण 51 इनामी गैलरी 🏆</h4>
+                                            <div className="space-y-6 h-[550px] overflow-y-auto pr-2 custom-scroll">
+                                                {fullPrizeGallery.map(p => (
+                                                    <div key={p.r} className="prize-card p-5 rounded-r-2xl shadow-sm border border-slate-100">
+                                                        <div className="flex justify-between items-center mb-2">
+                                                            <span className="bg-amber-600 text-white px-3 py-0.5 rounded-full text-[10px] font-black uppercase">रैंक {p.r}</span>
+                                                            <h5 className="font-black text-slate-800 text-sm md:text-base">{p.n} {p.e}</h5>
+                                                        </div>
+                                                        <p className="text-xs italic font-bold text-slate-500 leading-relaxed">"{p.m}"</p>
+                                                    </div>
+                                                ))}
+                                                <div className="bg-indigo-700 p-8 rounded-[2rem] text-white text-center shadow-xl">
+                                                    <p className="font-black text-base mb-4 uppercase">विशेष सूचना</p>
+                                                    <p className="text-xs font-bold leading-loose">"कोई खाली हाथ नहीं जाएगा! आपके विश्वास का सम्मान ही हमारा सबसे बड़ा पुरस्कार है। नीमबाहेड़ा का गौरव - DPSG परिवार!"</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-10">
+                                <div className="bg-indigo-950 text-white p-12 rounded-[3.5rem] shadow-2xl flex flex-col md:flex-row justify-between items-center gap-4">
+                                    <div className="text-center md:text-left">
+                                        <h2 className="text-2xl font-black mb-2 italic">स्टाफ कंट्रोल: नमस्ते {staffID}!</h2>
+                                        <p className="text-xs text-indigo-300 font-bold">🟢 डेटा लाइव रिफ्रेश हो रहा है...</p>
+                                    </div>
+                                    <button onClick={()=>setView("user")} className="bg-red-500 px-6 py-2 rounded-full font-black text-sm w-full md:w-auto">लॉग आउट</button>
+                                </div>
+                                <div className="glass-card p-8 md:p-12">
+                                    <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+                                        <h2 className="text-2xl font-black underline italic">पेंडिंग कार्ड्स (लाइव लिस्ट)</h2>
+                                        <div className="relative w-full md:w-96">
+                                            <input placeholder="🔍 ID या नाम से सर्च करें..." className="w-full p-4 bg-slate-50 border-2 rounded-2xl font-bold shadow-inner text-lg" onChange={(e)=>setSearch(e.target.value)} />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {cards.filter(c => c.status === "pending" && (c.id.toLowerCase().includes(search.toLowerCase()) || (c.data.name && c.data.name.toLowerCase().includes(search.toLowerCase())))).map(c => (
+                                            <div key={c.id} className="p-8 border-4 border-amber-200 rounded-[2.5rem] flex justify-between items-center bg-amber-50/50 shadow-sm hover:border-amber-400 transition-all">
+                                                <div>
+                                                    <p className="font-black text-indigo-900 text-xl mb-1">{c.id}</p>
+                                                    <p className="text-sm font-bold text-slate-600">{c.data.name} | {c.data.mob}</p>
+                                                </div>
+                                                <button onClick={()=>setSelected(c)} className="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-black text-sm shadow-md hover:bg-indigo-800">वेरिफाई</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                {selected && (
+                                    <div className="glass-card p-12 border-[6px] border-green-500 shadow-2xl">
+                                        <div className="flex justify-between items-center mb-10">
+                                            <h3 className="text-3xl font-black underline">वेरिफिकेशन: {selected.id}</h3>
+                                            <button onClick={()=>setSelected(null)} className="text-red-500 font-black text-2xl">X</button>
+                                        </div>
+                                        <form onSubmit={(e) => handleAction(e, "VERIFY")} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase ml-2">नाम</label><input name="name" defaultValue={selected.data.name} className="w-full p-4 border rounded-2xl font-bold" /></div>
+                                            <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase ml-2">मोबाइल</label><input name="mobile" defaultValue={selected.data.mob} className="w-full p-4 border rounded-2xl font-bold" /></div>
+                                            <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase ml-2">गाँव</label><input name="village" defaultValue={selected.data.vill} className="w-full p-4 border rounded-2xl font-bold" /></div>
+                                            <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase ml-2">आधार</label><input name="aadhaar" defaultValue={selected.data.aadhar} className="w-full p-4 border rounded-2xl font-bold" /></div>
+                                            <input name="finalAmount" placeholder="फाइनल पेमेंट राशि" required className="p-5 border-2 border-indigo-200 rounded-3xl font-black md:col-span-2 text-xl" />
+                                            <select name="payMode" className="p-5 border rounded-3xl font-black md:col-span-2"><option>Cash</option><option>PhonePe/UPI</option><option>Airtel Discounted Rate</option></select>
+                                            <button disabled={submitting} className="md:col-span-2 bg-green-600 text-white font-black py-7 rounded-[3rem] text-3xl shadow-2xl hover:bg-green-700 transition-all">
+                                                {submitting ? "प्रोसेस हो रहा है..." : "CONFRIM & SOLD ✅"}
+                                            </button>
+                                        </form>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        <div className="mt-24 text-center pb-10">
+                            <button onClick={handleStaffLogin} className="no-print text-[10px] font-black opacity-30 tracking-[0.8em] uppercase hover:opacity-100 transition-all">🔱 Staff Admin Access</button>
+                            <p className="mt-8 font-black text-[9px] uppercase tracking-[0.4em] text-slate-300">© 2026 DPSG NIMBAHERA | DESIGNED BY JORAWAR BANA</p>
+                        </div>
+                    </div>
+
+                    {statusModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 no-print">
+                            <div className="bg-white rounded-[3rem] p-10 max-w-lg w-full relative shadow-2xl">
+                                <button onClick={()=>{setStatusModal(false); setFoundCard(null); setCheckInput("");}} className="absolute top-6 right-6 text-red-500 font-black text-xl">X</button>
+                                <h3 className="text-2xl font-black mb-6 text-slate-800 text-center">🔍 कार्ड स्टेटस व डाउनलोड</h3>
+                                <p className="text-xs font-bold text-slate-500 text-center mb-6">अपना DPSG कार्ड ID या मोबाइल नंबर डालें</p>
+                                
+                                <div className="flex gap-2 mb-6">
+                                    <input type="text" placeholder="ID या मोबाइल नंबर..." value={checkInput} onChange={e => setCheckInput(e.target.value)} className="w-full p-4 border-2 border-slate-200 rounded-2xl font-bold focus:border-indigo-500 outline-none" />
+                                    <button onClick={checkMyCard} className="bg-indigo-600 text-white px-6 rounded-2xl font-black">खोजें</button>
+                                </div>
+
+                                {foundCard === "NOT_FOUND" && <div className="p-4 bg-red-50 text-red-600 font-black text-center rounded-2xl border border-red-200">❌ कोई कार्ड नहीं मिला। कृपया सही ID डालें।</div>}
+                                
+                                {foundCard && foundCard !== "NOT_FOUND" && (
+                                    <div className="mt-4">
+                                        {foundCard.status === 'pending' ? (
+                                            <div className="p-6 bg-yellow-50 text-yellow-800 font-black text-center rounded-2xl border-2 border-yellow-300">
+                                                ⏳ आपका कार्ड (ID: {foundCard.id}) अभी पेंडिंग है। कृपया स्टाफ वेरिफिकेशन का इंतज़ार करें।
+                                            </div>
+                                        ) : foundCard.status === 'sold' ? (
+                                            <div>
+                                                <p className="text-center font-black text-green-600 mb-4">✅ आपका कार्ड वेरिफाई हो चुका है!</p>
+                                                
+                                                <div id="digital-card" className={`p-8 rounded-3xl text-white shadow-2xl relative overflow-hidden ${foundCard.type==='VIP'?'bg-indigo-800':foundCard.type==='Gold'?'bg-amber-600':'bg-slate-700'}`}>
+                                                    <div className="absolute top-0 right-0 p-4 opacity-20"><i className="fa-solid fa-crown text-6xl"></i></div>
+                                                    <h4 className="font-black text-2xl mb-1 italic">DPSG {foundCard.type} CARD</h4>
+                                                    <p className="text-[10px] font-bold tracking-widest uppercase mb-6 opacity-80">Digital Seva Nimbahera</p>
+                                                    <div className="bg-white/10 p-4 rounded-2xl border border-white/20 mb-6">
+                                                        <p className="font-black tracking-widest text-lg">{foundCard.id}</p>
+                                                    </div>
+                                                    <p className="font-black text-lg mb-1">{foundCard.data.name}</p>
+                                                    <p className="text-sm font-bold opacity-80 mb-1">📱 {foundCard.data.mob}</p>
+                                                    <p className="text-sm font-bold opacity-80">📍 {foundCard.data.vill}</p>
+                                                    <div className="mt-6 pt-4 border-t border-white/20 flex justify-between items-center">
+                                                        <p className="text-[8px] uppercase tracking-widest font-black">Authorized Member</p>
+                                                        <p className="text-sm font-black italic">✓ Verified</p>
+                                                    </div>
+                                                </div>
+
+                                                <button onClick={()=>window.print()} className="w-full bg-slate-900 text-white font-black py-4 rounded-2xl mt-6 hover:bg-slate-800">
+                                                    🖨️ कार्ड डाउनलोड / PDF सेव करें
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="p-4 bg-slate-100 text-slate-500 font-black text-center rounded-2xl">यह कार्ड अभी बुक नहीं हुआ है।</div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
