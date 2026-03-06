@@ -1,786 +1,373 @@
-        const mask = (v) => { if (!v || v === "#REF!" || v.trim() === "") return "****-XXXX"; return v.length > 4 ? v.slice(0, 2) + "******" + v.slice(-2) : v; };
-        const toDirectLink = (url) => { if (!url) return ""; let id = ""; if (url.includes("/d/")) id = url.split("/d/")[1].split("/")[0]; if (url.includes("id=")) id = url.split("id=")[1].split("&")[0]; return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000" : url; };
+<!DOCTYPE html>  
+<html lang="hi">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>DPSG Master Portal - Digital Seva Nimbahera</title>  
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>  
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>  
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>  
+    <script src="https://cdn.tailwindcss.com"></script>  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>  
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>  
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">  
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <style> 
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Play:wght@700&family=Poppins:wght@500;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s; margin: 0; background: linear-gradient(135deg, #f0f4f8, #e0e7ff, #f8fafc); }  
+        .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border-radius: 2.5rem; border: 2px solid rgba(255,255,255,0.5); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15); }  
+        .marquee { background: linear-gradient(90deg, #d97706, #fbbf24, #d97706); color: #000; padding: 18px 0; border-bottom: 4px solid #92400e; overflow: hidden; position: relative; }  
+        .marquee-content { display: inline-block; padding-left: 100%; animation: marquee 25s linear infinite; white-space: nowrap; font-weight: 900; }  
+        @keyframes marquee { 0% { transform: translate(0, 0);} 100% { transform: translate(-100%, 0); } }  
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; max-height: 400px; overflow-y: auto; padding: 15px; background: #f8fafc; border-radius: 1.5rem; border: 2px solid #e2e8f0; }
+        .grid-item { padding: 15px 5px; text-align: center; border-radius: 12px; font-weight: 900; cursor: pointer; transition: 0.2s; border: 2px solid transparent; font-size: 14px; }
+        .grid-item.available.vip { background: #e0e7ff; color: #1e3a8a; border-color: #c7d2fe; }
+        .grid-item.available.gold { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+        .grid-item.available.silver { background: #f1f5f9; color: #334155; border-color: #e2e8f0; }
+        .grid-item.sold { background: #fee2e2; color: #991b1b; cursor: not-allowed; position: relative; opacity: 0.7; }
+        .grid-item.sold::after { content: 'SOLD'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-20deg); font-size: 10px; background: #ef4444; color: white; padding: 1px 4px; border-radius: 4px; }
+        .grid-item.selected { border-color: #22c55e; background: #dcfce7 !important; color: #166534 !important; transform: scale(1.1); box-shadow: 0 0 15px rgba(34,197,94,0.4); }
+        .scratch-container { position: relative; width: 100%; max-width: 550px; min-height: 400px; margin: 0 auto; }  
+        .scratch-canvas { position: absolute; top: 0; left: 0; z-index: 10; border-radius: 2rem; cursor: crosshair; touch-action: none; width: 100%; height: 100%; }  
+        .scratch-content { background: #fff; border-radius: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; border: 4px solid #1e293b; }  
+        .custom-scroll::-webkit-scrollbar { width: 8px; } .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        @media print { .no-print { display: none !important; } .glass-card { border: none !important; box-shadow: none !important; width: 100% !important; margin: 0 !important; background: white !important;} }
+    </style>
+</head>  
+<body>  
+    <div id="root"></div>  
+    <script type="text/babel">  
+    const { useState, useEffect, useRef, useCallback } = React;
 
-        // --- ORIGINAL SCRATCH CARD COMPONENT ---
-        const ScratchCard = ({ onComplete, children }) => {  
-            const canvasRef = useRef(null);
-            const [isRevealed, setIsRevealed] = useState(false);  
-            useEffect(() => {  
-                const canvas = canvasRef.current; if(!canvas) return; const ctx = canvas.getContext('2d');  
-                canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight;  
-                const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);  
-                grad.addColorStop(0, '#B8860B'); grad.addColorStop(0.5, '#FFDF00'); grad.addColorStop(1, '#DAA520');  
-              
-                ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);  
-                ctx.font = "900 32px Inter"; ctx.fillStyle = "rgba(139, 69, 19, 0.5)"; ctx.textAlign = "center";  
-                ctx.fillText("SCRATCH HERE", canvas.width / 2, canvas.height / 2);  
-                ctx.font = "700 18px Inter"; ctx.fillText("DPSG NIMBAHERA", canvas.width / 2, (canvas.height / 2) + 35);
-                const scratch = (e) => {  
-                    if (isRevealed) return; const rect = canvas.getBoundingClientRect();  
-                    const x = (e.pageX || (e.touches && e.touches[0].pageX)) - rect.left;
-                    const y = (e.pageY || (e.touches && e.touches[0].pageY)) - rect.top;  
-                    ctx.globalCompositeOperation = 'destination-out'; ctx.beginPath();
-                    ctx.arc(x, y, 75, 0, Math.PI * 2); ctx.fill();  
-                    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;  
-                    let count = 0;
-                    for (let i = 0; i < pixels.length; i += 40) if (pixels[i + 3] === 0) count++;
-                    if (count > (pixels.length / 40) * 0.45) { setIsRevealed(true); onComplete(); }  
-                };  
-                canvas.addEventListener('mousemove', scratch);
-                canvas.addEventListener('touchmove', scratch, {passive: true});  
-            }, [isRevealed]);  
-            return ( <div className="scratch-container"> {!isRevealed && <canvas ref={canvasRef} className="scratch-canvas" />} <div className="scratch-content">{children}</div> </div> );
-        };  
+    // --- बैकएंड कॉन्फ़िगरेशन (एक्सेल शीट हेडर्स मैचिंग) ---
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrJDOqyreLQ3ylpumfUgnHe1DFBwoIIjPg-C8kc_2Lm9C43VLeZrN-uoBzATw20Kva/exec";
+    const FILE_UPLOAD_URL = "https://script.google.com/macros/s/AKfycbzbGT8QdrTlBlNyN2m502f03N10VdwmBhNUYkDP6nWmqGi99Y5qwFYVfa91zA2UeNQ/exec";
+    const REQUEST_SHEET_CSV = "https://docs.google.com/spreadsheets/d/1mMQs6zU_EKRt1o8wEwZQnYrDhCHa-p-WthNdQDb4_Xk/export?format=csv";
+    const MAIN_CSV = "https://docs.google.com/spreadsheets/d/1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo/export?format=csv";
+    const STAFF_CREDENTIALS = { "Parkash": "DPS@Parkash6375#", "Rajkumar": "DPS@Rajkumar6375#", "Jorawar": "DPS@Jorawar6375#" };
 
-        // --- MAIN APP COMPONENT ---
-        const App = () => {  
-            const [theme, setTheme] = useState('light');
-            const [lang, setLang] = useState('hi'); 
-            const [appState, setAppState] = useState("landing"); // 'landing', 'search', 'view', 'booking'
-            
-            const [member, setMember] = useState(null);
-            const [headers, setHeaders] = useState([]);
-            const [isAdmin, setIsAdmin] = useState(false); 
-            const [showPin, setShowPin] = useState(false);
-            const [prizeState, setPrizeState] = useState({ isLocked: true, type: null, rank: "", img: "", highlight: "", colorClass: "" });
-            
-            const [showForm, setShowForm] = useState(false); 
-            const [formType, setFormType] = useState("");
-            const [showWelcome, setShowWelcome] = useState(true);
-            
-            // --- CARD BOOKING STATES ---
-            const [cardsData, setCardsData] = useState([]);
-            const [selectedFilter, setSelectedFilter] = useState('ALL');
-            const [selectedCardId, setSelectedCardId] = useState(null);
-            
-            // --- FORM & LIVE STATUS STATES ---
-            const [statusCheckResult, setStatusCheckResult] = useState(null);
-            const [docHint, setDocHint] = useState("");
-            const [paymentMode, setPaymentMode] = useState("Cash");
+    const inamList = [
+        { rank: "1", name: "₹5000 Cash", msg: "किस्मत का ताला खुलेगा, जेब में गांधी मुस्कुराएंगे, DPSG के साथ हुकुम, आप मालामाल हो जाएंगे!" },
+        { rank: "2", name: "LED TV", msg: "घर बैठे सिनेमा का आनंद, हर तस्वीर में दिखेगा जान, LED टीवी जीतकर, बढ़ाइये अपने घर की शान!" },
+        { rank: "3", name: "Kids Bicycle", msg: "नन्हे क़दमों की तेज़ रफ़्तार, बचपन को दें खुशियों का उपहार!" },
+        { rank: "4", name: "Ceiling Fan", msg: "चलेगी जब ठंडी हवा, मिट जाएगी हर थकान, पंखा जीतेगा वो, जो है DPSG की जान!" },
+        { rank: "5", name: "Bati Oven", msg: "गरमा-गरम बाटी का स्वाद, निम्बाहेड़ा का है ये अनूठा अंदाज़!" },
+        { rank: "6", name: "Keypad Mobile Phone", msg: "बातें होंगी अपनों से, दूरियां सारी मिट जाएंगी, हाथ में होगा मोबाइल!" },
+        { rank: "7-20", name: "Premium Gifts", msg: "स्टाइल भी होगा और चमक भी, जब जीतेंगे आप ये शाही इनाम!" },
+        { rank: "21-51", name: "Surprise Gifts", msg: "कोई खाली हाथ नहीं जाएगा, हर कार्ड में है दम!" }
+    ];
 
-            const t = vocab[lang];
-            
-            const docList = {
-                "Airtel_Bank": lang==='hi' ? "🔴 आधार कार्ड और फिंगरप्रिंट/OTP अनिवार्य है।" : "🔴 Aadhar and Fingerprint/OTP mandatory.",
-                "PAN_Card": lang==='hi' ? "✅ आधार कार्ड की दोनों तरफ की फोटो अपलोड करें।" : "✅ Upload both sides of Aadhar card.",
-                "Birth_Cert": lang==='hi' ? "✅ हॉस्पिटल की रसीद, आधार कार्ड और फोटो अपलोड करें।" : "✅ Upload Hospital Receipt, Aadhar & Photo.",
-                "Caste_Cert": lang==='hi' ? "✅ राशन कार्ड, आधार, जन आधार और पुरानी जाति का रिकॉर्ड।" : "✅ Upload Ration Card, Aadhar, Jan Aadhar & Old Record.",
-                "Bonafide": lang==='hi' ? "✅ 10 साल पुराने कागज़ और आधार चाहिए।" : "✅ 10 yrs old document & Aadhar required.",
-                "Other": lang==='hi' ? "💬 अपनी समस्या नीचे विवरण में लिखें।" : "💬 Write your issue in the description box below."
-            };
+    const termsConditions = [
+        "01. यह सदस्यता कार्ड व्यक्तिगत है और अहस्तांतरणीय है।",
+        "02. सेवाओं का लाभ केवल समाप्ति तिथि तक ही मान्य है।",
+        "03. लिया गया पंजीकरण शुल्क वापस नहीं होगा।",
+        "04. सर्वर त्रुटि में फिजिकल स्क्रैच कार्ड परिणाम अंतिम होगा।",
+        "05. सरकारी टोकन शुल्क ग्राहक द्वारा अलग से देय होगा।",
+        "06. यह समाज सेवा हेतु है, कृपया कार्य पूर्ण होने तक धैर्य रखें।",
+        "07. मैनेजमेंट के पास नियमों में बदलाव का पूर्ण अधिकार है।"
+    ];
 
-            const getGreeting = () => { const hour = new Date().getHours(); if (hour < 12) return t.gm; if (hour < 17) return t.ga; return t.ge; };
-            
-            const openForm = (type) => { setFormType(type); setDocHint(""); setShowForm(true); };
+    const serviceList = [
+        "Airtel Payment Bank (Khaata/KYC)", "PAN Card (New/Correction)", "Birth Certificate", "Caste Certificate", 
+        "Bonafide (Mool Niwas)", "Jan Aadhar Correction", "Ration Card Service", "Data Recovery", "Other Work"
+    ];
+    const App = () => {  
+        const [appState, setAppState] = useState("landing");
+        const [appView, setAppView] = useState("portal");
+        const [cardsData, setCardsData] = useState([]);
+        const [selectedCardId, setSelectedCardId] = useState(null);
+        const [selectedFilter, setSelectedFilter] = useState("ALL");
+        const [member, setMember] = useState(null);
+        const [showServiceForm, setShowServiceForm] = useState(false);
+        const [formType, setFormType] = useState("");
+        const [bookingPaymentMode, setBookingPaymentMode] = useState("Cash");
+        const [statusCheckResult, setStatusCheckResult] = useState(null);
+        const [staffName, setStaffName] = useState("");
+        const [isSubmitting, setIsSubmitting] = useState(false);
 
-            const checkStatusFromCSV = async () => {
-                const sn = document.getElementById('liveStatusInput').value;
-                if(!sn) return;
-                setStatusCheckResult('PROCESSING');
-                if(!TRACKING_CSV) {
-                    setTimeout(() => { setStatusCheckResult('PENDING'); }, 1500);
-                    return;
-                }
+        // --- 1. रीयल-टाइम डेटा लोड करना (एक्सेल शीट से) ---
+        useEffect(() => {
+            const loadMasterData = async () => {
                 try {
-                    const res = await fetch(TRACKING_CSV);
-                    const text = await res.text();
-                    const rows = Papa.parse(text).data;
-                    const match = rows.find(r => r[0] && r[0].toString() === sn);
-                    if(match && match[5] && match[5].toUpperCase() === "YES") {
-                        setStatusCheckResult('OK');
-                    } else {
-                        setStatusCheckResult('PENDING');
-                    }
-                } catch(e) { setStatusCheckResult('PENDING'); }
-            };
-
-            // --- SMART WHATSAPP SUBMISSION (WITH PAN LOGIC) ---
-            const sendToWhatsApp = (e) => {
-                e.preventDefault();
-                const formData = new FormData(e.target);
-                const dataObj = Object.fromEntries(formData.entries());
-                
-                let waMsg = `🌟 DPSG नया सेवा अनुरोध 🌟\n${t.slogan}\n----------------------------------\n`;
-                waMsg += `👤 नाम: ${dataObj.Name || 'नया ग्राहक'}\n📱 मोबाइल: ${dataObj.Mobile}\n🆔 आधार: ${dataObj.Aadhar || 'N/A'}\n`;
-                if (paymentMode === "Airtel Payment Bank") waMsg += `💳 पैन: ${dataObj.Pan}\n`;
-                waMsg += `🛠️ सेवा/समस्या: ${dataObj.Problem || dataObj.Service || formType}\n💳 माध्यम: ${paymentMode}\n✅ स्टेटस: पेंडिंग\n----------------------------------\nकृपया मेरा कार्य पूर्ण करें।`;
-                
-                const waLink = `https://wa.me/917229874128?text=${encodeURIComponent(waMsg)}`;
-                window.open(waLink, '_blank');
-                alert("डेटा वेरीफाई हो गया है! अब 'OK' दबाते ही व्हाट्सएप खुलेगा, कृपया मैसेज सेंड करें।");
-                setShowForm(false);
-            };
-
-            const mapPrize = useCallback((row, maps) => {  
-                const mID = (row[1] || "").toString().toLowerCase().trim();  
-                const dDateStr = (row[36] || "").toString().trim(); 
-                const lock = (row[37] || "").toString().toUpperCase().trim(); 
-                let drawDate = null;
-                if (dDateStr) { let parts = dDateStr.split(/[-/]/); if (parts.length === 3) drawDate = new Date(parts[2], parts[1]-1, parts[0]); else drawDate = new Date(dDateStr); }
-                const today = new Date(); today.setHours(0,0,0,0); if(drawDate) drawDate.setHours(0,0,0,0);
-                if (!lock || !dDateStr || drawDate > today) { setPrizeState({ isLocked: true, type: "PENDING" }); return; }
-                const match = maps.find(m => m.Membership_ID && m.Membership_ID.toLowerCase().trim() === mID);  
-     
-                if (lock === "DPSG_WINNER" && match) { setPrizeState({ isLocked: false, type: "WINNER", rank: match.Match_Name, img: toDirectLink(match.Image_Link), highlight: match.Inam_Name || "DPSG WINNER", colorClass: "winner-glow" }); } 
-                else if (lock === "DPSG_CASH") { setPrizeState({ isLocked: false, type: "CASH", img: "https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000", highlight: "₹100 Cash Back", colorClass: "cash-glow" }); } 
-                else if (lock === "DPSG_GIFT") { setPrizeState({ isLocked: false, type: "GIFT", img: "https://drive.google.com/thumbnail?id=1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z&sz=w1000", highlight: "5 rs Pen", colorClass: "gift-glow" }); } 
-                else { setPrizeState({ isLocked: false, type: "LOSS", img: "https://drive.google.com/thumbnail?id=1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh&sz=w1000", highlight: "Better Luck Next Time", colorClass: "bg-slate-100 border-4 border-slate-300 dark:bg-slate-800 dark:border-slate-600 shadow-lg" }); }
-            }, []);
-
-            useEffect(() => {  
-                fetch(MAIN_CSV + "&t=" + Date.now()).then(r => r.text()).then(txt => {  
-                    Papa.parse(txt, { complete: (res) => {  
-                        const rows = res.data; setHeaders(rows[0] || []);  
-
-                        // POPULATE 1000 CARDS DATA FOR GRID (VIP/Gold/Silver Logic)
-                        let parsedCards = [];
-                        for(let i=1; i<=1000; i++) {
-                            let rowData = rows[i] || [];
-                            let sNo = String(i).padStart(4, '0');
-                            let type = i <= 100 ? 'VIP' : (i <= 600 ? 'Gold' : 'Silver');
-                            let isSold = (rowData[8] && rowData[8].trim() !== "") || (rowData[1] && rowData[1].trim() !== "");
-                            parsedCards.push({ id: sNo, type: type, sold: isSold });
-                        }
-                        setCardsData(parsedCards);
-
-                        const qId = new URLSearchParams(window.location.search).get('id');  
-                        const match = rows.slice(1).find(r => r[1] && r[1].toLowerCase() === (qId || "").toLowerCase());  
-                        if (match) { 
-                            setMember(match); fetch(MAPPING_CSV).then(r => r.text()).then(mTxt => { Papa.parse(mTxt, { header: true, complete: (mRes) => { mapPrize(match, mRes.data); setAppState("view"); } }); }); 
-                        } else {
-                            if(qId) alert("ID Not Found! Please check the ID.");
-                        }
-                    }});  
-                });  
-            }, [mapPrize]);
-
-            const clean = (val) => (val && val !== "#REF!" && val.trim() !== "") ? val : t.emptyData;
-
-            const handleCardSelect = (card) => {
-                if(card.sold) return;
-                setSelectedCardId(card);
-            };
-
-            const generateAutoID = (card) => {
-                if(!card) return "";
-                let prefix = card.type === 'VIP' ? 'DPSG-VIP' : (card.type === 'Gold' ? 'DPSG-GLD' : 'DPSG-SIL');
-                return `${prefix}-${card.id}`;
-            };
-        const mask = (v) => { if (!v || v === "#REF!" || v.trim() === "") return "****-XXXX"; return v.length > 4 ? v.slice(0, 2) + "******" + v.slice(-2) : v; };
-        const toDirectLink = (url) => { if (!url) return ""; let id = ""; if (url.includes("/d/")) id = url.split("/d/")[1].split("/")[0]; if (url.includes("id=")) id = url.split("id=")[1].split("&")[0]; return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000" : url; };
-
-        // --- ORIGINAL SCRATCH CARD COMPONENT ---
-        const ScratchCard = ({ onComplete, children }) => {  
-            const canvasRef = useRef(null);
-            const [isRevealed, setIsRevealed] = useState(false);  
-            useEffect(() => {  
-                const canvas = canvasRef.current; if(!canvas) return; const ctx = canvas.getContext('2d');  
-                canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight;  
-                const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);  
-                grad.addColorStop(0, '#B8860B'); grad.addColorStop(0.5, '#FFDF00'); grad.addColorStop(1, '#DAA520');  
-              
-                ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);  
-                ctx.font = "900 32px Inter"; ctx.fillStyle = "rgba(139, 69, 19, 0.5)"; ctx.textAlign = "center";  
-                ctx.fillText("SCRATCH HERE", canvas.width / 2, canvas.height / 2);  
-                ctx.font = "700 18px Inter"; ctx.fillText("DPSG NIMBAHERA", canvas.width / 2, (canvas.height / 2) + 35);
-                const scratch = (e) => {  
-                    if (isRevealed) return; const rect = canvas.getBoundingClientRect();  
-                    const x = (e.pageX || (e.touches && e.touches[0].pageX)) - rect.left;
-                    const y = (e.pageY || (e.touches && e.touches[0].pageY)) - rect.top;  
-                    ctx.globalCompositeOperation = 'destination-out'; ctx.beginPath();
-                    ctx.arc(x, y, 75, 0, Math.PI * 2); ctx.fill();  
-                    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;  
-                    let count = 0;
-                    for (let i = 0; i < pixels.length; i += 40) if (pixels[i + 3] === 0) count++;
-                    if (count > (pixels.length / 40) * 0.45) { setIsRevealed(true); onComplete(); }  
-                };  
-                canvas.addEventListener('mousemove', scratch);
-                canvas.addEventListener('touchmove', scratch, {passive: true});  
-            }, [isRevealed]);  
-            return ( <div className="scratch-container"> {!isRevealed && <canvas ref={canvasRef} className="scratch-canvas" />} <div className="scratch-content">{children}</div> </div> );
-        };  
-
-        // --- MAIN APP COMPONENT ---
-        const App = () => {  
-            const [theme, setTheme] = useState('light');
-            const [lang, setLang] = useState('hi'); 
-            const [appState, setAppState] = useState("landing"); // 'landing', 'search', 'view', 'booking'
-            
-            const [member, setMember] = useState(null);
-            const [headers, setHeaders] = useState([]);
-            const [isAdmin, setIsAdmin] = useState(false); 
-            const [showPin, setShowPin] = useState(false);
-            const [prizeState, setPrizeState] = useState({ isLocked: true, type: null, rank: "", img: "", highlight: "", colorClass: "" });
-            
-            const [showForm, setShowForm] = useState(false); 
-            const [formType, setFormType] = useState("");
-            const [showWelcome, setShowWelcome] = useState(true);
-            
-            // --- CARD BOOKING STATES ---
-            const [cardsData, setCardsData] = useState([]);
-            const [selectedFilter, setSelectedFilter] = useState('ALL');
-            const [selectedCardId, setSelectedCardId] = useState(null);
-            
-            // --- FORM & LIVE STATUS STATES ---
-            const [statusCheckResult, setStatusCheckResult] = useState(null);
-            const [docHint, setDocHint] = useState("");
-            const [paymentMode, setPaymentMode] = useState("Cash");
-
-            const t = vocab[lang];
-            
-            const docList = {
-                "Airtel_Bank": lang==='hi' ? "🔴 आधार कार्ड और फिंगरप्रिंट/OTP अनिवार्य है।" : "🔴 Aadhar and Fingerprint/OTP mandatory.",
-                "PAN_Card": lang==='hi' ? "✅ आधार कार्ड की दोनों तरफ की फोटो अपलोड करें।" : "✅ Upload both sides of Aadhar card.",
-                "Birth_Cert": lang==='hi' ? "✅ हॉस्पिटल की रसीद, आधार कार्ड और फोटो अपलोड करें।" : "✅ Upload Hospital Receipt, Aadhar & Photo.",
-                "Caste_Cert": lang==='hi' ? "✅ राशन कार्ड, आधार, जन आधार और पुरानी जाति का रिकॉर्ड।" : "✅ Upload Ration Card, Aadhar, Jan Aadhar & Old Record.",
-                "Bonafide": lang==='hi' ? "✅ 10 साल पुराने कागज़ और आधार चाहिए।" : "✅ 10 yrs old document & Aadhar required.",
-                "Other": lang==='hi' ? "💬 अपनी समस्या नीचे विवरण में लिखें।" : "💬 Write your issue in the description box below."
-            };
-
-            const getGreeting = () => { const hour = new Date().getHours(); if (hour < 12) return t.gm; if (hour < 17) return t.ga; return t.ge; };
-            
-            const openForm = (type) => { setFormType(type); setDocHint(""); setShowForm(true); };
-
-            const checkStatusFromCSV = async () => {
-                const sn = document.getElementById('liveStatusInput').value;
-                if(!sn) return;
-                setStatusCheckResult('PROCESSING');
-                if(!TRACKING_CSV) {
-                    setTimeout(() => { setStatusCheckResult('PENDING'); }, 1500);
-                    return;
-                }
-                try {
-                    const res = await fetch(TRACKING_CSV);
-                    const text = await res.text();
-                    const rows = Papa.parse(text).data;
-                    const match = rows.find(r => r[0] && r[0].toString() === sn);
-                    if(match && match[5] && match[5].toUpperCase() === "YES") {
-                        setStatusCheckResult('OK');
-                    } else {
-                        setStatusCheckResult('PENDING');
-                    }
-                } catch(e) { setStatusCheckResult('PENDING'); }
-            };
-
-            // --- SMART WHATSAPP SUBMISSION (WITH PAN LOGIC) ---
-            const sendToWhatsApp = (e) => {
-                e.preventDefault();
-                const formData = new FormData(e.target);
-                const dataObj = Object.fromEntries(formData.entries());
-                
-                let waMsg = `🌟 DPSG नया सेवा अनुरोध 🌟\n${t.slogan}\n----------------------------------\n`;
-                waMsg += `👤 नाम: ${dataObj.Name || 'नया ग्राहक'}\n📱 मोबाइल: ${dataObj.Mobile}\n🆔 आधार: ${dataObj.Aadhar || 'N/A'}\n`;
-                if (paymentMode === "Airtel Payment Bank") waMsg += `💳 पैन: ${dataObj.Pan}\n`;
-                waMsg += `🛠️ सेवा/समस्या: ${dataObj.Problem || dataObj.Service || formType}\n💳 माध्यम: ${paymentMode}\n✅ स्टेटस: पेंडिंग\n----------------------------------\nकृपया मेरा कार्य पूर्ण करें।`;
-                
-                const waLink = `https://wa.me/917229874128?text=${encodeURIComponent(waMsg)}`;
-                window.open(waLink, '_blank');
-                alert("डेटा वेरीफाई हो गया है! अब 'OK' दबाते ही व्हाट्सएप खुलेगा, कृपया मैसेज सेंड करें।");
-                setShowForm(false);
-            };
-
-            const mapPrize = useCallback((row, maps) => {  
-                const mID = (row[1] || "").toString().toLowerCase().trim();  
-                const dDateStr = (row[36] || "").toString().trim(); 
-                const lock = (row[37] || "").toString().toUpperCase().trim(); 
-                let drawDate = null;
-                if (dDateStr) { let parts = dDateStr.split(/[-/]/); if (parts.length === 3) drawDate = new Date(parts[2], parts[1]-1, parts[0]); else drawDate = new Date(dDateStr); }
-                const today = new Date(); today.setHours(0,0,0,0); if(drawDate) drawDate.setHours(0,0,0,0);
-                if (!lock || !dDateStr || drawDate > today) { setPrizeState({ isLocked: true, type: "PENDING" }); return; }
-                const match = maps.find(m => m.Membership_ID && m.Membership_ID.toLowerCase().trim() === mID);  
-     
-                if (lock === "DPSG_WINNER" && match) { setPrizeState({ isLocked: false, type: "WINNER", rank: match.Match_Name, img: toDirectLink(match.Image_Link), highlight: match.Inam_Name || "DPSG WINNER", colorClass: "winner-glow" }); } 
-                else if (lock === "DPSG_CASH") { setPrizeState({ isLocked: false, type: "CASH", img: "https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000", highlight: "₹100 Cash Back", colorClass: "cash-glow" }); } 
-                else if (lock === "DPSG_GIFT") { setPrizeState({ isLocked: false, type: "GIFT", img: "https://drive.google.com/thumbnail?id=1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z&sz=w1000", highlight: "5 rs Pen", colorClass: "gift-glow" }); } 
-                else { setPrizeState({ isLocked: false, type: "LOSS", img: "https://drive.google.com/thumbnail?id=1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh&sz=w1000", highlight: "Better Luck Next Time", colorClass: "bg-slate-100 border-4 border-slate-300 dark:bg-slate-800 dark:border-slate-600 shadow-lg" }); }
-            }, []);
-
-            useEffect(() => {  
-                fetch(MAIN_CSV + "&t=" + Date.now()).then(r => r.text()).then(txt => {  
-                    Papa.parse(txt, { complete: (res) => {  
-                        const rows = res.data; setHeaders(rows[0] || []);  
-
-                        // POPULATE 1000 CARDS DATA FOR GRID (VIP/Gold/Silver Logic)
-                        let parsedCards = [];
-                        for(let i=1; i<=1000; i++) {
-                            let rowData = rows[i] || [];
-                            let sNo = String(i).padStart(4, '0');
-                            let type = i <= 100 ? 'VIP' : (i <= 600 ? 'Gold' : 'Silver');
-                            let isSold = (rowData[8] && rowData[8].trim() !== "") || (rowData[1] && rowData[1].trim() !== "");
-                            parsedCards.push({ id: sNo, type: type, sold: isSold });
-                        }
-                        setCardsData(parsedCards);
-
-                        const qId = new URLSearchParams(window.location.search).get('id');  
-                        const match = rows.slice(1).find(r => r[1] && r[1].toLowerCase() === (qId || "").toLowerCase());  
-                        if (match) { 
-                            setMember(match); fetch(MAPPING_CSV).then(r => r.text()).then(mTxt => { Papa.parse(mTxt, { header: true, complete: (mRes) => { mapPrize(match, mRes.data); setAppState("view"); } }); }); 
-                        } else {
-                            if(qId) alert("ID Not Found! Please check the ID.");
-                        }
-                    }});  
-                });  
-            }, [mapPrize]);
-
-            const clean = (val) => (val && val !== "#REF!" && val.trim() !== "") ? val : t.emptyData;
-
-            const handleCardSelect = (card) => {
-                if(card.sold) return;
-                setSelectedCardId(card);
-            };
-
-            const generateAutoID = (card) => {
-                if(!card) return "";
-                let prefix = card.type === 'VIP' ? 'DPSG-VIP' : (card.type === 'Gold' ? 'DPSG-GLD' : 'DPSG-SIL');
-                return `${prefix}-${card.id}`;
-            };
-            // ------------------ MAIN UI RENDER ------------------
-            return (  
-                <div className={`min-h-screen pb-10 ${theme === 'dark' ? 'dark' : ''}`}> 
+                    const [res1, res2] = await Promise.all([
+                        fetch(MAIN_CSV + "?t=" + Date.now()),
+                        fetch(REQUEST_SHEET_CSV + "?t=" + Date.now())
+                    ]);
+                    const mainRows = Papa.parse(await res1.text()).data;
+                    const reqRows = Papa.parse(await res2.text(), {header:true}).data;
                     
-                    {/* WELCOME POPUP MODAL */}
-                    {showWelcome && appState === "view" && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 fade-in-scale">
-                            <div className="bg-white dark:bg-slate-800 p-10 sm:p-14 rounded-[3rem] w-full max-w-xl text-center shadow-[0_0_50px_rgba(59,130,246,0.5)] border-4 border-blue-400 dark:border-blue-600 relative overflow-hidden">
-                                <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600"></div>
-                                <div className="absolute top-6 right-6">
-                                    <button onClick={()=>setLang(lang==='hi'?'en':'hi')} className="px-4 py-1.5 bg-blue-50 dark:bg-slate-700 rounded-full text-xs font-black text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-slate-600 shadow-sm">
-                                        <i className="fa-solid fa-language"></i> {lang==='hi' ? 'EN' : 'HI'}
-                                    </button>
-                                </div>
-                                <i className="fa-solid fa-hands-holding-circle text-7xl text-blue-600 dark:text-blue-400 mb-6 drop-shadow-md mt-4"></i>
-                                <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-2 fancy-text">{getGreeting()}!</h2>
-                                <p className="text-[17px] font-bold text-blue-800 dark:text-blue-300 mb-6 leading-relaxed">{t.welcomeTitle}</p>
-                                <p className="text-[15px] text-slate-600 dark:text-slate-300 mb-8 font-medium leading-relaxed px-2">{t.welcomeBody}</p>
-                                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-800 p-4 rounded-2xl border border-blue-100 dark:border-slate-600 mb-8 shadow-inner">
-                                    <p className="font-black italic text-blue-700 dark:text-blue-400 text-sm"><i className="fa-solid fa-quote-left mr-2 opacity-50"></i> {t.slogan} <i className="fa-solid fa-quote-right ml-2 opacity-50"></i></p>
-                                </div>
-                                <button onClick={() => setShowWelcome(false)} className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-black py-5 rounded-2xl shadow-xl text-xl uppercase tracking-widest transition-all hover:scale-[1.02]">
-                                    {t.proceedBtn} <i className="fa-solid fa-arrow-right ml-2"></i>
-                                </button>
+                    let parsedCards = [];
+                    for(let i=1; i<=1000; i++){
+                        let row = mainRows[i] || [];
+                        let sNo = String(i).padStart(4, '0');
+                        let isSold = !!row[8] || reqRows.some(r => r.Serial_Number === sNo && r.Work_Status === 'SOLD');
+                        parsedCards.push({ id: sNo, type: i<=100?'VIP':i<=600?'Gold':'Silver', sold: isSold });
+                    }
+                    setCardsData(parsedCards);
+
+                    // ऑटो-रसीद खोलना (ID सर्च होने पर)
+                    const qId = new URLSearchParams(window.location.search).get('id');
+                    if(qId) { 
+                        const match = mainRows.find(r => r[1] && r[1].toLowerCase() === qId.toLowerCase()); 
+                        if(match) { setMember(match); setAppState("view"); }
+                    }
+                } catch(e) { console.error("Data Load Error", e); }
+            };
+            loadMasterData();
+        }, []);
+
+        // --- 2. व्हाट्सएप और एक्सेल डेटा सबमिशन (Pukka System) ---
+        const handlePortalSubmit = async (e, type) => {
+            e.preventDefault();
+            setIsSubmitting(true);
+            const fd = new FormData(e.target);
+            
+            // ID जनरेट करना (DPSG-TYPE-SERIAL)
+            const generatedID = type === 'booking' ? `DPSG-${selectedCardId.type.toUpperCase()}-${selectedCardId.id}` : fd.get('Membership_ID');
+            const serialNo = type === 'booking' ? selectedCardId.id : fd.get('Serial_Number');
+
+            const payload = new URLSearchParams({
+                action: 'verifyBooking',
+                Serial_Number: serialNo,
+                Membership_ID: generatedID,
+                Name: fd.get('Name'),
+                Mobile: fd.get('Mobile'),
+                Aadhar: fd.get('Aadhar'),
+                PAN: fd.get('PAN') || 'N/A',
+                DOB: fd.get('DOB') || 'N/A',
+                Service_Type: fd.get('Service_Type') || 'New Enrollment',
+                Customer_Problem: fd.get('Problem') || 'Card Booking Request',
+                Payment_Status: fd.get('Payment_Method') || 'Cash',
+                status: 'PENDING'
+            });
+
+            try {
+                // 1. एक्सेल शीट में भेजना
+                await fetch(GOOGLE_SCRIPT_URL, { method: "POST", body: payload });
+                
+                // 2. व्हाट्सएप मैसेज तैयार करना
+                let waMsg = `🌟 *DPSG NEW APPLICATION* 🌟\n\n` +
+                            `🆔 *ID:* ${generatedID}\n` +
+                            `👤 *Name:* ${fd.get('Name')}\n` +
+                            `📞 *Mobile:* ${fd.get('Mobile')}\n` +
+                            `🆔 *Aadhar:* ${fd.get('Aadhar')}\n` +
+                            `💳 *PAN:* ${fd.get('PAN') || 'N/A'}\n` +
+                            `🛠️ *Service:* ${fd.get('Service_Type') || 'Card Booking'}\n` +
+                            `📅 *Date:* ${new Date().toLocaleDateString()}\n\n` +
+                            `✅ *Status:* Request Received. Please wait...`;
+
+                window.open(`https://wa.me/917229874128?text=${encodeURIComponent(waMsg)}`, '_blank');
+                alert("बधाई हो हुकुम! डाटा एक्सेल शीट में सुरक्षित कर लिया गया है।");
+                window.location.reload();
+            } catch(err) {
+                alert("सर्वर बिजी है, कृपया व्हाट्सएप पर मैसेज भेजें!");
+            }
+            setIsSubmitting(false);
+        };
+
+        return (
+            <div className="min-h-screen">
+                <div className="no-print marquee"><div className="marquee-content">DPSG निम्बाहेड़ा में आपका स्वागत है - समस्या आपकी, समाधान हमारा ! 📢 संपर्क: 7229874128 📢 हुकुम जोरवार बना</div></div>
+                
+                <div className="max-w-4xl mx-auto p-4 sm:p-8">
+                    {/* लैंडिंग व्यू */}
+                    {appState === "landing" && (
+                        <div className="glass-card p-12 text-center mt-10 shadow-2xl animate-in zoom-in">
+                            <i className="fa-solid fa-building-shield text-8xl text-blue-600 mb-6 drop-shadow-lg"></i>
+                            <h1 className="text-3xl sm:text-4xl font-black text-blue-800 uppercase italic">डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप</h1>
+                            <p className="text-amber-500 font-black tracking-widest mt-2 uppercase">नया डिजिटल भारत - निम्बाहेड़ा</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-12">
+                                <button onClick={()=>setAppState("booking")} className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-8 rounded-3xl font-black text-2xl shadow-xl border-b-8 border-indigo-900"><i className="fa-solid fa-address-card mr-3"></i>नया कार्ड बुक करें</button>
+                                <button onClick={()=>setAppState("search")} className="bg-white text-blue-700 py-8 rounded-3xl font-black text-2xl shadow-lg border-2 border-blue-100"><i className="fa-solid fa-magnifying-glass mr-3"></i>स्टेटस / रसीद</button>
                             </div>
                         </div>
                     )}
 
-                    {/* BIG BLINKING MIKE & MARQUEE */}
-                    <div className="no-print marquee flex justify-center items-center w-full">
-                        <div className="marquee-content flex items-center">
-                            <i className="fa-solid fa-bullhorn text-5xl text-red-700 dark:text-red-900 mx-5 blink-text drop-shadow-lg"></i>
-                            <span className="blink-text text-xl font-black uppercase tracking-widest text-blue-900 dark:text-white">{t.official} :</span> 
-                            <span className="ml-4 text-[17px] font-bold text-slate-800 dark:text-slate-100">{member ? (member[38] || "Welcome to Digital Problem Solution Group Nimbahera") : "DPSG Dashboard Loading..."}</span>
-                            <i className="fa-solid fa-bullhorn text-5xl text-red-700 dark:text-red-900 mx-5 blink-text drop-shadow-lg"></i>
-                        </div>
-                    </div>  
-                    
-                    <div className="max-w-xl mx-auto p-4 sm:p-8 relative z-10">  
-                        <div className="no-print flex justify-end mb-4 gap-3">
-                            <button onClick={()=>setTheme(theme==='light'?'dark':'light')} className="w-12 h-12 flex items-center justify-center bg-white/90 dark:bg-slate-800/90 backdrop-blur-md rounded-full shadow-lg text-xl border-2 border-white hover:scale-105 transition-all">
-                                {theme==='light'?'🌙':'☀️'}
-                            </button>
-                        </div>
-
-                        {/* STATE ROUTING */}
-                        {appState === "landing" && renderLandingPage()}
-                        {appState === "booking" && renderBookingGrid()}
-                        
-                        {appState === "search" && (  
-                            <div className="glass-card p-12 text-center animate-in slide-in-from-left duration-500">  
-                                <button onClick={() => setAppState("landing")} className="text-slate-500 font-black mb-6 flex items-center hover:text-blue-600"><i className="fa-solid fa-arrow-left mr-2"></i> वापस</button>
-                                <i className="fa-solid fa-id-card text-7xl text-blue-600 mb-6 drop-shadow-lg"></i>  
-                                <h2 className="text-2xl font-black mb-8 uppercase text-slate-800 dark:text-slate-100">{t.searchTitle}</h2>  
-                                <input id="sid" type="text" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 rounded-2xl py-5 text-center mb-6 text-2xl font-black uppercase focus:border-blue-500 transition-all outline-none" placeholder="DPSG-26-XXXX" />  
-                                <button onClick={() => window.location.href=`?id=${document.getElementById('sid').value}`} className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 py-5 rounded-2xl font-black text-white shadow-xl text-xl tracking-widest transition-all">{t.searchBtn}</button>  
-                            </div>  
-                        )}
-
-                        {appState === "view" && (  
-                            <div className="space-y-8 animate-in slide-in-from-bottom-6 duration-700">  
-                                <div className="text-center glass-card p-8">  
-                                    <h1 className="text-3xl sm:text-4xl font-black italic uppercase text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-600 dark:from-blue-400 dark:to-indigo-300 leading-tight drop-shadow-sm">{t.brand}</h1>  
-                                    <p className="text-amber-500 font-black tracking-widest mt-2 uppercase text-[15px] border-b-2 border-dashed border-amber-200 dark:border-amber-800 inline-block pb-2">{t.service}</p>  
-                                    <p className="text-slate-700 dark:text-slate-200 font-black mt-5 italic text-[14px] bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm py-3 px-5 rounded-full inline-block border border-white/50 dark:border-slate-700 shadow-sm"><i className="fa-solid fa-quote-left text-blue-500 mr-2 text-lg"></i>{t.slogan}<i className="fa-solid fa-quote-right text-blue-500 ml-2 text-lg"></i></p>
-                                </div>  
-        
-                                {/* ICONS GRID */}
-                                <div className="no-print grid grid-cols-4 gap-3 mt-6">
-                                    <button onClick={() => openForm(t.icon1)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-orange-400 hover:-translate-y-1 transition-all !border-[1px]"><div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-50 text-orange-500 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-desktop"></i></div><span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon1}</span></button>
-                                    <button onClick={() => openForm(t.icon2)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-blue-400 hover:-translate-y-1 transition-all !border-[1px]"><div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-hard-drive"></i></div><span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon2}</span></button>
-                                    <button onClick={() => openForm(t.icon3)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-purple-400 hover:-translate-y-1 transition-all !border-[1px]"><div className="w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-mobile-screen-button"></i></div><span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon3}</span></button>
-                                    <button onClick={() => openForm("Airtel Payment Bank")} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-red-400 hover:-translate-y-1 transition-all !border-[1px]"><div className="w-14 h-14 bg-gradient-to-br from-red-100 to-red-50 text-red-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-building-columns"></i></div><span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">AIRTEL BANK</span></button>
-                                </div>
-
-                                {/* LIVE STATUS CHECK */}
-                                <div className="no-print glass-card p-6 mb-8 relative overflow-hidden text-center border-t-4 border-blue-500">
-                                    <h3 className="font-black text-lg mb-4 text-blue-900 dark:text-blue-300 uppercase tracking-widest flex items-center justify-center"><i className="fa-solid fa-radar mr-2 text-xl"></i> {t.trackTitle}</h3>
-                                    <div className="flex gap-2 max-w-md mx-auto">
-                                        <input type="text" id="liveStatusInput" placeholder={t.serialHint} maxLength="4" className="flex-1 bg-white/80 dark:bg-slate-900/80 border-2 border-slate-300 dark:border-slate-600 rounded-xl px-4 py-3 outline-none focus:border-blue-500 font-black text-center uppercase tracking-widest shadow-inner text-slate-800 dark:text-white" />
-                                        <button onClick={checkStatusFromCSV} className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white px-6 rounded-xl font-black uppercase tracking-widest transition-all shadow-xl">{t.checkBtn}</button>
-                                    </div>
-                                    {statusCheckResult && (
-                                        <div className={`mt-5 p-4 rounded-xl text-center font-black text-xl border-2 animate-in zoom-in shadow-lg ${statusCheckResult === 'OK' ? 'border-green-500 bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400' : 'border-amber-500 bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'}`}>
-                                            {statusCheckResult === 'OK' ? t.statusOk : t.statusProcess}
+                    {/* बुकिंग ग्रिड और इनाम */}
+                    {appState === "booking" && (
+                        <div className="space-y-10 animate-in slide-in-from-right">
+                            <button onClick={()=>setAppState("landing")} className="bg-slate-200 px-6 py-2 rounded-full font-black text-slate-700 hover:bg-slate-300 transition-all"><i className="fa-solid fa-arrow-left mr-2"></i>वापस</button>
+                            
+                            <div className="glass-card p-8">
+                                <h3 className="text-center font-black text-blue-800 mb-8 uppercase text-2xl border-b-2 border-dashed pb-4"><i className="fa-solid fa-gift mr-2"></i>51 महा-इनाम शायरी गैलरी</h3>
+                                <div className="max-h-60 overflow-y-auto custom-scroll space-y-3">
+                                    {inamList.map((n, i) => (
+                                        <div key={i} className="bg-slate-50 p-4 rounded-2xl border-2 flex flex-col sm:flex-row justify-between items-start sm:items-center hover:bg-blue-50 transition-all">
+                                            <span className="font-black text-blue-700 text-lg uppercase tracking-widest">Rank {n.rank}: {n.name}</span>
+                                            <span className="italic text-slate-500 font-bold text-sm sm:text-right">"{n.msg}"</span>
                                         </div>
-                                    )}
-                                </div>
-
-                                {/* SCRATCH CARD */}
-                                <div className="no-print glass-card p-8 relative overflow-hidden">
-                                    <p className="text-red-500 font-black text-[13px] mb-6 text-center blink-text uppercase tracking-widest flex justify-center items-center"><i className="fa-solid fa-triangle-exclamation mr-2 text-xl"></i> {t.warning}</p>
-                                    <div className={`p-2 rounded-[2.5rem] relative z-10 ${prizeState.isLocked ? 'glass-lock' : prizeState.colorClass}`}>  
-                                        {prizeState.isLocked ? ( 
-                                            <div className="p-16 text-center flex flex-col items-center justify-center min-h-[350px]"> 
-                                                <div className="relative mb-8 mt-4">
-                                                    <div className="absolute inset-0 bg-yellow-400 blur-3xl opacity-50 rounded-full"></div>
-                                                    <i className="fa-solid fa-lock text-[10rem] text-transparent bg-clip-text bg-gradient-to-br from-yellow-200 via-yellow-500 to-yellow-800 drop-shadow-[0_15px_15px_rgba(0,0,0,0.4)] relative z-10"></i> 
-                                                </div>
-                                                <p className="font-black text-red-600 dark:text-red-500 text-3xl uppercase tracking-[0.2em] drop-shadow-md mt-6">{t.pending}</p> 
-                                            </div> 
-                                        ) : (  
-                                            <ScratchCard onComplete={() => confetti({particleCount:400, spread:120, origin:{y:0.6}, colors: ['#FFD700', '#FFA500', '#FF4500', '#00FF00']})}>  
-                                                <div className="p-8 text-center w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md flex flex-col items-center h-full justify-center">
-                                                    <div className="bg-gradient-to-r from-blue-800 via-indigo-600 to-blue-800 text-white px-10 py-3 rounded-full font-black text-xl mb-8 uppercase shadow-[0_10px_20px_rgba(79,70,229,0.4)] tracking-widest border-2 border-indigo-300 fancy-text">{prizeState.highlight}</div>  
-                                                    <img src={prizeState.img} className="w-full max-h-[400px] object-contain mb-8 drop-shadow-2xl rounded-2xl" alt="Prize" />  
-                                                    <p className="text-[16px] font-black leading-relaxed whitespace-pre-line px-2 text-gradient-prize fancy-text">{t.prizes[prizeState.type] ? t.prizes[prizeState.type](prizeState.rank) : ""}</p>
-                                                </div>
-                                            </ScratchCard>  
-                                        )}  
-                                    </div>
-                                </div>
-
-                                {/* PREMIUM RECEIPT (Restored Full) */}
-                                <div id="receipt" className="glass-card p-8 sm:p-12 text-left relative mt-8">  
-                                    <div className="text-center border-b-4 border-slate-200 dark:border-slate-700 border-dashed pb-8 mb-10">
-                                        <h3 className="font-black text-3xl text-blue-900 dark:text-blue-400 italic uppercase tracking-tight drop-shadow-sm">{t.receipt}</h3>
-                                        <p className="text-[12px] font-black text-slate-500 uppercase tracking-[0.5em] mt-3 bg-white/50 dark:bg-slate-800/50 inline-block px-4 py-1 rounded-full border border-white/50">DPSG NIMBAHERA</p>
-                                    </div>  
-                                    
-                                    <div className="grid grid-cols-2 gap-y-12 gap-x-4 text-sm border-b-2 border-slate-200 dark:border-slate-700 pb-12">  
-                                        <div className="col-span-2 text-center bg-blue-50/70 dark:bg-blue-900/30 backdrop-blur-sm border-2 border-blue-400 dark:border-blue-600 rounded-[2rem] p-8 shadow-[0_0_25px_rgba(59,130,246,0.3)] transform transition hover:scale-[1.01]">
-                                            <p className="text-[15px] sm:text-[17px] font-black text-blue-800 dark:text-blue-300 tracking-[0.2em] uppercase mb-4 fancy-text flex justify-center items-center"><i className="fa-solid fa-fingerprint mr-3 text-2xl"></i> {t.idLabelFull}</p>
-                                            <p className="text-4xl sm:text-5xl font-black text-blue-600 dark:text-blue-400 drop-shadow-md tracking-wider fancy-text">{clean(member[1])}</p>
-                                        </div>
-                                        
-                                        <div className="col-span-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm p-6 rounded-2xl border border-white/50 dark:border-slate-700">
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text"><i className="fa-solid fa-user text-blue-500 mr-2"></i>{t.cName}</p><p className="font-black uppercase text-2xl text-indigo-900 dark:text-indigo-300 drop-shadow-sm">{clean(member[8])}</p></div>  
-                                                <div className="text-right"><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text"><i className="fa-solid fa-map-location-dot text-red-500 mr-2"></i>{t.vill}</p><p className="font-black uppercase text-2xl text-slate-800 dark:text-slate-200">{clean(member[5])}</p></div>  
-                                            </div>
-                                        </div>
-                                        
-                                        <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.cat}</p><p className="font-black text-blue-900 dark:text-blue-200 px-5 py-2 border-2 border-blue-200 dark:border-blue-800 rounded-xl bg-blue-50/80 dark:bg-blue-900/50 inline-block shadow-sm text-lg">{clean(member[3])}</p></div>  
-                                        <div className="text-right"><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.sMob}</p><p className="font-black tracking-[0.2em] text-xl text-slate-700 dark:text-slate-300 bg-white/50 dark:bg-slate-800/50 px-3 py-1 rounded-lg inline-block border border-white/50">{mask(member[9])}</p></div>
-                                        
-                                        <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.sAad}</p><p className="font-black tracking-[0.2em] text-xl text-slate-700 dark:text-slate-300 bg-white/50 dark:bg-slate-800/50 px-3 py-1 rounded-lg inline-block border border-white/50">{mask(member[11])}</p></div>
-                                        <div className="text-right"></div>
-                                        
-                                        <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.active}</p><p className="font-black text-2xl text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-2 rounded-xl border-2 border-emerald-300 dark:border-emerald-700 inline-block shadow-md date-font tracking-wider">{clean(member[15])}</p></div>  
-                                        <div className="text-right"><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.expiry}</p><p className="font-black text-2xl text-white bg-red-600 px-5 py-2 rounded-xl border-2 border-red-800 inline-block shadow-[0_5px_15px_rgba(220,38,38,0.4)] date-font tracking-wider animate-pulse">{clean(member[16])}</p></div>  
-                                    </div>
-                                    
-                                    <div className="grid grid-cols-3 gap-5 my-12">
-                                        <div className="bg-gradient-to-b from-blue-700 to-blue-900 text-white p-6 rounded-3xl text-center shadow-[0_10px_20px_rgba(29,78,216,0.3)] border-t-4 border-blue-400"><p className="text-[11px] sm:text-[12px] font-bold opacity-80 uppercase tracking-widest mb-2 fancy-text">{t.points}</p><p className="text-4xl font-black drop-shadow-md">{clean(member[18])}</p></div>
-                                        <div className="bg-gradient-to-b from-slate-700 to-slate-900 text-white p-6 rounded-3xl text-center shadow-lg border-t-4 border-slate-500"><p className="text-[11px] sm:text-[12px] font-bold opacity-80 uppercase tracking-widest mb-2 fancy-text">{t.used}</p><p className="text-4xl font-black drop-shadow-md">{(parseInt(member[18])-parseInt(member[21]))||0}</p></div>
-                                        <div className="bg-gradient-to-b from-emerald-500 to-emerald-700 text-white p-6 rounded-3xl text-center shadow-[0_10px_20px_rgba(16,185,129,0.3)] border-t-4 border-emerald-300"><p className="text-[11px] sm:text-[12px] font-bold opacity-80 uppercase tracking-widest mb-2 fancy-text">{t.balance}</p><p className="text-4xl font-black drop-shadow-md">{clean(member[21])}</p></div>
-                                    </div>
-                                    
-                                    <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-slate-800/80 dark:to-slate-700/80 backdrop-blur-md p-8 rounded-[2.5rem] border-2 border-blue-200 dark:border-slate-600 my-8 font-bold italic text-[13px] space-y-4 shadow-inner">
-                                        <p className="text-blue-900 dark:text-blue-300 font-black uppercase mb-6 flex items-center italic text-lg"><i className="fa-solid fa-crown mr-3 text-yellow-500 text-2xl drop-shadow-sm"></i> {t.ben}</p>
-                                        {(() => { const cat = (member[3] || "").toLowerCase(); let key = (cat.includes("vip") || cat.includes("500")) ? "VIP" : (cat.includes("gold") || cat.includes("100")) ? "Gold" : "Silver"; return cardSpecs[key][lang].map((ben, i) => ( <div key={i} className="flex items-start py-3 border-b-2 border-blue-200/50 dark:border-slate-600/50 last:border-0 text-slate-800 dark:text-slate-200"><i className="fa-solid fa-circle-check text-green-500 mr-4 mt-0.5 text-lg drop-shadow-sm"></i>{ben}</div> )); })()}
-                                    </div>
-                                    
-                                    <div className="bg-gradient-to-br from-slate-900 via-black to-slate-900 text-white p-12 rounded-[3rem] text-center mb-10 shadow-2xl border-4 border-slate-700 relative overflow-hidden">
-                                        <i className="fa-solid fa-gift absolute -right-10 -bottom-10 text-9xl opacity-20 text-yellow-500"></i>
-                                        <p className="text-[16px] sm:text-[18px] text-yellow-300 uppercase mb-4 tracking-[0.4em] font-black drop-shadow-md"><i className="fa-solid fa-star mr-3 animate-pulse text-yellow-400"></i> {t.draw} <i className="fa-solid fa-star ml-3 animate-pulse text-yellow-400"></i></p>
-                                        <p className="text-5xl font-black text-yellow-400 italic uppercase tracking-widest drop-shadow-[0_0_20px_rgba(250,204,21,0.6)] date-font mt-2">{clean(member[36])}</p>
-                                    </div>
-                                    
-                                    <div className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-10 rounded-[2.5rem] border-2 border-white/60 dark:border-slate-700 mb-10 text-[12px] font-bold italic space-y-4 text-slate-600 dark:text-slate-400 shadow-inner">
-                                        <h4 className="text-[15px] font-black uppercase mb-6 border-b-2 border-slate-200 dark:border-slate-600 pb-4 flex items-center text-slate-900 dark:text-slate-100"><i className="fa-solid fa-scale-balanced mr-3 text-blue-600 text-xl"></i> {t.tTitle}</h4>
-                                        <p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t1}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t2}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t3}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t4}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t5}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t6}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t7}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t8}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t9}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t10}</p>
-                                    </div>
-                                    
-                                    <button onClick={()=>window.print()} className="no-print w-full bg-gradient-to-r from-blue-700 to-indigo-800 hover:from-blue-800 hover:to-indigo-900 text-white py-6 rounded-2xl font-black uppercase shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all text-xl tracking-widest border-b-4 border-indigo-950"><i className="fa-solid fa-print mr-3 text-2xl"></i> {t.printBtn}</button>
-                                </div>
-
-                                {/* ADMIN PANEL */}
-                                <div className="no-print pt-10 pb-20 flex flex-col items-center">  
-                                    {!isAdmin && <button onClick={()=>setShowPin(!showPin)} className="p-8 glass-card !rounded-full opacity-50 hover:opacity-100 transition-all hover:scale-110 !border-[1px]"><i className="fa-solid fa-fingerprint text-6xl text-blue-600"></i></button>}  
-                                    {showPin && !isAdmin && ( <div className="mt-8 glass-card p-10 w-full animate-in zoom-in shadow-2xl"><input type="password" id="adminPin" className="w-full bg-slate-50/80 dark:bg-slate-900/80 border-4 border-slate-200 dark:border-slate-600 rounded-2xl py-6 text-center mb-6 font-black outline-none text-3xl tracking-widest focus:border-blue-500 transition-all" placeholder="MASTER PIN" /><button onClick={()=>{document.getElementById('adminPin').value===MASTER_PIN?setIsAdmin(true):alert("Wrong Pin!");}} className="w-full bg-slate-900 dark:bg-black text-white py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-slate-800 transition-all text-xl"><i className="fa-solid fa-unlock mr-3"></i> Unlock Database</button></div> )}
-                                    {isAdmin && ( <div className="w-full mt-8 glass-card p-10 text-left overflow-hidden border-t-8 border-t-blue-600"><div className="flex justify-between items-center mb-8 border-b-2 border-slate-200 dark:border-slate-700 pb-5"><h3 className="font-black text-lg text-blue-600 uppercase tracking-widest"><i className="fa-solid fa-database mr-3"></i> Master Database Panel</h3><button onClick={()=>setIsAdmin(false)} className="text-red-600 font-black text-[13px] uppercase border-2 border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20 px-6 py-2 rounded-full transition-all">Logout</button></div><div className="grid gap-4 max-h-[600px] overflow-y-auto pr-2 custom-scroll">{member.map((v, i) => ( <div key={i} className="p-6 bg-white/50 dark:bg-slate-900/50 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 transition-all"><p className="text-[11px] text-slate-500 font-black uppercase mb-2 tracking-widest">{headers[i] || `Index ${i}`}</p><p className="font-black text-lg text-slate-800 dark:text-slate-100">{v||"---"}</p></div> ))}</div></div> )}
+                                    ))}
                                 </div>
                             </div>
-                        )}
 
-                        {/* SMART WHATSAPP FORM WITH AIRTEL PAN RULE */}
-                        {showForm && (
-                            <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-4 overflow-y-auto pt-20 pb-20">
-                                <div className="glass-card p-8 sm:p-12 w-full max-w-lg relative animate-in zoom-in duration-300 border-4 border-blue-400">
-                                    <button onClick={() => setShowForm(false)} className="absolute top-6 right-6 w-12 h-12 bg-red-100 text-red-600 rounded-full font-black text-2xl"><i className="fa-solid fa-xmark"></i></button>
-                                    
-                                    <div className="text-center mb-8 border-b-2 border-slate-200 border-dashed pb-6">
-                                        <h3 className="text-2xl font-black text-slate-800 uppercase tracking-wider">{formType}</h3>
-                                    </div>
-                                    
-                                    <form onSubmit={sendToWhatsApp} className="space-y-6 text-left">
-                                        <input type="hidden" name="Service" value={formType} />
-                                        
-                                        <div>
-                                            <label className="block text-[13px] font-black uppercase text-slate-600 mb-2 tracking-widest">पूरा नाम <span className="text-red-500">*</span></label>
-                                            <input type="text" name="Name" required pattern="[A-Za-z ]+" title="केवल अक्षर (Alphabets) दर्ज करें" className="w-full border-2 border-slate-300 p-4 rounded-xl font-bold text-lg" placeholder="अपना नाम लिखें" defaultValue={member ? member[8] : ''} />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-[13px] font-black uppercase text-slate-600 mb-2 tracking-widest">आधार लिंक मोबाइल <span className="text-red-500">*</span></label>
-                                            <input type="tel" name="Mobile" required pattern="[6-9][0-9]{9}" title="सही 10 अंकों का मोबाइल नंबर दर्ज करें" className="w-full border-2 border-slate-300 p-4 rounded-xl font-bold text-xl" placeholder="10 Digit Mobile No" defaultValue={member ? member[9] : ''} />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-[13px] font-black uppercase text-slate-600 mb-2 tracking-widest">आधार कार्ड नंबर <span className="text-red-500">*</span></label>
-                                            <input type="text" name="Aadhar" required pattern="[0-9]{12}" title="सही 12 अंकों का आधार दर्ज करें" className="w-full border-2 border-slate-300 p-4 rounded-xl font-bold text-xl tracking-[0.2em]" placeholder="XXXX XXXX XXXX" defaultValue={member ? member[11] : ''} />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-[13px] font-black uppercase text-slate-600 mb-2 tracking-widest">पेमेंट का माध्यम <span className="text-red-500">*</span></label>
-                                            <select value={paymentMode} onChange={(e)=>setPaymentMode(e.target.value)} name="Payment" className="w-full border-2 border-slate-300 p-4 rounded-xl font-bold text-lg">
-                                                <option value="Cash">Cash (नकद)</option>
-                                                <option value="UPI">UPI (PhonePe/Google Pay)</option>
-                                                <option value="Airtel Payment Bank">Airtel Payment Bank</option>
-                                            </select>
-                                        </div>
-
-                                        {/* AIRTEL SPECIAL PAN CONDITION */}
-                                        <div className={`transition-all ${paymentMode === 'Airtel Payment Bank' ? 'block bg-red-50 p-4 rounded-xl border-2 border-red-300' : 'block'}`}>
-                                            <label className="block text-[13px] font-black uppercase text-slate-600 mb-2 tracking-widest">
-                                                पैन कार्ड (PAN) {paymentMode === 'Airtel Payment Bank' && <span className="text-red-600 ml-2 animate-pulse">(अनिवार्य)</span>}
-                                            </label>
-                                            <input type="text" name="Pan" required={paymentMode === 'Airtel Payment Bank'} pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="ABCDE1234F फॉर्मेट में दर्ज करें" className="w-full border-2 border-slate-300 p-4 rounded-xl font-bold text-xl uppercase" placeholder="ABCDE1234F" />
-                                            {paymentMode === 'Airtel Payment Bank' && <p className="text-xs text-red-600 font-bold mt-2"><i className="fa-solid fa-triangle-exclamation"></i> एयरटेल पेमेंट बैंक के लिए पैन अनिवार्य है।</p>}
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-[13px] font-black uppercase text-slate-600 mb-2 tracking-widest">समस्या / कार्य का विवरण <span className="text-red-500">*</span></label>
-                                            <textarea name="Problem" required rows="3" className="w-full border-2 border-slate-300 p-4 rounded-xl font-bold text-lg resize-none" placeholder="कार्य का विवरण..."></textarea>
-                                        </div>
-                                        
-                                        <div className="bg-blue-50 p-4 rounded-xl border-2 border-blue-200">
-                                            <label className="block text-[13px] font-black uppercase text-slate-700 mb-2 tracking-widest"><i className="fa-solid fa-paperclip"></i> डॉक्यूमेंट / वीडियो अपलोड</label>
-                                            <input type="file" name="Files" multiple accept="image/*,video/*,application/pdf" className="w-full text-sm font-bold" />
-                                        </div>
-
-                                        <button type="submit" className="w-full bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white font-black py-6 rounded-2xl shadow-xl mt-6 text-xl uppercase tracking-widest"><i className="fa-brands fa-whatsapp mr-3 text-2xl"></i> व्हाट्सएप पर सबमिट करें</button>
-                                    </form>
+                            <div className="glass-card p-10 text-center">
+                                <h3 className="text-3xl font-black mb-8 uppercase">अपना लकी नंबर चुनें</h3>
+                                <div className="flex justify-center gap-3 mb-8">
+                                    {['ALL','VIP','Gold','Silver'].map(f => <button key={f} onClick={()=>setSelectedFilter(f)} className={`px-6 py-2 rounded-full font-black text-xs border-4 transition-all ${selectedFilter===f?'bg-blue-600 text-white border-blue-800 shadow-lg':'bg-white text-slate-500 border-slate-100'}`}>{f}</button>)}
                                 </div>
+                                <div className="card-grid custom-scroll bg-slate-50/50">
+                                    {cardsData.filter(c => selectedFilter==='ALL' || c.type===selectedFilter).map((c, i) => (
+                                        <div key={i} onClick={()=> !c.sold && setSelectedCardId(c)} className={`grid-item ${c.sold?'sold':`available ${c.type.toLowerCase()}`} ${selectedCardId?.id === c.id ? 'selected' : ''}`}>{c.id}</div>
+                                    ))}
+                                </div>
+                                {selectedCardId && (
+                                    <div className="mt-10 p-6 bg-green-50 rounded-3xl border-4 border-green-500 animate-in zoom-in">
+                                        <h4 className="text-2xl font-black text-green-700 mb-4 uppercase">नंबर {selectedCardId.id} उपलब्ध है!</h4>
+                                        <button onClick={()=>setAppState("booking_form")} className="w-full bg-green-600 text-white py-6 rounded-2xl font-black text-2xl shadow-xl hover:scale-105 transition-all uppercase tracking-widest">फॉर्म भरें</button>
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </div>
+                    )}
+
+                    {/* बुकिंग फॉर्म (Pukka Sync) */}
+                    {appState === "booking_form" && (
+                        <div className="glass-card p-10 border-4 border-blue-600 animate-in zoom-in shadow-2xl">
+                            <h2 className="text-3xl font-black text-center mb-8 uppercase text-slate-800">Card Enrollment: {selectedCardId.id}</h2>
+                            <form onSubmit={(e)=>handlePortalSubmit(e, 'booking')} className="space-y-6 text-left">
+                                <input name="Name" placeholder="आपका पूरा नाम *" required className="w-full p-5 border-2 border-slate-300 rounded-2xl font-bold text-xl uppercase shadow-inner outline-none focus:border-blue-600" />
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <input name="Mobile" placeholder="मोबाइल नंबर (10 अंक) *" required pattern="[0-9]{10}" className="w-full p-5 border-2 border-slate-300 rounded-2xl font-bold text-xl outline-none focus:border-blue-600" />
+                                    <input name="Aadhar" placeholder="आधार नंबर (12 अंक) *" required pattern="[0-9]{12}" className="w-full p-5 border-2 border-slate-300 rounded-2xl font-bold text-xl tracking-widest outline-none focus:border-blue-600" />
+                                </div>
+                                <div className="bg-red-50 p-6 rounded-3xl border-2 border-red-200">
+                                    <p className="font-black text-red-600 mb-4 text-sm uppercase">पेमेंट माध्यम चुनें *</p>
+                                    <label className="flex items-center gap-3 font-black text-lg cursor-pointer"><input type="radio" name="Payment_Method" value="Cash" defaultChecked onChange={(e)=>setBookingPaymentMode(e.target.value)} className="w-5 h-5" /> Cash / UPI</label>
+                                    <label className="flex items-center gap-3 font-black text-lg mt-4 text-red-700 cursor-pointer"><input type="radio" name="Payment_Method" value="Airtel" onChange={(e)=>setBookingPaymentMode(e.target.value)} className="w-5 h-5" /> Airtel Payment Bank (Offers)</label>
+                                </div>
+                                {bookingPaymentMode === 'Airtel' && (
+                                    <div className="animate-in slide-in-from-top"><label className="text-xs font-black text-red-600 ml-2 uppercase">AIRTEL हेतु PAN अनिवार्य है *</label><input name="PAN" placeholder="ABCDE1234F" required pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" className="w-full p-5 border-4 border-red-400 rounded-2xl font-black text-2xl uppercase text-center shadow-lg bg-red-50" /></div>
+                                )}
+                                <button disabled={isSubmitting} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 rounded-2xl font-black text-2xl shadow-xl transition-all uppercase tracking-widest">{isSubmitting ? 'भेजा जा रहा है...' : 'OK - सबमिट करें'}</button>
+                            </form>
+                        </div>
+                    )}
+
+                    {/* सर्च व्यू */}
+                    {appState === "search" && (
+                        <div className="glass-card p-12 text-center animate-in slide-in-from-left shadow-2xl">
+                            <button onClick={()=>setAppState("landing")} className="float-left text-slate-400 font-black"><i className="fa-solid fa-arrow-left"></i> वापस</button>
+                            <h3 className="text-2xl font-black mb-8 uppercase text-blue-900 tracking-widest underline decoration-dashed"><i className="fa-solid fa-radar mr-2"></i>Live Status Tracking</h3>
+                            <div className="flex flex-col sm:flex-row gap-4 mb-10">
+                                <input id="liveInput" placeholder="नाम, मोबाइल या ID दर्ज करें" className="flex-1 p-5 border-2 rounded-2xl font-black text-center text-xl shadow-inner outline-none focus:border-blue-600" />
+                                <button onClick={async ()=>{
+                                    const q = document.getElementById('liveInput').value.toLowerCase().trim();
+                                    const res = await fetch(REQUEST_SHEET_CSV + "?t=" + Date.now()); 
+                                    const data = Papa.parse(await res.text(), {header:true}).data;
+                                    const match = data.find(x => x.Name?.toLowerCase().includes(q) || x.Mobile?.includes(q) || x.Membership_ID?.toLowerCase().includes(q));
+                                    setStatusCheckResult(match ? (match.Work_Status==='DONE'?'OK':'PENDING') : 'NOT_FOUND');
+                                }} className="bg-blue-600 text-white px-10 py-5 rounded-2xl font-black text-xl shadow-lg hover:scale-105 transition-all">CHECK</button>
+                            </div>
+                            {statusCheckResult && (
+                                <div className={`p-8 rounded-3xl font-black text-2xl border-4 animate-in zoom-in mb-10 ${statusCheckResult==='OK'?'bg-green-100 border-green-500 text-green-700':'bg-yellow-100 border-yellow-500 text-yellow-700'}`}>
+                                    {statusCheckResult==='OK' ? 'आपका कार्य पूर्ण हो गया है! ✅' : statusCheckResult==='PENDING' ? 'कार्य प्रक्रिया में है, धैर्य रखें! ⏳' : 'कोई रिकॉर्ड नहीं मिला! ❌'}
+                                </div>
+                            )}
+                            <hr className="my-10" />
+                            <h3 className="font-black mb-4 uppercase text-slate-500">ID द्वारा रसीद खोलें</h3>
+                            <input id="sidInput" placeholder="ID: DPSG-VIP-0083" className="w-full p-5 border-2 rounded-2xl font-black text-center text-xl mb-6 uppercase shadow-inner outline-none focus:border-black" />
+                            <button onClick={()=>window.location.href=`?id=${document.getElementById('sidInput').value}`} className="w-full bg-slate-900 text-white py-6 rounded-2xl font-black text-xl shadow-xl hover:bg-black transition-all">DASHBOARD खोलें</button>
+                        </div>
+                    )}
+
+                    {/* रसीद और यूजर डैशबोर्ड */}
+                    {appState === "view" && member && (
+                        <div className="space-y-10 animate-in slide-in-from-bottom">
+                            <div className="text-center glass-card p-10 border-b-8 border-b-blue-700 shadow-2xl relative overflow-hidden">
+                                <h1 className="text-4xl font-black text-blue-800 uppercase italic">डिजिटल रसीद</h1>
+                                <p className="text-amber-500 font-black mt-2 uppercase tracking-widest underline underline-offset-4">DPSG निम्बाहेड़ा</p>
+                            </div>
+
+                            <div className="grid grid-cols-4 gap-3 no-print">
+                                {['ई-मित्र','डेटा','मोबाइल','सरकारी'].map(s => <button key={s} onClick={()=>{setFormType(s); setShowServiceForm(true);}} className="glass-card py-6 flex flex-col items-center gap-2 hover:border-blue-500 border-2 shadow-sm transition-all"><i className="fa-solid fa-circle-dot text-blue-600 text-2xl animate-pulse"></i><span className="text-[11px] font-black uppercase">{s}</span></button>)}
+                            </div>
+
+                            <button onClick={()=>{setFormType('Airtel Payment Bank'); setShowServiceForm(true);}} className="w-full no-print bg-gradient-to-r from-red-600 to-red-700 text-white p-8 rounded-[2.5rem] font-black text-2xl flex justify-between shadow-2xl hover:scale-[1.01] transition-all"><p>AIRTEL PAYMENT BANK (KYC)</p><i className="fa-solid fa-building-columns text-4xl"></i></button>
+
+                            <ScratchCard onComplete={()=>confetti({particleCount:400, spread:100})}>
+                                <div className="p-10 text-center">
+                                    <p className="text-4xl font-black text-blue-800 uppercase italic">LUCKY DRAW</p>
+                                    <p className="text-slate-400 mt-4 font-bold italic text-lg tracking-widest">"परिणाम आधिकारिक घोषणा के बाद यहाँ दिखेगा"</p>
+                                </div>
+                            </ScratchCard>
+
+                            <div id="receipt" className="glass-card p-10 border-t-[20px] border-t-blue-800 text-left shadow-2xl relative">
+                                <h3 className="text-center font-black text-3xl mb-12 text-blue-900 uppercase underline decoration-double">OFFICIAL MEMBERSHIP RECEIPT</h3>
+                                <div className="bg-blue-900 text-white p-8 rounded-[2rem] text-center mb-12 shadow-2xl border-4 border-blue-400"><p className="text-sm font-bold opacity-70 mb-2 uppercase tracking-widest">UNIQUE MEMBERSHIP ID</p><p className="text-5xl font-black tracking-[0.2em]">{member[1]}</p></div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-10 text-xl font-black uppercase border-b-2 border-dashed pb-10">
+                                    <div className="bg-slate-50 p-4 rounded-xl">
+                                        <p className="text-slate-400 text-xs mb-1 tracking-widest font-black uppercase">Customer Name</p>
+                                        <p className="text-indigo-900 border-l-4 border-indigo-600 pl-3">{member[8]}</p>
+                                    </div>
+                                    <div className="sm:text-right bg-slate-50 p-4 rounded-xl">
+                                        <p className="text-slate-400 text-xs mb-1 tracking-widest font-black uppercase">City/Village</p>
+                                        <p className="text-slate-800 border-r-4 border-slate-600 pr-3">{member[5]}</p>
+                                    </div>
+                                    <div className="bg-green-50 p-4 rounded-xl">
+                                        <p className="text-slate-400 text-xs mb-1 font-black uppercase">Account Status</p>
+                                        <p className="text-green-600 font-black">ACTIVE ✅</p>
+                                    </div>
+                                    <div className="sm:text-right bg-red-50 p-4 rounded-xl">
+                                        <p className="text-slate-400 text-xs mb-1 font-black uppercase">Validity Upto</p>
+                                        <p className="text-red-600 font-black">{member[16] || '31/12/2026'}</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-4 mt-12 text-center">
+                                    <div className="bg-blue-100 p-5 rounded-3xl border-2 border-blue-200 shadow-inner"><p className="text-[11px] font-black text-blue-600 mb-1">TOTAL POINTS</p><p className="text-3xl font-black text-blue-900">{member[18] || '0'}</p></div>
+                                    <div className="bg-slate-100 p-5 rounded-3xl border-2 border-slate-200 shadow-inner"><p className="text-[11px] font-black text-slate-600 mb-1">USED</p><p className="text-3xl font-black">{(parseInt(member[18])-parseInt(member[21]))||'0'}</p></div>
+                                    <div className="bg-green-100 p-5 rounded-3xl border-2 border-green-200 shadow-inner"><p className="text-[11px] font-black text-green-600 mb-1">BALANCE</p><p className="text-3xl font-black text-green-700">{member[21] || '0'}</p></div>
+                                </div>
+
+                                <div className="mt-12 p-6 bg-slate-50 rounded-3xl border-2 border-slate-100 italic">
+                                    <h4 className="font-black text-slate-800 text-lg mb-4 underline uppercase tracking-widest"><i className="fa-solid fa-scale-balanced mr-2"></i>नियम व शर्तें (Important T&C)</h4>
+                                    <div className="space-y-2">
+                                        {termsConditions.map((line, i) => <p key={i} className="text-[12px] font-bold text-slate-600 leading-relaxed">{line}</p>)}
+                                    </div>
+                                </div>
+
+                                <button onClick={()=>window.print()} className="w-full bg-slate-900 text-white py-6 rounded-3xl font-black text-2xl mt-12 shadow-2xl no-print hover:scale-[1.01] transition-all uppercase tracking-widest"><i className="fa-solid fa-print mr-3"></i>प्रिंट रसीद</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* 50+ सर्विस रिक्वेस्ट फॉर्म (Modal) */}
+                {showServiceForm && (
+                    <div className="fixed inset-0 z-[100] bg-slate-900/95 backdrop-blur-xl p-4 overflow-y-auto animate-in fade-in transition-all">
+                        <div className="glass-card p-10 max-w-xl mx-auto my-10 border-4 border-blue-600 animate-in zoom-in shadow-2xl">
+                            <button onClick={()=>setShowServiceForm(false)} className="float-right text-red-600 font-black text-5xl hover:scale-110 transition-all">×</button>
+                            <h3 className="text-3xl font-black text-center mb-10 uppercase text-blue-800 underline decoration-dashed tracking-widest">{formType} Request</h3>
+                            <form onSubmit={(e)=>handlePortalSubmit(e, 'service')} className="space-y-6 text-left">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-blue-50 p-4 rounded-2xl border-2 border-blue-100 shadow-inner">
+                                    <div><label className="text-[10px] font-black text-blue-700 uppercase ml-1">Membership ID *</label><input name="Membership_ID" required className="w-full p-4 border-2 rounded-xl font-black uppercase text-xl shadow-sm" defaultValue={member?.[1]} /></div>
+                                    <div><label className="text-[10px] font-black text-blue-700 uppercase ml-1">Serial No *</label><input name="Serial_Number" required className="w-full p-4 border-2 rounded-xl font-black text-xl shadow-sm" placeholder="0083" /></div>
+                                </div>
+                                <input name="Name" placeholder="ग्राहक का पूरा नाम *" required className="w-full p-5 border-2 border-slate-300 rounded-2xl font-bold uppercase text-xl shadow-inner focus:border-blue-600 outline-none" />
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <input name="Mobile" placeholder="मोबाइल नंबर *" required pattern="[0-9]{10}" className="w-full p-5 border-2 border-slate-300 rounded-2xl font-bold text-xl outline-none focus:border-blue-600" />
+                                    <input name="Aadhar" placeholder="आधार नंबर *" required pattern="[0-9]{12}" className="w-full p-5 border-2 border-slate-300 rounded-2xl font-bold text-xl outline-none focus:border-blue-600" />
+                                </div>
+                                <select name="Service_Type" required className="w-full p-5 border-2 border-blue-400 rounded-2xl font-black text-blue-700 bg-blue-50 text-xl shadow-md cursor-pointer">
+                                    <option value="">-- सेवा का चयन करें (50+) --</option>
+                                    {serviceList.map(s => <option key={s} value={s}>{s}</option>)}
+                                </select>
+                                {(formType.includes('Airtel') || formType === 'Airtel Bank') && (
+                                    <div className="animate-in slide-in-from-top"><label className="text-[10px] font-black text-red-600 ml-2 uppercase">Airtel KYC हेतु PAN अनिवार्य है *</label><input name="PAN" placeholder="ABCDE1234F" required pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" className="w-full p-5 border-4 border-red-300 rounded-2xl font-black uppercase text-2xl text-center shadow-lg bg-red-50 focus:border-red-600" /></div>
+                                )}
+                                <textarea name="Problem" placeholder="कार्य या समस्या का पूरा विवरण यहाँ लिखें (कलम 12)..." required rows="4" className="w-full p-5 border-2 border-slate-300 rounded-2xl font-bold text-lg shadow-inner outline-none focus:border-blue-600"></textarea>
+                                <button disabled={isSubmitting} className="w-full bg-gradient-to-r from-blue-700 to-indigo-800 text-white py-6 rounded-2xl font-black text-2xl shadow-xl uppercase transition-all tracking-widest hover:scale-[1.01]">{isSubmitting ? 'भेजा जा रहा है...' : 'OK - व्हाट्सएप पर भेजें'}</button>
+                            </form>
+                        </div>
                     </div>
-                </div>  
-            );  
-        };  
-        
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);  
+                )}
+            </div>
+        );
+    };
+
+    // --- फाइनल रेंडरिंग ---
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);  
     </script>
 </body>  
 </html>
-    const vocab = {  
-        hi: {  
-            brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", service: "डिजिटल सेवा निम्बाहेड़ा", receipt: "प्रोफेशनल डिजिटल रसीद", idLabelFull: "MEMBERSHIP ID NUMBER",  
-            points: "कुल सर्विस पॉइंट्स", used: "उपयोग पॉइंट्स", balance: "शेष पॉइंट्स", active: "सक्रियण तिथि", expiry: "समाप्ति तिथि", draw: "लकी ड्रा तिथि",  
-            tTitle: "नियम व शर्तें", 
-            t1: "01. यह डिजिटल सदस्यता कार्ड व्यक्तिगत है और अहस्तांतरणीय है।", t2: "02. सेवाओं का लाभ केवल कार्ड पर अंकित समाप्ति तिथि तक ही मान्य है।", t3: "03. लिया गया शुल्क पंजीकरण शुल्क है, जो वापस नहीं होगा।", t4: "04. सर्वर त्रुटि में फिजिकल स्क्रैच कार्ड का परिणाम अंतिम होगा।", t5: "05. सर्वर खराबी पर प्रबंधन की जिम्मेदारी नहीं होगी।", t6: "06. सरकारी टोकन शुल्क ग्राहक द्वारा अलग से देय होगा।", t7: "07. फ्री डिलीवरी सीमा के बाद न्यूनतम शुल्क लिया जाएगा।", t8: "08. यह समाज सेवा हेतु है, कृपया कार्य पूर्ण होने तक धैर्य रखें।", t9: "09. कार्य में लगने वाले समय हेतु अभद्र व्यवहार स्वीकार्य नहीं होगा।", t10: "10. मैनेजमेंट के पास नियमों में बदलाव का पूर्ण अधिकार है।",
-            warning: "आधिकारिक घोषणा होने तक कृपया कार्ड को स्क्रैच न करें", pending: "परिणाम जल्द घोषित होगा",
-            slogan: "समस्या आपकी, समाधान हमारा - उचित मूल्य, बेहतरीन सेवा !",
-            emptyData: "जानकारी अपडेट की जा रही है...", searchBtn: "DASHBOARD खोलें", searchTitle: "ID सर्च करें",
-            cat: "कैटेगरी (Category)", cName: "ग्राहक का नाम", vill: "गाँव/शहर", sMob: "सुरक्षित मोबाइल", sAad: "सुरक्षित आधार",
-            ben: "सदस्यता कार्ड सुविधायें", official: "आधिकारिक घोषणा", printBtn: "आधिकारिक रसीद प्रिंट करें",
-            icon1: "ई-मित्र", icon2: "डेटा रिकवरी", icon3: "मोबाइल सर्विसेज", icon4: "सरकारी योजना",
-            gm: "सुप्रभात", ga: "नमस्कार", ge: "शुभ संध्या",
-            welcomeTitle: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप (DPSG) निम्बाहेड़ा में आपका हार्दिक अभिनंदन है।",
-            welcomeBody: "हमें गर्व है कि आप हमारे इस सुरक्षित और आधुनिक डिजिटल परिवार का हिस्सा हैं। आपकी हर समस्या का समाधान अब हमारे विशेषज्ञों की देखरेख में सुरक्षित है।",
-            proceedBtn: "आगे बढ़ें",
-            airtelTitle: "एयरटेल पेमेंट बैंक", airtelSub: "नया खाता / KYC (24 Hrs)", payTitle: "डायरेक्ट पेमेंट", paySub: "UPI द्वारा भुगतान करें",
-            trackTitle: "लाइव स्टेटस चेक करें", serialHint: "सीरियल नंबर (अंतिम 4 अंक)", checkBtn: "चेक करें", statusOk: "OK ✅ (Confirmed)", statusProcess: "प्रक्रिया में है (Processing...)",
-            prizes: {
-                WINNER: (rank) => `"मंजिल उन्हीं को मिलती है जिनके सपनों में जान होती है,\nआज आपकी मेहनत और किस्मत दोनों मेहरबान होती है!"\n\nहार्दिक बधाई! आप डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप (DPSG) के गौरवशाली विजेता बने हैं और आपने ${rank} प्राप्त की है। यह इनाम संस्था की ओर से आपके विश्वास का सम्मान है। हमें गर्व है कि आप हमारे डिजिटल परिवार का हिस्सा हैं। उज्जवल भविष्य की कामनाओं के साथ, धन्यवाद!`,
-                CASH: () => `"इनाम छोटा हो या बड़ा, अपनों का साथ सबसे प्यारा है,\nजीत की ये शुरुआत है, अभी तो सारा आसमान तुम्हारा है!"\n\nमुस्कुराइए! DPSG संस्था की ओर से आपको यह विशेष कैशबैक भेंट किया जा रहा है। यह आपके और हमारे अटूट रिश्ते की एक छोटी सी पहचान है। भविष्य में भी हम आपकी समस्याओं के बेहतरीन समाधान के लिए तत्पर रहेंगे। हमारे साथ जुड़ने के लिए हृदय से धन्यवाद!`,
-                GIFT: () => `"खूबसूरत सा ये तोहफा बस एक छोटा सा बहाना है,\nहमे तो आपके साथ मिलकर खुशियों का जशन मनाना है!"\n\nबधाई हो! DPSG परिवार की ओर से यह उपहार आपके डिजिटल सफर को और भी खास बनाने के लिए है। आपकी संतुष्टि ही हमारी असली सफलता है। हम आपके सुखद भविष्य की कामना करते हैं। हमारे साथ बने रहने के लिए बहुत-बहुत धन्यवाद!`,
-                LOSS: () => `"गिरते हैं शहसवार ही मैदान-ए-जंग में,\nवो क्या गिरेंगे जो घुटनों के बल चलते हैं!"\n\nनिराश न हों, यह केवल एक शुरुआत है। DPSG संस्था आपके निरंतर सहयोग की सराहना करती है। अगली बार आपकी किस्मत ज़रूर चमकेगी। हमारे साथ बने रहने और हम पर भरोसा जताने के लिए आपका धन्यवाद!`
-            }
-        },
-        en: {
-            brand: "Digital Problem Solution Group", service: "Digital Seva Nimbahera", receipt: "Professional Digital Receipt", idLabelFull: "MEMBERSHIP ID NUMBER",  
-            points: "Total Service Points", used: "Used Points", balance: "Balance Points", active: "Activation Date", expiry: "Expiry Date", draw: "Lucky Draw Date",  
-            tTitle: "Terms & Conditions", 
-            t1: "01. This digital membership card is personal and non-transferable.", t2: "02. Services are valid only until the expiry date on the card.", t3: "03. The registration fee is non-refundable.", t4: "04. In case of server error, physical scratch card result is final.", t5: "05. Management is not responsible for server malfunctions.", t6: "06. Government token fees will be payable separately.", t7: "07. Minimum fee applies after free delivery limit.", t8: "08. This is for social service, please be patient.", t9: "09. Misbehavior regarding processing time is unacceptable.", t10: "10. Management reserves the right to change rules.",
-            warning: "Please do not scratch the card until official announcement", pending: "Result will be announced soon",
-            slogan: "Your Problem, Our Solution - Fair Price, Best Service!",
-            emptyData: "Information is being updated...", searchBtn: "OPEN DASHBOARD", searchTitle: "Search ID",
-            cat: "Category", cName: "Customer Name", vill: "Village/City", sMob: "Secure Mobile", sAad: "Secure Aadhar",
-            ben: "Membership Card Benefits", official: "Official Announcement", printBtn: "Print Official Receipt",
-            icon1: "E-Mitra", icon2: "Data Recovery", icon3: "Mobile Services", icon4: "Govt Scheme",
-            gm: "Good Morning", ga: "Good Afternoon", ge: "Good Evening",
-            welcomeTitle: "Hearty Welcome to Digital Problem Solution Group (DPSG) Nimbahera.",
-            welcomeBody: "We are proud that you are a part of our secure and modern digital family. The solution to every problem of yours is now safe under the supervision of our experts.",
-            proceedBtn: "Proceed",
-            airtelTitle: "Airtel Payment Bank", airtelSub: "New Account / KYC (24 Hrs)", payTitle: "Direct Payment", paySub: "Pay Securely via UPI",
-            trackTitle: "Live Status Check", serialHint: "Serial No. (Last 4 Digits)", checkBtn: "Check", statusOk: "OK ✅ (Confirmed)", statusProcess: "Processing...",
-            prizes: {
-                WINNER: (rank) => `"Success comes to those who dare to dream,\nToday your hard work and luck both beam!"\n\nHearty Congratulations! You are the proud winner of Digital Problem Solution Group (DPSG) and have secured ${rank}. This prize is a token of appreciation for your trust in our organization. We are proud to have you in our digital family. Wishing you a bright future, Thank you!`,
-                CASH: () => `"Whether the prize is big or small, the support of loved ones is best of all,\nThis is just the beginning of your victory, the whole sky is yours to see!"\n\nSmile! This special cashback is presented to you by DPSG. It is a small symbol of our unbreakable bond. We will always be ready to provide the best solutions for your problems in the future. Thank you from the bottom of our hearts for joining us!`,
-                GIFT: () => `"This beautiful gift is just a small excuse,\nto celebrate happiness and joy with you!"\n\nCongratulations! This gift from the DPSG family is to make your digital journey even more special. Your satisfaction is our real success. We wish you a happy future. Thank you very much for staying with us!`,
-                LOSS: () => `"Only the brave fall in the battlefield,\nnot those who crawl on their knees!"\n\nDo not despair, this is just a beginning. DPSG appreciates your continuous support. Your luck will definitely shine next time. Thank you for staying with us and trusting us!`
-            }
-        }
-    };
-
-    const cardSpecs = {  
-        VIP: { hi: ["₹500 VIP Card (6 महीने)", "उपयोग: पूरे परिवार के लिए मान्य", "कोटा: 150 प्रिंट + 80 फोटो (या 380 फोटो / 190 प्रिंट)", "लैमिनेशन: 2 फ्री", "ई-मित्र: 100% फ्री सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 2 बार फ्री (न्यूनतम रेट)", "इनाम: 100 Cash Back + बड़ा धमाका!", "संपर्क: 7229874128"], en: ["₹500 VIP Card (6 Months)", "Usage: Valid for Entire Family", "Quota: 150 Print + 80 Photo (or 380 Photo / 190 Print)", "Lamination: 2 Free", "E-Mitra: 100% Free Service (Only token charge payable)", "Delivery: 2 Times Free (Min Rate)", "Prize: 100 Cash Back + Big Surprise!", "Contact: 7229874128"] },  
-        Gold: { hi: ["₹100 Gold Card (3 महीने)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 40 प्रिंट + 24 फोटो (या 100 फोटो / 52 प्रिंट)", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: 100% गारंटीड उपहार!", "संपर्क: 7229874128"], en: ["₹100 Gold Card (3 Months)", "Usage: Valid for 1 Person Only", "Quota: 40 Print + 24 Photo (or 100 Photo / 52 Print)", "Lamination: 1 Free", "E-Mitra: 50% Discount (Only token charge payable)", "Delivery: 1 Time (Min Rate)", "Prize: 100% Guaranteed Gift!", "Contact: 7229874128"] },  
-        Silver: { hi: ["₹50 Silver Card (1 महीना)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 15 प्रिंट + 12 फोटो (या 40 फोटो / 21 प्रिंट)", "ई-मित्र: सीमित सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: लकी ड्रा का शानदार अवसर!", "संपर्क: 7229874128"], en: ["₹50 Silver Card (1 Month)", "Usage: Valid for 1 Person Only", "Quota: 15 Print + 12 Photo (or 40 Photo / 21 Print)", "E-Mitra: Limited Service (Only token charge payable)", "Delivery: 1 Time (Min Rate)", "Prize: Great Chance for Lucky Draw!", "Contact: 7229874128"] }  
-    };
-
-    const mask = (v) => { if (!v || v === "#REF!" || v.trim() === "") return "****-XXXX"; return v.length > 4 ? v.slice(0, 2) + "******" + v.slice(-2) : v; };
-    const toDirectLink = (url) => { if (!url) return ""; let id = ""; if (url.includes("/d/")) id = url.split("/d/")[1].split("/")[0]; if (url.includes("id=")) id = url.split("id=")[1].split("&")[0]; return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000" : url; };
-
-    const ScratchCard = ({ onComplete, children }) => {  
-        const canvasRef = useRef(null);
-        const [isRevealed, setIsRevealed] = useState(false);  
-        useEffect(() => {  
-            const canvas = canvasRef.current; if(!canvas) return; const ctx = canvas.getContext('2d');  
-            canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight;  
-            const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);  
-            grad.addColorStop(0, '#B8860B'); grad.addColorStop(0.5, '#FFDF00'); grad.addColorStop(1, '#DAA520');  
-          
-            ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);  
-            ctx.font = "900 32px Inter"; ctx.fillStyle = "rgba(139, 69, 19, 0.5)"; ctx.textAlign = "center";  
-            ctx.fillText("SCRATCH HERE", canvas.width / 2, canvas.height / 2);  
-            ctx.font = "700 18px Inter"; ctx.fillText("DPSG NIMBAHERA", canvas.width / 2, (canvas.height / 2) + 35);
-            const scratch = (e) => {  
-                if (isRevealed) return; const rect = canvas.getBoundingClientRect();  
-                const x = (e.pageX || (e.touches && e.touches[0].pageX)) - rect.left;
-                const y = (e.pageY || (e.touches && e.touches[0].pageY)) - rect.top;  
-                ctx.globalCompositeOperation = 'destination-out'; ctx.beginPath();
-                ctx.arc(x, y, 75, 0, Math.PI * 2); ctx.fill();  
-                const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;  
-                let count = 0;
-                for (let i = 0; i < pixels.length; i += 40) if (pixels[i + 3] === 0) count++;
-                if (count > (pixels.length / 40) * 0.45) { setIsRevealed(true); onComplete(); }  
-            };  
-            canvas.addEventListener('mousemove', scratch);
-            canvas.addEventListener('touchmove', scratch, {passive: true});  
-        }, [isRevealed]);  
-        return ( <div className="scratch-container"> {!isRevealed && <canvas ref={canvasRef} className="scratch-canvas" />} <div className="scratch-content">{children}</div> </div> );
-    };  
-
-    const App = () => {  
-        const [theme, setTheme] = useState('light');
-        const [lang, setLang] = useState('hi'); 
-        const [appState, setAppState] = useState("landing"); 
-        
-        const [member, setMember] = useState(null);
-        const [headers, setHeaders] = useState([]);
-        const [isAdmin, setIsAdmin] = useState(false); const [showPin, setShowPin] = useState(false);
-        const [prizeState, setPrizeState] = useState({ isLocked: true, type: null, rank: "", img: "", highlight: "", colorClass: "" });
-        const [showForm, setShowForm] = useState(false); 
-        const [formType, setFormType] = useState("");
-        const [showWelcome, setShowWelcome] = useState(true);
-        
-        // 1000 CARD STATES
-        const [cardsData, setCardsData] = useState([]);
-        const [selectedFilter, setSelectedFilter] = useState('ALL');
-        const [selectedCardId, setSelectedCardId] = useState(null);
-        const [showBookingForm, setShowBookingForm] = useState(false);
-        
-        const [statusCheckResult, setStatusCheckResult] = useState(null);
-        const [paymentMode, setPaymentMode] = useState("Cash");
-        const cardsAvailable = 985;
-        const t = vocab[lang];
-
-        const getGreeting = () => { const hour = new Date().getHours(); if (hour < 12) return t.gm; if (hour < 17) return t.ga; return t.ge; };
-        const openForm = (type) => { setFormType(type); setShowForm(true); };
-
-        const checkStatusFromCSV = async () => {
-            const sn = document.getElementById('liveStatusInput').value;
-            if(!sn) return;
-            setStatusCheckResult('PROCESSING');
-            if(!TRACKING_CSV) { setTimeout(() => { setStatusCheckResult('PENDING'); }, 1500); return; }
-            try {
-                const res = await fetch(TRACKING_CSV); const text = await res.text();
-                const rows = Papa.parse(text).data; const match = rows.find(r => r[0] && r[0].toString() === sn);
-                if(match && match[5] && match[5].toUpperCase() === "YES") setStatusCheckResult('OK');
-                else setStatusCheckResult('PENDING');
-            } catch(e) { setStatusCheckResult('PENDING'); }
-        };
-
-        // NEW SMART WHATSAPP SUBMIT (Airtel Pan logic + App Script Fetch)
-        const sendToWhatsApp = async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const dataObj = Object.fromEntries(formData.entries());
-
-            // 1. Silent submission to New Excel Sheet (No cross-origin error popup)
-            try {
-                fetch(APP_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(dataObj)
-                });
-            } catch(err) { console.log(err); }
-            
-            // 2. Direct WhatsApp Message Open
-            let waMsg = `🌟 DPSG नया सेवा अनुरोध 🌟\n${t.slogan}\n----------------------------------\n`;
-            waMsg += `👤 नाम: ${dataObj.Name || 'नया ग्राहक'}\n📱 मोबाइल: ${dataObj.Mobile}\n🆔 आधार: ${dataObj.Aadhar || 'N/A'}\n`;
-            if (paymentMode === "Airtel Payment Bank" && dataObj.Pan) waMsg += `💳 पैन कार्ड: ${dataObj.Pan}\n`;
-            waMsg += `🛠️ सेवा/समस्या: ${dataObj.Problem || formType}\n💳 माध्यम: ${paymentMode}\n✅ स्टेटस: पेंडिंग\n----------------------------------\nकृपया मेरा कार्य पूर्ण करें।`;
-            
-            const waLink = `https://wa.me/917229874128?text=${encodeURIComponent(waMsg)}`;
-            window.open(waLink, '_blank');
-            alert("डेटा वेरीफाई हो गया है! अब 'OK' दबाते ही व्हाट्सएप खुलेगा।");
-            setShowForm(false);
-        };
-
-        const mapPrize = useCallback((row, maps) => {  
-            const mID = (row[1] || "").toString().toLowerCase().trim();  
-            const dDateStr = (row[36] || "").toString().trim(); 
-            const lock = (row[37] || "").toString().toUpperCase().trim(); 
-            let drawDate = null;
-            if (dDateStr) { let parts = dDateStr.split(/[-/]/); if (parts.length === 3) drawDate = new Date(parts[2], parts[1]-1, parts[0]); else drawDate = new Date(dDateStr); }
-            const today = new Date(); today.setHours(0,0,0,0); if(drawDate) drawDate.setHours(0,0,0,0);
-            if (!lock || !dDateStr || drawDate > today) { setPrizeState({ isLocked: true, type: "PENDING" }); return; }
-            const match = maps.find(m => m.Membership_ID && m.Membership_ID.toLowerCase().trim() === mID);  
- 
-            if (lock === "DPSG_WINNER" && match) { setPrizeState({ isLocked: false, type: "WINNER", rank: match.Match_Name, img: toDirectLink(match.Image_Link), highlight: match.Inam_Name || "DPSG WINNER", colorClass: "winner-glow" }); } 
-            else if (lock === "DPSG_CASH") { setPrizeState({ isLocked: false, type: "CASH", img: "https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000", highlight: "₹100 Cash Back", colorClass: "cash-glow" }); } 
-            else if (lock === "DPSG_GIFT") { setPrizeState({ isLocked: false, type: "GIFT", img: "https://drive.google.com/thumbnail?id=1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z&sz=w1000", highlight: "5 rs Pen", colorClass: "gift-glow" }); } 
-            else { setPrizeState({ isLocked: false, type: "LOSS", img: "https://drive.google.com/thumbnail?id=1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh&sz=w1000", highlight: "Better Luck Next Time", colorClass: "bg-slate-100 border-4 border-slate-300 dark:bg-slate-800 dark:border-slate-600 shadow-lg" }); }
-        }, []);
-
-        useEffect(() => {  
-            fetch(MAIN_CSV + "&t=" + Date.now()).then(r => r.text()).then(txt => {  
-                Papa.parse(txt, { complete: (res) => {  
-                    const rows = res.data; setHeaders(rows[0] || []);  
-                    
-                    let parsedCards = [];
-                    for(let i=1; i<=1000; i++) {
-                        let rowData = rows[i] || [];
-                        let sNo = String(i).padStart(4, '0');
-                        let type = i <= 100 ? 'VIP' : (i <= 600 ? 'Gold' : 'Silver');
-                        let isSold = (rowData[8] && rowData[8].trim() !== "") || (rowData[1] && rowData[1].trim() !== "");
-                        parsedCards.push({ id: sNo, type: type, sold: isSold });
-                    }
-                    setCardsData(parsedCards);
-
-                    const qId = new URLSearchParams(window.location.search).get('id');  
-                    const match = rows.slice(1).find(r => r[1] && r[1].toLowerCase() === (qId || "").toLowerCase());  
-                    if (match) { 
-                        setMember(match); fetch(MAPPING_CSV).then(r => r.text()).then(mTxt => { Papa.parse(mTxt, { header: true, complete: (mRes) => { mapPrize(match, mRes.data); setAppState("view"); } }); }); 
-                    }
-                }});  
-            });  
-        }, [mapPrize]);
-
-        const clean = (val) => (val && val !== "#REF!" && val.trim() !== "") ? val : t.emptyData;
-        const handleCardSelect = (card) => { if(card.sold) return; setSelectedCardId(card); };
-        const generateAutoID = (card) => { if(!card) return ""; let prefix = card.type === 'VIP' ? 'DPSG-VIP' : (card.type === 'Gold' ? 'DPSG-GLD' : 'DPSG-SIL'); return `${prefix}-${card.id}`; };
-
