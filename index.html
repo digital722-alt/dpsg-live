@@ -1,196 +1,171 @@
-<!DOCTYPE html>  
-<html lang="hi">  
-<head>  
-    <meta charset="UTF-8">  
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
-    <title>DPSG Master Portal - Digital Seva Nimbahera</title>  
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>  
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>  
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>  
-    <script src="https://cdn.tailwindcss.com"></script>  
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>  
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>  
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">  
-    <script>tailwind.config = { darkMode: 'class' }</script>
-    <style> 
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Play:wght@700&family=Poppins:wght@500;700;900&display=swap');
-        
-        /* Premium Gradient Body */
-        body { 
-            font-family: 'Inter', sans-serif;
-            transition: background-color 0.3s; margin: 0; 
-            background: linear-gradient(135deg, #f0f4f8, #e0e7ff, #f8fafc);
-        }  
-        .dark body {
-            background: linear-gradient(135deg, #0f172a, #1e1b4b, #0f172a);
-        }
-        
-        /* Glassmorphism Effect for Cards */
-        .glass-card { 
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(20px); 
-            -webkit-backdrop-filter: blur(20px);
-            border: 2px solid rgba(255, 255, 255, 0.5); 
-            border-radius: 2.5rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 30px rgba(59, 130, 246, 0.1);
-        }  
-        .dark .glass-card {
-            background: rgba(30, 41, 59, 0.85);
-            border-color: rgba(255, 255, 255, 0.05);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-        }
+        const mask = (v) => { if (!v || v === "#REF!" || v.trim() === "") return "****-XXXX"; return v.length > 4 ? v.slice(0, 2) + "******" + v.slice(-2) : v; };
+        const toDirectLink = (url) => { if (!url) return ""; let id = ""; if (url.includes("/d/")) id = url.split("/d/")[1].split("/")[0]; if (url.includes("id=")) id = url.split("id=")[1].split("&")[0]; return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000" : url; };
 
-        .glass-lock {
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(16px);
-            border: 2px solid rgba(255, 255, 255, 0.8); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
-        }
-        .dark .glass-lock { background: rgba(30, 41, 59, 0.7); border: 2px solid rgba(255, 255, 255, 0.1); }
+        // --- ORIGINAL SCRATCH CARD COMPONENT ---
+        const ScratchCard = ({ onComplete, children }) => {  
+            const canvasRef = useRef(null);
+            const [isRevealed, setIsRevealed] = useState(false);  
+            useEffect(() => {  
+                const canvas = canvasRef.current; if(!canvas) return; const ctx = canvas.getContext('2d');  
+                canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight;  
+                const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);  
+                grad.addColorStop(0, '#B8860B'); grad.addColorStop(0.5, '#FFDF00'); grad.addColorStop(1, '#DAA520');  
+              
+                ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);  
+                ctx.font = "900 32px Inter"; ctx.fillStyle = "rgba(139, 69, 19, 0.5)"; ctx.textAlign = "center";  
+                ctx.fillText("SCRATCH HERE", canvas.width / 2, canvas.height / 2);  
+                ctx.font = "700 18px Inter"; ctx.fillText("DPSG NIMBAHERA", canvas.width / 2, (canvas.height / 2) + 35);
+                const scratch = (e) => {  
+                    if (isRevealed) return; const rect = canvas.getBoundingClientRect();  
+                    const x = (e.pageX || (e.touches && e.touches[0].pageX)) - rect.left;
+                    const y = (e.pageY || (e.touches && e.touches[0].pageY)) - rect.top;  
+                    ctx.globalCompositeOperation = 'destination-out'; ctx.beginPath();
+                    ctx.arc(x, y, 75, 0, Math.PI * 2); ctx.fill();  
+                    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;  
+                    let count = 0;
+                    for (let i = 0; i < pixels.length; i += 40) if (pixels[i + 3] === 0) count++;
+                    if (count > (pixels.length / 40) * 0.45) { setIsRevealed(true); onComplete(); }  
+                };  
+                canvas.addEventListener('mousemove', scratch);
+                canvas.addEventListener('touchmove', scratch, {passive: true});  
+            }, [isRevealed]);  
+            return ( <div className="scratch-container"> {!isRevealed && <canvas ref={canvasRef} className="scratch-canvas" />} <div className="scratch-content">{children}</div> </div> );
+        };  
 
-        /* Unique Fonts */
-        .date-font { font-family: 'Play', sans-serif;}
-        .fancy-text { font-family: 'Poppins', sans-serif;}
-        
-        .text-gradient-prize {
-            background: linear-gradient(to right, #1e3a8a, #4338ca, #1e3a8a);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0px 4px 10px rgba(67, 56, 202, 0.2);
-        }
-        .dark .text-gradient-prize { background: linear-gradient(to right, #60a5fa, #c084fc, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        // --- MAIN APP COMPONENT ---
+        const App = () => {  
+            const [theme, setTheme] = useState('light');
+            const [lang, setLang] = useState('hi'); 
+            const [appState, setAppState] = useState("landing"); // 'landing', 'search', 'view', 'booking'
+            
+            const [member, setMember] = useState(null);
+            const [headers, setHeaders] = useState([]);
+            const [isAdmin, setIsAdmin] = useState(false); 
+            const [showPin, setShowPin] = useState(false);
+            const [prizeState, setPrizeState] = useState({ isLocked: true, type: null, rank: "", img: "", highlight: "", colorClass: "" });
+            
+            const [showForm, setShowForm] = useState(false); 
+            const [formType, setFormType] = useState("");
+            const [showWelcome, setShowWelcome] = useState(true);
+            
+            // --- CARD BOOKING STATES ---
+            const [cardsData, setCardsData] = useState([]);
+            const [selectedFilter, setSelectedFilter] = useState('ALL');
+            const [selectedCardId, setSelectedCardId] = useState(null);
+            
+            // --- FORM & LIVE STATUS STATES ---
+            const [statusCheckResult, setStatusCheckResult] = useState(null);
+            const [docHint, setDocHint] = useState("");
+            const [paymentMode, setPaymentMode] = useState("Cash");
 
-        @media print { .no-print { display: none !important;} .glass-card { border: none !important; box-shadow: none !important; width: 100% !important; margin: 0 !important; background: white !important;} }  
-        
-        .marquee { 
-            white-space: nowrap; overflow: hidden; 
-            background: linear-gradient(90deg, #d97706, #fbbf24, #d97706); 
-            color: #000; padding: 18px 0; border-bottom: 4px solid #92400e;
-            box-shadow: 0 6px 10px -2px rgba(0, 0, 0, 0.2); position: relative; display: flex; align-items: center;
-        }  
-        .marquee-content { display: inline-block; padding-left: 100%; animation: marquee 25s linear infinite; display: flex; align-items: center;}  
-        @keyframes marquee { 0% { transform: translate(0, 0);} 100% { transform: translate(-100%, 0); } }  
-        
-        .blink-text { animation: blinker 1.2s linear infinite;}
-        @keyframes blinker { 50% { opacity: 0;} }
-        
-        .scratch-container { position: relative; width: 100%; max-width: 550px; margin: 0 auto; min-height: 480px; }  
-        .scratch-canvas { position: absolute; top: 0; left: 0; z-index: 30; border-radius: 2rem; cursor: crosshair; touch-action: none; width: 100%; height: 100%; box-shadow: inset 0 0 25px rgba(0,0,0,0.3); }  
-        .scratch-content { background: #fff; border-radius: 2rem; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; border: 4px solid #1e293b; box-shadow: 0 15px 30px rgba(0,0,0,0.15); }  
-        .dark .scratch-content { background: #0f172a; border-color: #475569; }
+            const t = vocab[lang];
+            
+            const docList = {
+                "Airtel_Bank": lang==='hi' ? "🔴 आधार कार्ड और फिंगरप्रिंट/OTP अनिवार्य है।" : "🔴 Aadhar and Fingerprint/OTP mandatory.",
+                "PAN_Card": lang==='hi' ? "✅ आधार कार्ड की दोनों तरफ की फोटो अपलोड करें।" : "✅ Upload both sides of Aadhar card.",
+                "Birth_Cert": lang==='hi' ? "✅ हॉस्पिटल की रसीद, आधार कार्ड और फोटो अपलोड करें।" : "✅ Upload Hospital Receipt, Aadhar & Photo.",
+                "Caste_Cert": lang==='hi' ? "✅ राशन कार्ड, आधार, जन आधार और पुरानी जाति का रिकॉर्ड।" : "✅ Upload Ration Card, Aadhar, Jan Aadhar & Old Record.",
+                "Bonafide": lang==='hi' ? "✅ 10 साल पुराने कागज़ और आधार चाहिए।" : "✅ 10 yrs old document & Aadhar required.",
+                "Other": lang==='hi' ? "💬 अपनी समस्या नीचे विवरण में लिखें।" : "💬 Write your issue in the description box below."
+            };
 
-        .winner-glow { border: 6px solid #fbbf24; box-shadow: 0 0 50px rgba(251, 191, 36, 0.7), inset 0 0 30px rgba(251, 191, 36, 0.3); animation: pulse-gold 2s infinite; background: linear-gradient(135deg, #fffbeb, #fef3c7, #fde68a); }  
-        .cash-glow { border: 6px solid #22c55e; box-shadow: 0 0 40px rgba(34, 197, 94, 0.5); background: linear-gradient(135deg, #f0fdf4, #dcfce7, #bbf7d0);}
-        .gift-glow { border: 6px solid #3b82f6; box-shadow: 0 0 40px rgba(59, 130, 246, 0.5); background: linear-gradient(135deg, #eff6ff, #dbeafe, #bfdbfe);}
-        .dark .winner-glow { background: linear-gradient(135deg, #452e00, #785200, #452e00);}
-        .dark .cash-glow { background: linear-gradient(135deg, #052e16, #064e3b, #052e16);}
-        .dark .gift-glow { background: linear-gradient(135deg, #1e3a8a, #1e40af, #1e3a8a);}
-        @keyframes pulse-gold { 0%, 100% { transform: scale(1); border-color: #fbbf24;} 50% { transform: scale(1.02); border-color: #f59e0b; } }  
-        
-        .fade-in-scale { animation: popIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;}
-        @keyframes popIn { 0% { opacity: 0; transform: scale(0.9);} 100% { opacity: 1; transform: scale(1); } }
+            const getGreeting = () => { const hour = new Date().getHours(); if (hour < 12) return t.gm; if (hour < 17) return t.ga; return t.ge; };
+            
+            const openForm = (type) => { setFormType(type); setDocHint(""); setShowForm(true); };
 
-        /* CSS FOR CARD GRID */
-        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; max-height: 400px; overflow-y: auto; padding: 10px; }
-        .grid-item { padding: 15px 5px; text-align: center; border-radius: 10px; font-weight: 900; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border: 2px solid transparent; }
-        .grid-item:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .grid-item.available.vip { background: #e0e7ff; color: #1e3a8a; border-color: #c7d2fe; }
-        .grid-item.available.gold { background: #fef3c7; color: #92400e; border-color: #fde68a; }
-        .grid-item.available.silver { background: #f1f5f9; color: #334155; border-color: #e2e8f0; }
-        .grid-item.sold { background: #fee2e2; color: #991b1b; border-color: #fecaca; opacity: 0.6; cursor: not-allowed; }
-        .grid-item.selected { border-color: #22c55e; background: #dcfce7; color: #166534; box-shadow: 0 0 15px rgba(34,197,94,0.5); transform: scale(1.1); }
-        
-        .custom-scroll::-webkit-scrollbar { width: 8px; }
-        .custom-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); border-radius: 10px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.5); border-radius: 10px; }
-    </style>
-</head>  
-<body>  
-    <div id="root"></div>  
-    <script type="text/babel">  
-    const { useState, useEffect, useRef, useCallback } = React;
+            const checkStatusFromCSV = async () => {
+                const sn = document.getElementById('liveStatusInput').value;
+                if(!sn) return;
+                setStatusCheckResult('PROCESSING');
+                if(!TRACKING_CSV) {
+                    setTimeout(() => { setStatusCheckResult('PENDING'); }, 1500);
+                    return;
+                }
+                try {
+                    const res = await fetch(TRACKING_CSV);
+                    const text = await res.text();
+                    const rows = Papa.parse(text).data;
+                    const match = rows.find(r => r[0] && r[0].toString() === sn);
+                    if(match && match[5] && match[5].toUpperCase() === "YES") {
+                        setStatusCheckResult('OK');
+                    } else {
+                        setStatusCheckResult('PENDING');
+                    }
+                } catch(e) { setStatusCheckResult('PENDING'); }
+            };
 
-    // --- 1. OLD MAPPED EXCEL SHEETS (For Fetching Data - DO NOT CHANGE) ---
-    const OLD_SHEET_ID = "1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo";  
-    const MAIN_CSV = `https://docs.google.com/spreadsheets/d/${OLD_SHEET_ID}/export?format=csv`;  
-    const MAPPING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";  
-    const TRACKING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSipWwoPkXkvIzv26S1GWGhnFhk_mvA-zSU2LeV4AJfe_Val9g3eMquN0Xxr7wx01bJguo-74yMOJSl/pub?gid=580941469&single=true&output=csv"; 
-    const MASTER_PIN = "Shiv@6375";
+            // --- SMART WHATSAPP SUBMISSION (WITH PAN LOGIC) ---
+            const sendToWhatsApp = (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const dataObj = Object.fromEntries(formData.entries());
+                
+                let waMsg = `🌟 DPSG नया सेवा अनुरोध 🌟\n${t.slogan}\n----------------------------------\n`;
+                waMsg += `👤 नाम: ${dataObj.Name || 'नया ग्राहक'}\n📱 मोबाइल: ${dataObj.Mobile}\n🆔 आधार: ${dataObj.Aadhar || 'N/A'}\n`;
+                if (paymentMode === "Airtel Payment Bank") waMsg += `💳 पैन: ${dataObj.Pan}\n`;
+                waMsg += `🛠️ सेवा/समस्या: ${dataObj.Problem || dataObj.Service || formType}\n💳 माध्यम: ${paymentMode}\n✅ स्टेटस: पेंडिंग\n----------------------------------\nकृपया मेरा कार्य पूर्ण करें।`;
+                
+                const waLink = `https://wa.me/917229874128?text=${encodeURIComponent(waMsg)}`;
+                window.open(waLink, '_blank');
+                alert("डेटा वेरीफाई हो गया है! अब 'OK' दबाते ही व्हाट्सएप खुलेगा, कृपया मैसेज सेंड करें।");
+                setShowForm(false);
+            };
 
-    // --- 2. NEW EXCEL SHEET SETTING (For Form Submission Only) ---
-    const NEW_MASTER_SHEET_ID = "1mMQs6zU_EKRt1o8wEwZQnYrDhCHa-p-WthNdQDb4_Xk";
-    const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzbGT8QdrTlBlNyN2m502f03N10VdwmBhNUYkDP6nWmqGi99Y5qwFYVfa91zA2UeNQ/exec";
+            const mapPrize = useCallback((row, maps) => {  
+                const mID = (row[1] || "").toString().toLowerCase().trim();  
+                const dDateStr = (row[36] || "").toString().trim(); 
+                const lock = (row[37] || "").toString().toUpperCase().trim(); 
+                let drawDate = null;
+                if (dDateStr) { let parts = dDateStr.split(/[-/]/); if (parts.length === 3) drawDate = new Date(parts[2], parts[1]-1, parts[0]); else drawDate = new Date(dDateStr); }
+                const today = new Date(); today.setHours(0,0,0,0); if(drawDate) drawDate.setHours(0,0,0,0);
+                if (!lock || !dDateStr || drawDate > today) { setPrizeState({ isLocked: true, type: "PENDING" }); return; }
+                const match = maps.find(m => m.Membership_ID && m.Membership_ID.toLowerCase().trim() === mID);  
+     
+                if (lock === "DPSG_WINNER" && match) { setPrizeState({ isLocked: false, type: "WINNER", rank: match.Match_Name, img: toDirectLink(match.Image_Link), highlight: match.Inam_Name || "DPSG WINNER", colorClass: "winner-glow" }); } 
+                else if (lock === "DPSG_CASH") { setPrizeState({ isLocked: false, type: "CASH", img: "https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000", highlight: "₹100 Cash Back", colorClass: "cash-glow" }); } 
+                else if (lock === "DPSG_GIFT") { setPrizeState({ isLocked: false, type: "GIFT", img: "https://drive.google.com/thumbnail?id=1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z&sz=w1000", highlight: "5 rs Pen", colorClass: "gift-glow" }); } 
+                else { setPrizeState({ isLocked: false, type: "LOSS", img: "https://drive.google.com/thumbnail?id=1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh&sz=w1000", highlight: "Better Luck Next Time", colorClass: "bg-slate-100 border-4 border-slate-300 dark:bg-slate-800 dark:border-slate-600 shadow-lg" }); }
+            }, []);
 
-    // --- ORIGINAL INAM LIST WITH SHAYARI ---
-    const inamList = [
-        { rank: "1", name: "₹5000 Cash", msg: "किस्मत का ताला खुलेगा, जेब में गांधी मुस्कुराएंगे, DPSG के साथ हुकुम, आप मालामाल हो जाएंगे!" },
-        { rank: "2", name: "LED TV", msg: "घर बैठे सिनेमा का आनंद, हर तस्वीर में दिखेगा जान, LED टीवी जीतकर, बढ़ाइये अपने घर की शान!" },
-        { rank: "3", name: "Kids Bicycle", msg: "नन्हे क़दमों की तेज़ रफ़्तार, बचपन को दें खुशियों का उपहार!" },
-        { rank: "4", name: "Ceiling Fan", msg: "चलेगी जब ठंडी हवा, मिट जाएगी हर थकान, पंखा जीतेगा वो, जो है DPSG की जान!" },
-        { rank: "5", name: "Bati Oven", msg: "गरमा-गरम बाटी का स्वाद, निम्बाहेड़ा का है ये अनूठा अंदाज़!" },
-        { rank: "6", name: "Keypad Mobile Phone", msg: "बातें होंगी अपनों से, दूरियां सारी मिट जाएंगी, हाथ में होगा मोबाइल, तो खुशियां लौट आएंगी!" },
-        { rank: "7", name: "Smart Watch", msg: "वक्त बदलेगा आपका, अब घड़ी भी स्मार्ट होगी, जीत की आपकी हर तरफ, अब नई शुरुआत होगी!" },
-        { rank: "8", name: "Power Bank", msg: "बैटरी कभी न होगी लो, न रुकेगा कोई काम, DPSG का पावर बैंक, देगा आपको आराम!" },
-        { rank: "9", name: "Sports Shoes", msg: "रफ़्तार भरेगी आपके क़दमों में, मंज़िल होगी आपके पास!" },
-        { rank: "10", name: "Riding Helmet", msg: "सुरक्षा का वादा, जीत का इरादा!" },
-        { rank: "11-20", name: "Premium Gifts (Earbuds, Trimmer, Watch)", msg: "स्टाइल भी होगा और चमक भी, जब जीतेंगे आप ये शाही इनाम!" },
-        { rank: "21-23", name: "Bumper Cash (₹301, ₹201, ₹101)", msg: "नसीब में होगा नकद, तो हर काम होगा सफल!" },
-        { rank: "24-51", name: "Surprise Gifts (Wall Clock, Umbrella, Mobile Recharge)", msg: "कोई खाली हाथ नहीं जाएगा, हर कार्ड में है दम!" }
-    ];
+            useEffect(() => {  
+                fetch(MAIN_CSV + "&t=" + Date.now()).then(r => r.text()).then(txt => {  
+                    Papa.parse(txt, { complete: (res) => {  
+                        const rows = res.data; setHeaders(rows[0] || []);  
 
-    const vocab = {  
-        hi: {  
-            brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", service: "डिजिटल सेवा निम्बाहेड़ा", receipt: "प्रोफेशनल डिजिटल रसीद", idLabelFull: "MEMBERSHIP ID NUMBER",  
-            points: "कुल सर्विस पॉइंट्स", used: "उपयोग पॉइंट्स", balance: "शेष पॉइंट्स", active: "सक्रियण तिथि", expiry: "समाप्ति तिथि", draw: "लकी ड्रा तिथि",  
-            tTitle: "नियम व शर्तें", 
-            t1: "01. यह डिजिटल सदस्यता कार्ड व्यक्तिगत है और अहस्तांतरणीय है।", t2: "02. सेवाओं का लाभ केवल कार्ड पर अंकित समाप्ति तिथि तक ही मान्य है।", t3: "03. लिया गया शुल्क पंजीकरण शुल्क है, जो वापस नहीं होगा।", t4: "04. सर्वर त्रुटि में फिजिकल स्क्रैच कार्ड का परिणाम अंतिम होगा।", t5: "05. सर्वर खराबी पर प्रबंधन की जिम्मेदारी नहीं होगी।", t6: "06. सरकारी टोकन शुल्क ग्राहक द्वारा अलग से देय होगा।", t7: "07. फ्री डिलीवरी सीमा के बाद न्यूनतम शुल्क लिया जाएगा।", t8: "08. यह समाज सेवा हेतु है, कृपया कार्य पूर्ण होने तक धैर्य रखें।", t9: "09. कार्य में लगने वाले समय हेतु अभद्र व्यवहार स्वीकार्य नहीं होगा।", t10: "10. मैनेजमेंट के पास नियमों में बदलाव का पूर्ण अधिकार है।",
-            warning: "आधिकारिक घोषणा होने तक कृपया कार्ड को स्क्रैच न करें", pending: "परिणाम जल्द घोषित होगा",
-            slogan: "समस्या आपकी, समाधान हमारा - उचित मूल्य, बेहतरीन सेवा !",
-            emptyData: "जानकारी अपडेट की जा रही है...", searchBtn: "DASHBOARD खोलें", searchTitle: "ID सर्च करें",
-            cat: "कैटेगरी (Category)", cName: "ग्राहक का नाम", vill: "गाँव/शहर", sMob: "सुरक्षित मोबाइल", sAad: "सुरक्षित आधार",
-            ben: "सदस्यता कार्ड सुविधायें", official: "आधिकारिक घोषणा", printBtn: "आधिकारिक रसीद प्रिंट करें",
-            icon1: "ई-मित्र", icon2: "डेटा रिकवरी", icon3: "मोबाइल सर्विसेज", icon4: "सरकारी योजना",
-            gm: "सुप्रभात", ga: "नमस्कार", ge: "शुभ संध्या",
-            welcomeTitle: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप (DPSG) निम्बाहेड़ा में आपका हार्दिक अभिनंदन है।",
-            welcomeBody: "हमें गर्व है कि आप हमारे इस सुरक्षित और आधुनिक डिजिटल परिवार का हिस्सा हैं। आपकी हर समस्या का समाधान अब हमारे विशेषज्ञों की देखरेख में सुरक्षित है।",
-            proceedBtn: "आगे बढ़ें",
-            airtelTitle: "एयरटेल पेमेंट बैंक", airtelSub: "नया खाता / KYC (24 Hrs)", payTitle: "डायरेक्ट पेमेंट", paySub: "UPI द्वारा भुगतान करें",
-            trackTitle: "लाइव स्टेटस चेक करें", serialHint: "सीरियल नंबर (अंतिम 4 अंक)", checkBtn: "चेक करें", statusOk: "OK ✅ (Confirmed)", statusProcess: "प्रक्रिया में है (Processing...)",
-            prizes: {
-                WINNER: (rank) => `"मंजिल उन्हीं को मिलती है जिनके सपनों में जान होती है,\nआज आपकी मेहनत और किस्मत दोनों मेहरबान होती है!"\n\nहार्दिक बधाई! आप डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप (DPSG) के गौरवशाली विजेता बने हैं और आपने ${rank} प्राप्त की है। यह इनाम संस्था की ओर से आपके विश्वास का सम्मान है। हमें गर्व है कि आप हमारे डिजिटल परिवार का हिस्सा हैं। उज्जवल भविष्य की कामनाओं के साथ, धन्यवाद!`,
-                CASH: () => `"इनाम छोटा हो या बड़ा, अपनों का साथ सबसे प्यारा है,\nजीत की ये शुरुआत है, अभी तो सारा आसमान तुम्हारा है!"\n\nमुस्कुराइए! DPSG संस्था की ओर से आपको यह विशेष कैशबैक भेंट किया जा रहा है। यह आपके और हमारे अटूट रिश्ते की एक छोटी सी पहचान है। भविष्य में भी हम आपकी समस्याओं के बेहतरीन समाधान के लिए तत्पर रहेंगे। हमारे साथ जुड़ने के लिए हृदय से धन्यवाद!`,
-                GIFT: () => `"खूबसूरत सा ये तोहफा बस एक छोटा सा बहाना है,\nहमे तो आपके साथ मिलकर खुशियों का जशन मनाना है!"\n\nबधाई हो! DPSG परिवार की ओर से यह उपहार आपके डिजिटल सफर को और भी खास बनाने के लिए है। आपकी संतुष्टि ही हमारी असली सफलता है। हम आपके सुखद भविष्य की कामना करते हैं। हमारे साथ बने रहने के लिए बहुत-बहुत धन्यवाद!`,
-                LOSS: () => `"गिरते हैं शहसवार ही मैदान-ए-जंग में,\nवो क्या गिरेंगे जो घुटनों के बल चलते हैं!"\n\nनिराश न हों, यह केवल एक शुरुआत है। DPSG संस्था आपके निरंतर सहयोग की सराहना करती है। अगली बार आपकी किस्मत ज़रूर चमकेगी। हमारे साथ बने रहने और हम पर भरोसा जताने के लिए आपका धन्यवाद!`
-            }
-        },
-        en: {
-            brand: "Digital Problem Solution Group", service: "Digital Seva Nimbahera", receipt: "Professional Digital Receipt", idLabelFull: "MEMBERSHIP ID NUMBER",  
-            points: "Total Service Points", used: "Used Points", balance: "Balance Points", active: "Activation Date", expiry: "Expiry Date", draw: "Lucky Draw Date",  
-            tTitle: "Terms & Conditions", 
-            t1: "01. This digital membership card is personal and non-transferable.", t2: "02. Services are valid only until the expiry date on the card.", t3: "03. The registration fee is non-refundable.", t4: "04. In case of server error, physical scratch card result is final.", t5: "05. Management is not responsible for server malfunctions.", t6: "06. Government token fees will be payable separately.", t7: "07. Minimum fee applies after free delivery limit.", t8: "08. This is for social service, please be patient.", t9: "09. Misbehavior regarding processing time is unacceptable.", t10: "10. Management reserves the right to change rules.",
-            warning: "Please do not scratch the card until official announcement", pending: "Result will be announced soon",
-            slogan: "Your Problem, Our Solution - Fair Price, Best Service!",
-            emptyData: "Information is being updated...", searchBtn: "OPEN DASHBOARD", searchTitle: "Search ID",
-            cat: "Category", cName: "Customer Name", vill: "Village/City", sMob: "Secure Mobile", sAad: "Secure Aadhar",
-            ben: "Membership Card Benefits", official: "Official Announcement", printBtn: "Print Official Receipt",
-            icon1: "E-Mitra", icon2: "Data Recovery", icon3: "Mobile Services", icon4: "Govt Scheme",
-            gm: "Good Morning", ga: "Good Afternoon", ge: "Good Evening",
-            welcomeTitle: "Hearty Welcome to Digital Problem Solution Group (DPSG) Nimbahera.",
-            welcomeBody: "We are proud that you are a part of our secure and modern digital family. The solution to every problem of yours is now safe under the supervision of our experts.",
-            proceedBtn: "Proceed",
-            airtelTitle: "Airtel Payment Bank", airtelSub: "New Account / KYC (24 Hrs)", payTitle: "Direct Payment", paySub: "Pay Securely via UPI",
-            trackTitle: "Live Status Check", serialHint: "Serial No. (Last 4 Digits)", checkBtn: "Check", statusOk: "OK ✅ (Confirmed)", statusProcess: "Processing...",
-            prizes: {
-                WINNER: (rank) => `"Success comes to those who dare to dream,\nToday your hard work and luck both beam!"\n\nHearty Congratulations! You are the proud winner of Digital Problem Solution Group (DPSG) and have secured ${rank}. This prize is a token of appreciation for your trust in our organization. We are proud to have you in our digital family. Wishing you a bright future, Thank you!`,
-                CASH: () => `"Whether the prize is big or small, the support of loved ones is best of all,\nThis is just the beginning of your victory, the whole sky is yours to see!"\n\nSmile! This special cashback is presented to you by DPSG. It is a small symbol of our unbreakable bond. We will always be ready to provide the best solutions for your problems in the future. Thank you from the bottom of our hearts for joining us!`,
-                GIFT: () => `"This beautiful gift is just a small excuse,\nto celebrate happiness and joy with you!"\n\nCongratulations! This gift from the DPSG family is to make your digital journey even more special. Your satisfaction is our real success. We wish you a happy future. Thank you very much for staying with us!`,
-                LOSS: () => `"Only the brave fall in the battlefield,\nnot those who crawl on their knees!"\n\nDo not despair, this is just a beginning. DPSG appreciates your continuous support. Your luck will definitely shine next time. Thank you for staying with us and trusting us!`
-            }
-        }
-    };
+                        // POPULATE 1000 CARDS DATA FOR GRID (VIP/Gold/Silver Logic)
+                        let parsedCards = [];
+                        for(let i=1; i<=1000; i++) {
+                            let rowData = rows[i] || [];
+                            let sNo = String(i).padStart(4, '0');
+                            let type = i <= 100 ? 'VIP' : (i <= 600 ? 'Gold' : 'Silver');
+                            let isSold = (rowData[8] && rowData[8].trim() !== "") || (rowData[1] && rowData[1].trim() !== "");
+                            parsedCards.push({ id: sNo, type: type, sold: isSold });
+                        }
+                        setCardsData(parsedCards);
 
-    const cardSpecs = {  
-        VIP: { hi: ["₹500 VIP Card (6 महीने)", "उपयोग: पूरे परिवार के लिए मान्य", "कोटा: 150 प्रिंट + 80 फोटो (या 380 फोटो / 190 प्रिंट)", "लैमिनेशन: 2 फ्री", "ई-मित्र: 100% फ्री सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 2 बार फ्री (न्यूनतम रेट)", "इनाम: 100 Cash Back + बड़ा धमाका!", "संपर्क: 7229874128"], en: ["₹500 VIP Card (6 Months)", "Usage: Valid for Entire Family", "Quota: 150 Print + 80 Photo (or 380 Photo / 190 Print)", "Lamination: 2 Free", "E-Mitra: 100% Free Service (Only token charge payable)", "Delivery: 2 Times Free (Min Rate)", "Prize: 100 Cash Back + Big Surprise!", "Contact: 7229874128"] },  
-        Gold: { hi: ["₹100 Gold Card (3 महीने)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 40 प्रिंट + 24 फोटो (या 100 फोटो / 52 प्रिंट)", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: 100% गारंटीड उपहार!", "संपर्क: 7229874128"], en: ["₹100 Gold Card (3 Months)", "Usage: Valid for 1 Person Only", "Quota: 40 Print + 24 Photo (or 100 Photo / 52 Print)", "Lamination: 1 Free", "E-Mitra: 50% Discount (Only token charge payable)", "Delivery: 1 Time (Min Rate)", "Prize: 100% Guaranteed Gift!", "Contact: 7229874128"] },  
-        Silver: { hi: ["₹50 Silver Card (1 महीना)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 15 प्रिंट + 12 फोटो (या 40 फोटो / 21 प्रिंट)", "ई-मित्र: सीमित सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: लकी ड्रा का शानदार अवसर!", "संपर्क: 7229874128"], en: ["₹50 Silver Card (1 Month)", "Usage: Valid for 1 Person Only", "Quota: 15 Print + 12 Photo (or 40 Photo / 21 Print)", "E-Mitra: Limited Service (Only token charge payable)", "Delivery: 1 Time (Min Rate)", "Prize: Great Chance for Lucky Draw!", "Contact: 7229874128"] }  
-    };
+                        const qId = new URLSearchParams(window.location.search).get('id');  
+                        const match = rows.slice(1).find(r => r[1] && r[1].toLowerCase() === (qId || "").toLowerCase());  
+                        if (match) { 
+                            setMember(match); fetch(MAPPING_CSV).then(r => r.text()).then(mTxt => { Papa.parse(mTxt, { header: true, complete: (mRes) => { mapPrize(match, mRes.data); setAppState("view"); } }); }); 
+                        } else {
+                            if(qId) alert("ID Not Found! Please check the ID.");
+                        }
+                    }});  
+                });  
+            }, [mapPrize]);
+
+            const clean = (val) => (val && val !== "#REF!" && val.trim() !== "") ? val : t.emptyData;
+
+            const handleCardSelect = (card) => {
+                if(card.sold) return;
+                setSelectedCardId(card);
+            };
+
+            const generateAutoID = (card) => {
+                if(!card) return "";
+                let prefix = card.type === 'VIP' ? 'DPSG-VIP' : (card.type === 'Gold' ? 'DPSG-GLD' : 'DPSG-SIL');
+                return `${prefix}-${card.id}`;
+            };
         const mask = (v) => { if (!v || v === "#REF!" || v.trim() === "") return "****-XXXX"; return v.length > 4 ? v.slice(0, 2) + "******" + v.slice(-2) : v; };
         const toDirectLink = (url) => { if (!url) return ""; let id = ""; if (url.includes("/d/")) id = url.split("/d/")[1].split("/")[0]; if (url.includes("id=")) id = url.split("id=")[1].split("&")[0]; return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000" : url; };
 
@@ -607,3 +582,205 @@
     </script>
 </body>  
 </html>
+    const vocab = {  
+        hi: {  
+            brand: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप", service: "डिजिटल सेवा निम्बाहेड़ा", receipt: "प्रोफेशनल डिजिटल रसीद", idLabelFull: "MEMBERSHIP ID NUMBER",  
+            points: "कुल सर्विस पॉइंट्स", used: "उपयोग पॉइंट्स", balance: "शेष पॉइंट्स", active: "सक्रियण तिथि", expiry: "समाप्ति तिथि", draw: "लकी ड्रा तिथि",  
+            tTitle: "नियम व शर्तें", 
+            t1: "01. यह डिजिटल सदस्यता कार्ड व्यक्तिगत है और अहस्तांतरणीय है।", t2: "02. सेवाओं का लाभ केवल कार्ड पर अंकित समाप्ति तिथि तक ही मान्य है।", t3: "03. लिया गया शुल्क पंजीकरण शुल्क है, जो वापस नहीं होगा।", t4: "04. सर्वर त्रुटि में फिजिकल स्क्रैच कार्ड का परिणाम अंतिम होगा।", t5: "05. सर्वर खराबी पर प्रबंधन की जिम्मेदारी नहीं होगी।", t6: "06. सरकारी टोकन शुल्क ग्राहक द्वारा अलग से देय होगा।", t7: "07. फ्री डिलीवरी सीमा के बाद न्यूनतम शुल्क लिया जाएगा।", t8: "08. यह समाज सेवा हेतु है, कृपया कार्य पूर्ण होने तक धैर्य रखें।", t9: "09. कार्य में लगने वाले समय हेतु अभद्र व्यवहार स्वीकार्य नहीं होगा।", t10: "10. मैनेजमेंट के पास नियमों में बदलाव का पूर्ण अधिकार है।",
+            warning: "आधिकारिक घोषणा होने तक कृपया कार्ड को स्क्रैच न करें", pending: "परिणाम जल्द घोषित होगा",
+            slogan: "समस्या आपकी, समाधान हमारा - उचित मूल्य, बेहतरीन सेवा !",
+            emptyData: "जानकारी अपडेट की जा रही है...", searchBtn: "DASHBOARD खोलें", searchTitle: "ID सर्च करें",
+            cat: "कैटेगरी (Category)", cName: "ग्राहक का नाम", vill: "गाँव/शहर", sMob: "सुरक्षित मोबाइल", sAad: "सुरक्षित आधार",
+            ben: "सदस्यता कार्ड सुविधायें", official: "आधिकारिक घोषणा", printBtn: "आधिकारिक रसीद प्रिंट करें",
+            icon1: "ई-मित्र", icon2: "डेटा रिकवरी", icon3: "मोबाइल सर्विसेज", icon4: "सरकारी योजना",
+            gm: "सुप्रभात", ga: "नमस्कार", ge: "शुभ संध्या",
+            welcomeTitle: "डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप (DPSG) निम्बाहेड़ा में आपका हार्दिक अभिनंदन है।",
+            welcomeBody: "हमें गर्व है कि आप हमारे इस सुरक्षित और आधुनिक डिजिटल परिवार का हिस्सा हैं। आपकी हर समस्या का समाधान अब हमारे विशेषज्ञों की देखरेख में सुरक्षित है।",
+            proceedBtn: "आगे बढ़ें",
+            airtelTitle: "एयरटेल पेमेंट बैंक", airtelSub: "नया खाता / KYC (24 Hrs)", payTitle: "डायरेक्ट पेमेंट", paySub: "UPI द्वारा भुगतान करें",
+            trackTitle: "लाइव स्टेटस चेक करें", serialHint: "सीरियल नंबर (अंतिम 4 अंक)", checkBtn: "चेक करें", statusOk: "OK ✅ (Confirmed)", statusProcess: "प्रक्रिया में है (Processing...)",
+            prizes: {
+                WINNER: (rank) => `"मंजिल उन्हीं को मिलती है जिनके सपनों में जान होती है,\nआज आपकी मेहनत और किस्मत दोनों मेहरबान होती है!"\n\nहार्दिक बधाई! आप डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप (DPSG) के गौरवशाली विजेता बने हैं और आपने ${rank} प्राप्त की है। यह इनाम संस्था की ओर से आपके विश्वास का सम्मान है। हमें गर्व है कि आप हमारे डिजिटल परिवार का हिस्सा हैं। उज्जवल भविष्य की कामनाओं के साथ, धन्यवाद!`,
+                CASH: () => `"इनाम छोटा हो या बड़ा, अपनों का साथ सबसे प्यारा है,\nजीत की ये शुरुआत है, अभी तो सारा आसमान तुम्हारा है!"\n\nमुस्कुराइए! DPSG संस्था की ओर से आपको यह विशेष कैशबैक भेंट किया जा रहा है। यह आपके और हमारे अटूट रिश्ते की एक छोटी सी पहचान है। भविष्य में भी हम आपकी समस्याओं के बेहतरीन समाधान के लिए तत्पर रहेंगे। हमारे साथ जुड़ने के लिए हृदय से धन्यवाद!`,
+                GIFT: () => `"खूबसूरत सा ये तोहफा बस एक छोटा सा बहाना है,\nहमे तो आपके साथ मिलकर खुशियों का जशन मनाना है!"\n\nबधाई हो! DPSG परिवार की ओर से यह उपहार आपके डिजिटल सफर को और भी खास बनाने के लिए है। आपकी संतुष्टि ही हमारी असली सफलता है। हम आपके सुखद भविष्य की कामना करते हैं। हमारे साथ बने रहने के लिए बहुत-बहुत धन्यवाद!`,
+                LOSS: () => `"गिरते हैं शहसवार ही मैदान-ए-जंग में,\nवो क्या गिरेंगे जो घुटनों के बल चलते हैं!"\n\nनिराश न हों, यह केवल एक शुरुआत है। DPSG संस्था आपके निरंतर सहयोग की सराहना करती है। अगली बार आपकी किस्मत ज़रूर चमकेगी। हमारे साथ बने रहने और हम पर भरोसा जताने के लिए आपका धन्यवाद!`
+            }
+        },
+        en: {
+            brand: "Digital Problem Solution Group", service: "Digital Seva Nimbahera", receipt: "Professional Digital Receipt", idLabelFull: "MEMBERSHIP ID NUMBER",  
+            points: "Total Service Points", used: "Used Points", balance: "Balance Points", active: "Activation Date", expiry: "Expiry Date", draw: "Lucky Draw Date",  
+            tTitle: "Terms & Conditions", 
+            t1: "01. This digital membership card is personal and non-transferable.", t2: "02. Services are valid only until the expiry date on the card.", t3: "03. The registration fee is non-refundable.", t4: "04. In case of server error, physical scratch card result is final.", t5: "05. Management is not responsible for server malfunctions.", t6: "06. Government token fees will be payable separately.", t7: "07. Minimum fee applies after free delivery limit.", t8: "08. This is for social service, please be patient.", t9: "09. Misbehavior regarding processing time is unacceptable.", t10: "10. Management reserves the right to change rules.",
+            warning: "Please do not scratch the card until official announcement", pending: "Result will be announced soon",
+            slogan: "Your Problem, Our Solution - Fair Price, Best Service!",
+            emptyData: "Information is being updated...", searchBtn: "OPEN DASHBOARD", searchTitle: "Search ID",
+            cat: "Category", cName: "Customer Name", vill: "Village/City", sMob: "Secure Mobile", sAad: "Secure Aadhar",
+            ben: "Membership Card Benefits", official: "Official Announcement", printBtn: "Print Official Receipt",
+            icon1: "E-Mitra", icon2: "Data Recovery", icon3: "Mobile Services", icon4: "Govt Scheme",
+            gm: "Good Morning", ga: "Good Afternoon", ge: "Good Evening",
+            welcomeTitle: "Hearty Welcome to Digital Problem Solution Group (DPSG) Nimbahera.",
+            welcomeBody: "We are proud that you are a part of our secure and modern digital family. The solution to every problem of yours is now safe under the supervision of our experts.",
+            proceedBtn: "Proceed",
+            airtelTitle: "Airtel Payment Bank", airtelSub: "New Account / KYC (24 Hrs)", payTitle: "Direct Payment", paySub: "Pay Securely via UPI",
+            trackTitle: "Live Status Check", serialHint: "Serial No. (Last 4 Digits)", checkBtn: "Check", statusOk: "OK ✅ (Confirmed)", statusProcess: "Processing...",
+            prizes: {
+                WINNER: (rank) => `"Success comes to those who dare to dream,\nToday your hard work and luck both beam!"\n\nHearty Congratulations! You are the proud winner of Digital Problem Solution Group (DPSG) and have secured ${rank}. This prize is a token of appreciation for your trust in our organization. We are proud to have you in our digital family. Wishing you a bright future, Thank you!`,
+                CASH: () => `"Whether the prize is big or small, the support of loved ones is best of all,\nThis is just the beginning of your victory, the whole sky is yours to see!"\n\nSmile! This special cashback is presented to you by DPSG. It is a small symbol of our unbreakable bond. We will always be ready to provide the best solutions for your problems in the future. Thank you from the bottom of our hearts for joining us!`,
+                GIFT: () => `"This beautiful gift is just a small excuse,\nto celebrate happiness and joy with you!"\n\nCongratulations! This gift from the DPSG family is to make your digital journey even more special. Your satisfaction is our real success. We wish you a happy future. Thank you very much for staying with us!`,
+                LOSS: () => `"Only the brave fall in the battlefield,\nnot those who crawl on their knees!"\n\nDo not despair, this is just a beginning. DPSG appreciates your continuous support. Your luck will definitely shine next time. Thank you for staying with us and trusting us!`
+            }
+        }
+    };
+
+    const cardSpecs = {  
+        VIP: { hi: ["₹500 VIP Card (6 महीने)", "उपयोग: पूरे परिवार के लिए मान्य", "कोटा: 150 प्रिंट + 80 फोटो (या 380 फोटो / 190 प्रिंट)", "लैमिनेशन: 2 फ्री", "ई-मित्र: 100% फ्री सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 2 बार फ्री (न्यूनतम रेट)", "इनाम: 100 Cash Back + बड़ा धमाका!", "संपर्क: 7229874128"], en: ["₹500 VIP Card (6 Months)", "Usage: Valid for Entire Family", "Quota: 150 Print + 80 Photo (or 380 Photo / 190 Print)", "Lamination: 2 Free", "E-Mitra: 100% Free Service (Only token charge payable)", "Delivery: 2 Times Free (Min Rate)", "Prize: 100 Cash Back + Big Surprise!", "Contact: 7229874128"] },  
+        Gold: { hi: ["₹100 Gold Card (3 महीने)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 40 प्रिंट + 24 फोटो (या 100 फोटो / 52 प्रिंट)", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: 100% गारंटीड उपहार!", "संपर्क: 7229874128"], en: ["₹100 Gold Card (3 Months)", "Usage: Valid for 1 Person Only", "Quota: 40 Print + 24 Photo (or 100 Photo / 52 Print)", "Lamination: 1 Free", "E-Mitra: 50% Discount (Only token charge payable)", "Delivery: 1 Time (Min Rate)", "Prize: 100% Guaranteed Gift!", "Contact: 7229874128"] },  
+        Silver: { hi: ["₹50 Silver Card (1 महीना)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 15 प्रिंट + 12 फोटो (या 40 फोटो / 21 प्रिंट)", "ई-मित्र: सीमित सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: लकी ड्रा का शानदार अवसर!", "संपर्क: 7229874128"], en: ["₹50 Silver Card (1 Month)", "Usage: Valid for 1 Person Only", "Quota: 15 Print + 12 Photo (or 40 Photo / 21 Print)", "E-Mitra: Limited Service (Only token charge payable)", "Delivery: 1 Time (Min Rate)", "Prize: Great Chance for Lucky Draw!", "Contact: 7229874128"] }  
+    };
+
+    const mask = (v) => { if (!v || v === "#REF!" || v.trim() === "") return "****-XXXX"; return v.length > 4 ? v.slice(0, 2) + "******" + v.slice(-2) : v; };
+    const toDirectLink = (url) => { if (!url) return ""; let id = ""; if (url.includes("/d/")) id = url.split("/d/")[1].split("/")[0]; if (url.includes("id=")) id = url.split("id=")[1].split("&")[0]; return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000" : url; };
+
+    const ScratchCard = ({ onComplete, children }) => {  
+        const canvasRef = useRef(null);
+        const [isRevealed, setIsRevealed] = useState(false);  
+        useEffect(() => {  
+            const canvas = canvasRef.current; if(!canvas) return; const ctx = canvas.getContext('2d');  
+            canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight;  
+            const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);  
+            grad.addColorStop(0, '#B8860B'); grad.addColorStop(0.5, '#FFDF00'); grad.addColorStop(1, '#DAA520');  
+          
+            ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);  
+            ctx.font = "900 32px Inter"; ctx.fillStyle = "rgba(139, 69, 19, 0.5)"; ctx.textAlign = "center";  
+            ctx.fillText("SCRATCH HERE", canvas.width / 2, canvas.height / 2);  
+            ctx.font = "700 18px Inter"; ctx.fillText("DPSG NIMBAHERA", canvas.width / 2, (canvas.height / 2) + 35);
+            const scratch = (e) => {  
+                if (isRevealed) return; const rect = canvas.getBoundingClientRect();  
+                const x = (e.pageX || (e.touches && e.touches[0].pageX)) - rect.left;
+                const y = (e.pageY || (e.touches && e.touches[0].pageY)) - rect.top;  
+                ctx.globalCompositeOperation = 'destination-out'; ctx.beginPath();
+                ctx.arc(x, y, 75, 0, Math.PI * 2); ctx.fill();  
+                const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;  
+                let count = 0;
+                for (let i = 0; i < pixels.length; i += 40) if (pixels[i + 3] === 0) count++;
+                if (count > (pixels.length / 40) * 0.45) { setIsRevealed(true); onComplete(); }  
+            };  
+            canvas.addEventListener('mousemove', scratch);
+            canvas.addEventListener('touchmove', scratch, {passive: true});  
+        }, [isRevealed]);  
+        return ( <div className="scratch-container"> {!isRevealed && <canvas ref={canvasRef} className="scratch-canvas" />} <div className="scratch-content">{children}</div> </div> );
+    };  
+
+    const App = () => {  
+        const [theme, setTheme] = useState('light');
+        const [lang, setLang] = useState('hi'); 
+        const [appState, setAppState] = useState("landing"); 
+        
+        const [member, setMember] = useState(null);
+        const [headers, setHeaders] = useState([]);
+        const [isAdmin, setIsAdmin] = useState(false); const [showPin, setShowPin] = useState(false);
+        const [prizeState, setPrizeState] = useState({ isLocked: true, type: null, rank: "", img: "", highlight: "", colorClass: "" });
+        const [showForm, setShowForm] = useState(false); 
+        const [formType, setFormType] = useState("");
+        const [showWelcome, setShowWelcome] = useState(true);
+        
+        // 1000 CARD STATES
+        const [cardsData, setCardsData] = useState([]);
+        const [selectedFilter, setSelectedFilter] = useState('ALL');
+        const [selectedCardId, setSelectedCardId] = useState(null);
+        const [showBookingForm, setShowBookingForm] = useState(false);
+        
+        const [statusCheckResult, setStatusCheckResult] = useState(null);
+        const [paymentMode, setPaymentMode] = useState("Cash");
+        const cardsAvailable = 985;
+        const t = vocab[lang];
+
+        const getGreeting = () => { const hour = new Date().getHours(); if (hour < 12) return t.gm; if (hour < 17) return t.ga; return t.ge; };
+        const openForm = (type) => { setFormType(type); setShowForm(true); };
+
+        const checkStatusFromCSV = async () => {
+            const sn = document.getElementById('liveStatusInput').value;
+            if(!sn) return;
+            setStatusCheckResult('PROCESSING');
+            if(!TRACKING_CSV) { setTimeout(() => { setStatusCheckResult('PENDING'); }, 1500); return; }
+            try {
+                const res = await fetch(TRACKING_CSV); const text = await res.text();
+                const rows = Papa.parse(text).data; const match = rows.find(r => r[0] && r[0].toString() === sn);
+                if(match && match[5] && match[5].toUpperCase() === "YES") setStatusCheckResult('OK');
+                else setStatusCheckResult('PENDING');
+            } catch(e) { setStatusCheckResult('PENDING'); }
+        };
+
+        // NEW SMART WHATSAPP SUBMIT (Airtel Pan logic + App Script Fetch)
+        const sendToWhatsApp = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const dataObj = Object.fromEntries(formData.entries());
+
+            // 1. Silent submission to New Excel Sheet (No cross-origin error popup)
+            try {
+                fetch(APP_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataObj)
+                });
+            } catch(err) { console.log(err); }
+            
+            // 2. Direct WhatsApp Message Open
+            let waMsg = `🌟 DPSG नया सेवा अनुरोध 🌟\n${t.slogan}\n----------------------------------\n`;
+            waMsg += `👤 नाम: ${dataObj.Name || 'नया ग्राहक'}\n📱 मोबाइल: ${dataObj.Mobile}\n🆔 आधार: ${dataObj.Aadhar || 'N/A'}\n`;
+            if (paymentMode === "Airtel Payment Bank" && dataObj.Pan) waMsg += `💳 पैन कार्ड: ${dataObj.Pan}\n`;
+            waMsg += `🛠️ सेवा/समस्या: ${dataObj.Problem || formType}\n💳 माध्यम: ${paymentMode}\n✅ स्टेटस: पेंडिंग\n----------------------------------\nकृपया मेरा कार्य पूर्ण करें।`;
+            
+            const waLink = `https://wa.me/917229874128?text=${encodeURIComponent(waMsg)}`;
+            window.open(waLink, '_blank');
+            alert("डेटा वेरीफाई हो गया है! अब 'OK' दबाते ही व्हाट्सएप खुलेगा।");
+            setShowForm(false);
+        };
+
+        const mapPrize = useCallback((row, maps) => {  
+            const mID = (row[1] || "").toString().toLowerCase().trim();  
+            const dDateStr = (row[36] || "").toString().trim(); 
+            const lock = (row[37] || "").toString().toUpperCase().trim(); 
+            let drawDate = null;
+            if (dDateStr) { let parts = dDateStr.split(/[-/]/); if (parts.length === 3) drawDate = new Date(parts[2], parts[1]-1, parts[0]); else drawDate = new Date(dDateStr); }
+            const today = new Date(); today.setHours(0,0,0,0); if(drawDate) drawDate.setHours(0,0,0,0);
+            if (!lock || !dDateStr || drawDate > today) { setPrizeState({ isLocked: true, type: "PENDING" }); return; }
+            const match = maps.find(m => m.Membership_ID && m.Membership_ID.toLowerCase().trim() === mID);  
+ 
+            if (lock === "DPSG_WINNER" && match) { setPrizeState({ isLocked: false, type: "WINNER", rank: match.Match_Name, img: toDirectLink(match.Image_Link), highlight: match.Inam_Name || "DPSG WINNER", colorClass: "winner-glow" }); } 
+            else if (lock === "DPSG_CASH") { setPrizeState({ isLocked: false, type: "CASH", img: "https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000", highlight: "₹100 Cash Back", colorClass: "cash-glow" }); } 
+            else if (lock === "DPSG_GIFT") { setPrizeState({ isLocked: false, type: "GIFT", img: "https://drive.google.com/thumbnail?id=1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z&sz=w1000", highlight: "5 rs Pen", colorClass: "gift-glow" }); } 
+            else { setPrizeState({ isLocked: false, type: "LOSS", img: "https://drive.google.com/thumbnail?id=1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh&sz=w1000", highlight: "Better Luck Next Time", colorClass: "bg-slate-100 border-4 border-slate-300 dark:bg-slate-800 dark:border-slate-600 shadow-lg" }); }
+        }, []);
+
+        useEffect(() => {  
+            fetch(MAIN_CSV + "&t=" + Date.now()).then(r => r.text()).then(txt => {  
+                Papa.parse(txt, { complete: (res) => {  
+                    const rows = res.data; setHeaders(rows[0] || []);  
+                    
+                    let parsedCards = [];
+                    for(let i=1; i<=1000; i++) {
+                        let rowData = rows[i] || [];
+                        let sNo = String(i).padStart(4, '0');
+                        let type = i <= 100 ? 'VIP' : (i <= 600 ? 'Gold' : 'Silver');
+                        let isSold = (rowData[8] && rowData[8].trim() !== "") || (rowData[1] && rowData[1].trim() !== "");
+                        parsedCards.push({ id: sNo, type: type, sold: isSold });
+                    }
+                    setCardsData(parsedCards);
+
+                    const qId = new URLSearchParams(window.location.search).get('id');  
+                    const match = rows.slice(1).find(r => r[1] && r[1].toLowerCase() === (qId || "").toLowerCase());  
+                    if (match) { 
+                        setMember(match); fetch(MAPPING_CSV).then(r => r.text()).then(mTxt => { Papa.parse(mTxt, { header: true, complete: (mRes) => { mapPrize(match, mRes.data); setAppState("view"); } }); }); 
+                    }
+                }});  
+            });  
+        }, [mapPrize]);
+
+        const clean = (val) => (val && val !== "#REF!" && val.trim() !== "") ? val : t.emptyData;
+        const handleCardSelect = (card) => { if(card.sold) return; setSelectedCardId(card); };
+        const generateAutoID = (card) => { if(!card) return ""; let prefix = card.type === 'VIP' ? 'DPSG-VIP' : (card.type === 'Gold' ? 'DPSG-GLD' : 'DPSG-SIL'); return `${prefix}-${card.id}`; };
+
