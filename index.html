@@ -37,13 +37,13 @@
             background: rgba(30, 41, 59, 0.85);
             border-color: rgba(255, 255, 255, 0.05);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-        }
+        } 
 
         .glass-lock {
             background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(16px);
             border: 2px solid rgba(255, 255, 255, 0.8); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
         }
-        .dark .glass-lock { background: rgba(30, 41, 59, 0.7); border: 2px solid rgba(255, 255, 255, 0.1); }
+        .dark .glass-lock { background: rgba(30, 41, 59, 0.7); border: 2px solid rgba(255, 255, 255, 0.1); } 
 
         /* Unique Fonts */
         .date-font { font-family: 'Play', sans-serif; }
@@ -53,7 +53,7 @@
             background: linear-gradient(to right, #1e3a8a, #4338ca, #1e3a8a);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0px 4px 10px rgba(67, 56, 202, 0.2);
         }
-        .dark .text-gradient-prize { background: linear-gradient(to right, #60a5fa, #c084fc, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .dark .text-gradient-prize { background: linear-gradient(to right, #60a5fa, #c084fc, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; } 
 
         @media print { .no-print { display: none !important; } .glass-card { border: none !important; box-shadow: none !important; width: 100% !important; margin: 0 !important; background: white !important; } }  
         
@@ -72,7 +72,7 @@
         .scratch-container { position: relative; width: 100%; max-width: 550px; margin: 0 auto; min-height: 480px; }  
         .scratch-canvas { position: absolute; top: 0; left: 0; z-index: 30; border-radius: 2rem; cursor: crosshair; touch-action: none; width: 100%; height: 100%; box-shadow: inset 0 0 25px rgba(0,0,0,0.3); }  
         .scratch-content { background: #fff; border-radius: 2rem; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; border: 4px solid #1e293b; box-shadow: 0 15px 30px rgba(0,0,0,0.15); }  
-        .dark .scratch-content { background: #0f172a; border-color: #475569; }
+        .dark .scratch-content { background: #0f172a; border-color: #475569; } 
 
         .winner-glow { border: 6px solid #fbbf24; box-shadow: 0 0 50px rgba(251, 191, 36, 0.7), inset 0 0 30px rgba(251, 191, 36, 0.3); animation: pulse-gold 2s infinite; background: linear-gradient(135deg, #fffbeb, #fef3c7, #fde68a); }  
         .cash-glow { border: 6px solid #22c55e; box-shadow: 0 0 40px rgba(34, 197, 94, 0.5); background: linear-gradient(135deg, #f0fdf4, #dcfce7, #bbf7d0); }
@@ -142,17 +142,17 @@
                 LOSS: () => `"Only the brave fall in the battlefield,\nnot those who crawl on their knees!"\n\nDo not despair, this is just a beginning. DPSG appreciates your continuous support. Your luck will definitely shine next time. Thank you for staying with us and trusting us!`
             }
         }
-    };
+    }; 
 
     const cardSpecs = {  
         VIP: { hi: ["₹500 VIP Card (6 महीने)", "उपयोग: पूरे परिवार के लिए मान्य", "कोटा: 150 प्रिंट + 80 फोटो (या 380 फोटो / 190 प्रिंट)", "लैमिनेशन: 2 फ्री", "ई-मित्र: 100% फ्री सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 2 बार फ्री (न्यूनतम रेट)", "इनाम: 100 Cash Back + बड़ा धमाका!", "संपर्क: 7229874128"], en: ["₹500 VIP Card (6 Months)", "Usage: Valid for Entire Family", "Quota: 150 Print + 80 Photo (or 380 Photo / 190 Print)", "Lamination: 2 Free", "E-Mitra: 100% Free Service (Only token charge payable)", "Delivery: 2 Times Free (Min Rate)", "Prize: 100 Cash Back + Big Surprise!", "Contact: 7229874128"] },  
         Gold: { hi: ["₹100 Gold Card (3 महीने)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 40 प्रिंट + 24 फोटो (या 100 फोटो / 52 प्रिंट)", "लैमिनेशन: 1 फ्री", "ई-मित्र: 50% छूट (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: 100% गारंटीड उपहार!", "संपर्क: 7229874128"], en: ["₹100 Gold Card (3 Months)", "Usage: Valid for 1 Person Only", "Quota: 40 Print + 24 Photo (or 100 Photo / 52 Print)", "Lamination: 1 Free", "E-Mitra: 50% Discount (Only token charge payable)", "Delivery: 1 Time (Min Rate)", "Prize: 100% Guaranteed Gift!", "Contact: 7229874128"] },  
         Silver: { hi: ["₹50 Silver Card (1 महीना)", "उपयोग: केवल 1 व्यक्ति हेतु", "कोटा: 15 प्रिंट + 12 फोटो (या 40 फोटो / 21 प्रिंट)", "ई-मित्र: सीमित सेवा (केवल टोकन चार्ज देय)", "डिलीवरी: 1 बार (न्यूनतम रेट पर)", "इनाम: लकी ड्रा का शानदार अवसर!", "संपर्क: 7229874128"], en: ["₹50 Silver Card (1 Month)", "Usage: Valid for 1 Person Only", "Quota: 15 Print + 12 Photo (or 40 Photo / 21 Print)", "E-Mitra: Limited Service (Only token charge payable)", "Delivery: 1 Time (Min Rate)", "Prize: Great Chance for Lucky Draw!", "Contact: 7229874128"] }  
-    };
+    }; 
 
     const toDirectLink = (url) => { if (!url) return ""; let id = ""; if (url.includes("/d/")) id = url.split("/d/")[1].split("/")[0]; if (url.includes("id=")) id = url.split("id=")[1].split("&")[0]; return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000" : url; };  
     
-    const mask = (v) => { if (!v || v === "#REF!" || v.trim() === "") return "****-XXXX"; return v.length > 4 ? v.slice(0, 2) + "******" + v.slice(-2) : v; };
+    const mask = (v) => { if (!v || v === "#REF!" || v.trim() === "") return "****-XXXX"; return v.length > 4 ? v.slice(0, 2) + "******" + v.slice(-2) : v; }; 
 
     const ScratchCard = ({ onComplete, children }) => {  
         const canvasRef = useRef(null); const [isRevealed, setIsRevealed] = useState(false);  
@@ -187,7 +187,7 @@
         const [isAdmin, setIsAdmin] = useState(false); const [showPin, setShowPin] = useState(false);  
         const [prizeState, setPrizeState] = useState({ isLocked: true, type: null, rank: "", img: "", highlight: "", colorClass: "" });  
         const [showForm, setShowForm] = useState(false); const [formType, setFormType] = useState("");
-        const [showWelcome, setShowWelcome] = useState(true); // Welcome Popup State
+        const [showWelcome, setShowWelcome] = useState(true); // Welcome Popup State 
 
         const t = vocab[lang];
         
@@ -197,9 +197,9 @@
             if (hour < 12) return t.gm;
             if (hour < 17) return t.ga;
             return t.ge;
-        };
+        }; 
 
-        const openForm = (type) => { setFormType(type); setShowForm(true); };
+        const openForm = (type) => { setFormType(type); setShowForm(true); }; 
 
         const mapPrize = useCallback((row, maps) => {  
             const mID = (row[1] || "").toString().toLowerCase().trim();  
@@ -214,7 +214,7 @@
             else if (lock === "DPSG_CASH") { setPrizeState({ isLocked: false, type: "CASH", img: "https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000", highlight: "₹100 Cash Back", colorClass: "cash-glow" }); } 
             else if (lock === "DPSG_GIFT") { setPrizeState({ isLocked: false, type: "GIFT", img: "https://drive.google.com/thumbnail?id=1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z&sz=w1000", highlight: "5 rs Pen", colorClass: "gift-glow" }); } 
             else { setPrizeState({ isLocked: false, type: "LOSS", img: "https://drive.google.com/thumbnail?id=1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh&sz=w1000", highlight: "Better Luck Next Time", colorClass: "bg-slate-100 border-4 border-slate-300 dark:bg-slate-800 dark:border-slate-600 shadow-lg" }); }
-        }, []);
+        }, []); 
 
         useEffect(() => {  
             fetch(MAIN_CSV + "&t=" + Date.now()).then(r => r.text()).then(txt => {  
@@ -228,7 +228,7 @@
             });  
         }, [mapPrize]);  
 
-        const clean = (val) => (val && val !== "#REF!" && val.trim() !== "") ? val : t.emptyData;
+        const clean = (val) => (val && val !== "#REF!" && val.trim() !== "") ? val : t.emptyData; 
 
         if (status === "loading") return <div className="h-screen flex items-center justify-center font-black text-3xl text-blue-600 animate-pulse tracking-widest bg-slate-50 dark:bg-slate-900">DPSG LOADING...</div>;  
 
@@ -246,7 +246,7 @@
                                 <button onClick={()=>setLang(lang==='hi'?'en':'hi')} className="px-4 py-1.5 bg-blue-50 dark:bg-slate-700 rounded-full text-xs font-black text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-slate-600 shadow-sm">
                                     <i className="fa-solid fa-language"></i> {lang==='hi' ? 'EN' : 'HI'}
                                 </button>
-                            </div>
+                            </div> 
 
                             <i className="fa-solid fa-hands-holding-circle text-7xl text-blue-600 dark:text-blue-400 mb-6 drop-shadow-md mt-4"></i>
                             <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-2 fancy-text">{getGreeting()}!</h2>
@@ -258,14 +258,14 @@
                             
                             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-800 p-4 rounded-2xl border border-blue-100 dark:border-slate-600 mb-8 shadow-inner">
                                 <p className="font-black italic text-blue-700 dark:text-blue-400 text-sm"><i className="fa-solid fa-quote-left mr-2 opacity-50"></i> {t.slogan} <i className="fa-solid fa-quote-right ml-2 opacity-50"></i></p>
-                            </div>
+                            </div> 
 
                             <button onClick={() => setShowWelcome(false)} className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-black py-5 rounded-2xl shadow-xl text-xl uppercase tracking-widest transition-all hover:scale-[1.02]">
                                 {t.proceedBtn} <i className="fa-solid fa-arrow-right ml-2"></i>
                             </button>
                         </div>
                     </div>
-                )}
+                )} 
 
                 {/* BIG BLINKING MIKE & MARQUEE (BILINGUAL) */}
                 <div className="no-print marquee flex justify-center items-center w-full">
@@ -285,7 +285,7 @@
                         <button onClick={()=>setTheme(theme==='light'?'dark':'light')} className="w-12 h-12 flex items-center justify-center bg-white/90 dark:bg-slate-800/90 backdrop-blur-md rounded-full shadow-lg text-xl border-2 border-white dark:border-slate-600 hover:scale-105 transition-all">
                             {theme==='light'?'🌙':'☀️'}
                         </button>
-                    </div>
+                    </div> 
 
                     {status === "search" ? (  
                         <div className="glass-card p-12 text-center">  
@@ -320,7 +320,7 @@
                                     <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-green-50 text-green-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-building-columns"></i></div>
                                     <span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon4}</span>
                                 </button>
-                            </div>
+                            </div> 
 
                             <div className="no-print glass-card p-8 relative overflow-hidden">
                                 <p className="text-red-500 font-black text-[13px] mb-6 text-center blink-text uppercase tracking-widest flex justify-center items-center"><i className="fa-solid fa-triangle-exclamation mr-2 text-xl"></i> {t.warning}</p>
@@ -340,4 +340,122 @@
                                                 <div className="bg-gradient-to-r from-blue-800 via-indigo-600 to-blue-800 text-white px-10 py-3 rounded-full font-black text-xl mb-8 uppercase shadow-[0_10px_20px_rgba(79,70,229,0.4)] tracking-widest border-2 border-indigo-300 fancy-text">{prizeState.highlight}</div>  
                                                 <img src={prizeState.img} className="w-full max-h-[400px] object-contain mb-8 drop-shadow-2xl rounded-2xl" alt="Prize" />  
                                                 <p className="text-[16px] font-black leading-relaxed whitespace-pre-line px-2 text-gradient-prize fancy-text">{t.prizes[prizeState.type] ? t.prizes[prizeState.type](prizeState.rank) : ""}</p>
-                
+                                            </div>
+                                        </ScratchCard>  
+                                    )}  
+                                </div>
+                            </div>
+
+                            <div className="no-print grid grid-cols-2 gap-4 my-2">
+                                <button onClick={() => openForm('WhatsApp (HELP)')} className="bg-gradient-to-b from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-black py-5 rounded-2xl shadow-[0_10px_20px_rgba(34,197,94,0.3)] flex items-center justify-center text-md transition-all border border-green-300 uppercase tracking-widest">
+                                    <i className="fa-brands fa-whatsapp text-3xl mr-3 drop-shadow-md"></i> HELP
+                                </button>
+                                <button onClick={() => openForm('LOCATION')} className="bg-gradient-to-b from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white font-black py-5 rounded-2xl shadow-[0_10px_20px_rgba(239,68,68,0.3)] flex items-center justify-center text-md transition-all border border-red-400 uppercase tracking-widest">
+                                    <i className="fa-solid fa-location-dot text-2xl mr-3 drop-shadow-md"></i> LOCATION
+                                </button>
+                            </div>
+
+                            {/* MAIN RECEIPT WITH GLASSMORPHISM */}
+                            <div id="receipt" className="glass-card p-8 sm:p-12 text-left relative mt-8">  
+                                <div className="text-center border-b-4 border-slate-200 dark:border-slate-700 border-dashed pb-8 mb-10">
+                                    <h3 className="font-black text-3xl text-blue-900 dark:text-blue-400 italic uppercase tracking-tight drop-shadow-sm">{t.receipt}</h3>
+                                    <p className="text-[12px] font-black text-slate-500 uppercase tracking-[0.5em] mt-3 bg-white/50 dark:bg-slate-800/50 inline-block px-4 py-1 rounded-full border border-white/50">DPSG NIMBAHERA</p>
+                                </div>  
+                                
+                                <div className="grid grid-cols-2 gap-y-12 gap-x-4 text-sm border-b-2 border-slate-200 dark:border-slate-700 pb-12">  
+                                    
+                                    {/* HUGE BLUE CENTERED MEMBERSHIP ID */}
+                                    <div className="col-span-2 text-center bg-blue-50/70 dark:bg-blue-900/30 backdrop-blur-sm border-2 border-blue-400 dark:border-blue-600 rounded-[2rem] p-8 shadow-[0_0_25px_rgba(59,130,246,0.3)] transform transition hover:scale-[1.01]">
+                                        <p className="text-[15px] sm:text-[17px] font-black text-blue-800 dark:text-blue-300 tracking-[0.2em] uppercase mb-4 fancy-text flex justify-center items-center"><i className="fa-solid fa-fingerprint mr-3 text-2xl"></i> {t.idLabelFull}</p>
+                                        <p className="text-4xl sm:text-5xl font-black text-blue-600 dark:text-blue-400 drop-shadow-md tracking-wider fancy-text">{clean(member[1])}</p>
+                                    </div>
+
+                                    {/* LARGER, STYLISH LABELS EVERYWHERE */}
+                                    <div className="col-span-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm p-6 rounded-2xl border border-white/50 dark:border-slate-700">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text"><i className="fa-solid fa-user text-blue-500 mr-2"></i>{t.cName}</p><p className="font-black uppercase text-2xl text-indigo-900 dark:text-indigo-300 drop-shadow-sm">{clean(member[8])}</p></div>  
+                                            <div className="text-right"><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text"><i className="fa-solid fa-map-location-dot text-red-500 mr-2"></i>{t.vill}</p><p className="font-black uppercase text-2xl text-slate-800 dark:text-slate-200">{clean(member[5])}</p></div>  
+                                        </div>
+                                    </div>
+                                    
+                                    <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.cat}</p><p className="font-black text-blue-900 dark:text-blue-200 px-5 py-2 border-2 border-blue-200 dark:border-blue-800 rounded-xl bg-blue-50/80 dark:bg-blue-900/50 inline-block shadow-sm text-lg">{clean(member[3])}</p></div>  
+                                    <div className="text-right"><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.sMob}</p><p className="font-black tracking-[0.2em] text-xl text-slate-700 dark:text-slate-300 bg-white/50 dark:bg-slate-800/50 px-3 py-1 rounded-lg inline-block border border-white/50">{mask(member[9])}</p></div>
+                                    
+                                    <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.sAad}</p><p className="font-black tracking-[0.2em] text-xl text-slate-700 dark:text-slate-300 bg-white/50 dark:bg-slate-800/50 px-3 py-1 rounded-lg inline-block border border-white/50">{mask(member[11])}</p></div>
+                                    <div className="text-right"></div>
+                                    
+                                    <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.active}</p><p className="font-black text-2xl text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-2 rounded-xl border-2 border-emerald-300 dark:border-emerald-700 inline-block shadow-md date-font tracking-wider">{clean(member[15])}</p></div>  
+                                    <div className="text-right"><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text">{t.expiry}</p><p className="font-black text-2xl text-white bg-red-600 px-5 py-2 rounded-xl border-2 border-red-800 inline-block shadow-[0_5px_15px_rgba(220,38,38,0.4)] date-font tracking-wider animate-pulse">{clean(member[16])}</p></div>  
+                                </div>
+                                
+                                <div className="grid grid-cols-3 gap-5 my-12">
+                                    <div className="bg-gradient-to-b from-blue-700 to-blue-900 text-white p-6 rounded-3xl text-center shadow-[0_10px_20px_rgba(29,78,216,0.3)] border-t-4 border-blue-400"><p className="text-[11px] sm:text-[12px] font-bold opacity-80 uppercase tracking-widest mb-2 fancy-text">{t.points}</p><p className="text-4xl font-black drop-shadow-md">{clean(member[18])}</p></div>
+                                    <div className="bg-gradient-to-b from-slate-700 to-slate-900 text-white p-6 rounded-3xl text-center shadow-lg border-t-4 border-slate-500"><p className="text-[11px] sm:text-[12px] font-bold opacity-80 uppercase tracking-widest mb-2 fancy-text">{t.used}</p><p className="text-4xl font-black drop-shadow-md">{(parseInt(member[18])-parseInt(member[21]))||0}</p></div>
+                                    <div className="bg-gradient-to-b from-emerald-500 to-emerald-700 text-white p-6 rounded-3xl text-center shadow-[0_10px_20px_rgba(16,185,129,0.3)] border-t-4 border-emerald-300"><p className="text-[11px] sm:text-[12px] font-bold opacity-80 uppercase tracking-widest mb-2 fancy-text">{t.balance}</p><p className="text-4xl font-black drop-shadow-md">{clean(member[21])}</p></div>
+                                </div>
+                                
+                                <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-slate-800/80 dark:to-slate-700/80 backdrop-blur-md p-8 rounded-[2.5rem] border-2 border-blue-200 dark:border-slate-600 my-8 font-bold italic text-[13px] space-y-4 shadow-inner">
+                                    <p className="text-blue-900 dark:text-blue-300 font-black uppercase mb-6 flex items-center italic text-lg"><i className="fa-solid fa-crown mr-3 text-yellow-500 text-2xl drop-shadow-sm"></i> {t.ben}</p>
+                                    {(() => { const cat = (member[3] || "").toLowerCase(); let key = (cat.includes("vip") || cat.includes("500")) ? "VIP" : (cat.includes("gold") || cat.includes("100")) ? "Gold" : "Silver"; return cardSpecs[key][lang].map((ben, i) => ( <div key={i} className="flex items-start py-3 border-b-2 border-blue-200/50 dark:border-slate-600/50 last:border-0 text-slate-800 dark:text-slate-200"><i className="fa-solid fa-circle-check text-green-500 mr-4 mt-0.5 text-lg drop-shadow-sm"></i>{ben}</div> )); })()}
+                                </div>
+                                
+                                <div className="bg-gradient-to-br from-slate-900 via-black to-slate-900 text-white p-12 rounded-[3rem] text-center mb-10 shadow-2xl border-4 border-slate-700 relative overflow-hidden">
+                                    <i className="fa-solid fa-gift absolute -right-10 -bottom-10 text-9xl opacity-20 text-yellow-500"></i>
+                                    <p className="text-[16px] sm:text-[18px] text-yellow-300 uppercase mb-4 tracking-[0.4em] font-black drop-shadow-md"><i className="fa-solid fa-star mr-3 animate-pulse text-yellow-400"></i> {t.draw} <i className="fa-solid fa-star ml-3 animate-pulse text-yellow-400"></i></p>
+                                    <p className="text-5xl font-black text-yellow-400 italic uppercase tracking-widest drop-shadow-[0_0_20px_rgba(250,204,21,0.6)] date-font mt-2">{clean(member[36])}</p>
+                                </div>
+                                
+                                <div className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-10 rounded-[2.5rem] border-2 border-white/60 dark:border-slate-700 mb-10 text-[12px] font-bold italic space-y-4 text-slate-600 dark:text-slate-400 shadow-inner">
+                                    <h4 className="text-[15px] font-black uppercase mb-6 border-b-2 border-slate-200 dark:border-slate-600 pb-4 flex items-center text-slate-900 dark:text-slate-100"><i className="fa-solid fa-scale-balanced mr-3 text-blue-600 text-xl"></i> {t.tTitle}</h4>
+                                    <p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t1}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t2}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t3}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t4}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t5}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t6}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t7}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t8}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t9}</p><p className="flex"><span className="w-6 text-blue-600 text-lg">▸</span>{t.t10}</p>
+                                </div>
+                                
+                                <button onClick={()=>window.print()} className="no-print w-full bg-gradient-to-r from-blue-700 to-indigo-800 hover:from-blue-800 hover:to-indigo-900 text-white py-6 rounded-2xl font-black uppercase shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all text-xl tracking-widest border-b-4 border-indigo-950"><i className="fa-solid fa-print mr-3 text-2xl"></i> {t.printBtn}</button>
+                            </div>
+
+                            <div className="no-print pt-10 pb-20 flex flex-col items-center">  
+                                {!isAdmin && <button onClick={()=>setShowPin(!showPin)} className="p-8 glass-card !rounded-full opacity-50 hover:opacity-100 transition-all hover:scale-110 !border-[1px]"><i className="fa-solid fa-fingerprint text-6xl text-blue-600"></i></button>}  
+                                {showPin && !isAdmin && ( <div className="mt-8 glass-card p-10 w-full animate-in zoom-in shadow-2xl"><input type="password" id="adminPin" className="w-full bg-slate-50/80 dark:bg-slate-900/80 border-4 border-slate-200 dark:border-slate-600 rounded-2xl py-6 text-center mb-6 font-black outline-none text-3xl tracking-widest focus:border-blue-500 transition-all" placeholder="MASTER PIN" /><button onClick={()=>{document.getElementById('adminPin').value===MASTER_PIN?setIsAdmin(true):alert("Wrong Pin!");}} className="w-full bg-slate-900 dark:bg-black text-white py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-slate-800 transition-all text-xl"><i className="fa-solid fa-unlock mr-3"></i> Unlock Database</button></div> )}
+                                {isAdmin && ( <div className="w-full mt-8 glass-card p-10 text-left overflow-hidden border-t-8 border-t-blue-600"><div className="flex justify-between items-center mb-8 border-b-2 border-slate-200 dark:border-slate-700 pb-5"><h3 className="font-black text-lg text-blue-600 uppercase tracking-widest"><i className="fa-solid fa-database mr-3"></i> Master Database Panel</h3><button onClick={()=>setIsAdmin(false)} className="text-red-600 font-black text-[13px] uppercase border-2 border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20 px-6 py-2 rounded-full transition-all">Logout</button></div><div className="grid gap-4 max-h-[600px] overflow-y-auto pr-2 custom-scroll">{member.map((v, i) => ( <div key={i} className="p-6 bg-white/50 dark:bg-slate-900/50 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 transition-all"><p className="text-[11px] text-slate-500 font-black uppercase mb-2 tracking-widest">{headers[i] || `Index ${i}`}</p><p className="font-black text-lg text-slate-800 dark:text-slate-100">{v||"---"}</p></div> ))}</div></div> )}
+                            </div>
+                        </div>
+                    )}
+
+                    {showForm && (
+                        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-4">
+                            <div className="glass-card p-8 sm:p-12 w-full max-w-lg relative animate-in zoom-in duration-300 border-4 border-blue-100 dark:border-slate-700">
+                                <button onClick={() => setShowForm(false)} className="absolute top-6 right-6 w-12 h-12 bg-red-50 dark:bg-red-900/30 text-red-600 hover:bg-red-100 hover:scale-110 rounded-full font-black text-2xl flex items-center justify-center transition-all border border-red-200 dark:border-red-800"><i className="fa-solid fa-xmark"></i></button>
+                                
+                                <div className="text-center mb-8 border-b-2 border-slate-200 dark:border-slate-700 border-dashed pb-6">
+                                    <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/50 dark:to-indigo-900/50 text-blue-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-5 shadow-inner"><i className="fa-regular fa-paper-plane"></i></div>
+                                    <h3 className="text-3xl font-black text-slate-800 dark:text-white uppercase tracking-wider">{formType}</h3>
+                                </div>
+                                
+                                <form action="https://formspree.io/f/xwvndvoe" method="POST" encType="multipart/form-data" className="space-y-6 text-left">
+                                    <input type="hidden" name="Service_Requested" value={formType} />
+                                    <div>
+                                        <label className="block text-[13px] font-black uppercase text-slate-600 dark:text-slate-400 mb-2 tracking-widest">मोबाइल नंबर <span className="text-red-500">*</span></label>
+                                        <input type="tel" name="Mobile" required className="w-full border-2 border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-900/80 p-5 rounded-2xl outline-none focus:border-blue-500 focus:bg-white font-black text-xl transition-all shadow-inner" placeholder="अपना नंबर दर्ज करें" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[13px] font-black uppercase text-slate-600 dark:text-slate-400 mb-2 tracking-widest">समस्या / कार्य <span className="text-red-500">*</span></label>
+                                        <textarea name="Problem" required rows="4" className="w-full border-2 border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-900/80 p-5 rounded-2xl outline-none focus:border-blue-500 focus:bg-white font-bold text-lg transition-all resize-none shadow-inner" placeholder="अपनी समस्या या कार्य का विवरण यहाँ लिखें..."></textarea>
+                                    </div>
+                                    <div className="bg-blue-50/80 dark:bg-slate-900/80 p-6 rounded-2xl border-2 border-blue-100 dark:border-slate-700">
+                                        <label className="block text-[13px] font-black uppercase text-slate-700 dark:text-slate-300 mb-3 tracking-widest"><i className="fa-solid fa-paperclip mr-2 text-blue-600 text-lg"></i> फोटो/वीडियो अपलोड करें</label>
+                                        <input type="file" name="Files" multiple accept="image/*,video/*" className="w-full text-md text-slate-500 file:mr-5 file:py-4 file:px-8 file:rounded-xl file:border-0 file:text-[12px] file:font-black file:uppercase file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:shadow-lg transition-all cursor-pointer" />
+                                    </div>
+                                    <button type="submit" className="w-full bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white font-black py-6 rounded-2xl shadow-xl hover:shadow-2xl mt-6 text-xl uppercase tracking-widest transition-all"><i className="fa-solid fa-rocket mr-3"></i> रिक्वेस्ट भेजें</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>  
+        );  
+    };  
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);  
+    </script>
+</body>  
+</html>
