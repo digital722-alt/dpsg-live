@@ -8,10 +8,20 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>  
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>  
     <script src="https://cdn.tailwindcss.com"></script>  
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>  
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>  
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">  
     <script>tailwind.config = { darkMode: 'class' }</script>
+    
+    <!-- 🚨 सुरक्षा लॉक: राइट क्लिक और इंस्पेक्ट बंद (डेटा चोरी रोकने के लिए) 🚨 -->
+    <script>
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123) return false; // Block F12
+            if(e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'C'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) return false; // Block Ctrl+Shift+I/C/J
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; // Block Ctrl+U
+        }
+    </script>
+
     <style>  
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Play:wght@700&family=Poppins:wght@500;700;900&display=swap');  
         
@@ -91,9 +101,10 @@
     <div id="root"></div>  
     <script type="text/babel">  
     const { useState, useEffect, useRef, useCallback } = React;  
-    const SHEET_ID = "1rrU0EHXur_HfPlmYxjm6vIJqeRW2VZAu0qIteItQkLo";  
-    const MAIN_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;  
-    const MAPPING_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlm-iMRLk5J-lxybJ7S2sR3ZpcGNG8Z8r3BEku8GzK8opYlsunIcZoe03Jf0Xbhw/pub?gid=1529433935&single=true&output=csv";  
+    
+    // 🚨 आपका खुद का निकाला हुआ मास्टर सुरक्षित लिंक (Google Apps Script API) 🚨
+    const API_URL = "https://script.google.com/macros/s/AKfycbwKC-slqMiuxaEP4ubcFXA-S6buerWWCagknJtoGmjeWiniINuIaGm-aMRZDx55kEwSmg/exec"; 
+    
     const MASTER_PIN = "Shiv@6375";  
 
     // Advanced 100% Bilingual Dictionary
@@ -187,11 +198,10 @@
         const [isAdmin, setIsAdmin] = useState(false); const [showPin, setShowPin] = useState(false);  
         const [prizeState, setPrizeState] = useState({ isLocked: true, type: null, rank: "", img: "", highlight: "", colorClass: "" });  
         const [showForm, setShowForm] = useState(false); const [formType, setFormType] = useState("");
-        const [showWelcome, setShowWelcome] = useState(true); // Welcome Popup State 
+        const [showWelcome, setShowWelcome] = useState(true); 
 
         const t = vocab[lang];
         
-        // Time-based greeting logic
         const getGreeting = () => {
             const hour = new Date().getHours();
             if (hour < 12) return t.gm;
@@ -217,49 +227,58 @@
         }, []); 
 
         useEffect(() => {  
-            fetch(MAIN_CSV + "&t=" + Date.now()).then(r => r.text()).then(txt => {  
-                Papa.parse(txt, { complete: (res) => {  
-                    const rows = res.data; setHeaders(rows[0] || []);  
-                    const qId = new URLSearchParams(window.location.search).get('id');  
-                    const match = rows.slice(1).find(r => r[1] && r[1].toLowerCase() === (qId || "").toLowerCase());  
-                    if (match) { setMember(match); fetch(MAPPING_CSV).then(r => r.text()).then(mTxt => { Papa.parse(mTxt, { header: true, complete: (mRes) => { mapPrize(match, mRes.data); setStatus("view"); } }); }); }  
-                    else { setStatus("search"); setShowWelcome(false); } // Hide popup on search screen  
-                }});  
-            });  
+            const qId = new URLSearchParams(window.location.search).get('id');
+            if (!qId) { 
+                setStatus("search"); 
+                setShowWelcome(false);
+                return; 
+            }
+
+            // Private API Call - Fetching data from Google Apps Script Tunnel
+            fetch(`${API_URL}?id=${qId}`)
+                .then(r => r.json())
+                .then(res => {
+                    if (res.status === "success") {
+                        setMember(res.member);
+                        setHeaders(res.headers);
+                        // Make sure mapping is passed safely as an array
+                        mapPrize(res.member, res.mapping || []);
+                        setStatus("view");
+                    } else {
+                        setStatus("search");
+                        setShowWelcome(false);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    setStatus("search");
+                    setShowWelcome(false);
+                });
         }, [mapPrize]);  
 
-        const clean = (val) => (val && val !== "#REF!" && val.trim() !== "") ? val : t.emptyData; 
+        const clean = (val) => (val && val !== "#REF!" && val.toString().trim() !== "") ? val : t.emptyData; 
 
         if (status === "loading") return <div className="h-screen flex items-center justify-center font-black text-3xl text-blue-600 animate-pulse tracking-widest bg-slate-50 dark:bg-slate-900">DPSG LOADING...</div>;  
 
         return (  
             <div className={`min-h-screen pb-10 ${theme === 'dark' ? 'dark' : ''}`}> 
                 
-                {/* WELCOME POPUP MODAL (OPTION 1) */}
                 {showWelcome && status === "view" && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 fade-in-scale">
                         <div className="bg-white dark:bg-slate-800 p-10 sm:p-14 rounded-[3rem] w-full max-w-xl text-center shadow-[0_0_50px_rgba(59,130,246,0.5)] border-4 border-blue-400 dark:border-blue-600 relative overflow-hidden">
                             <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600"></div>
-                            
-                            {/* Language Toggle Inside Popup */}
                             <div className="absolute top-6 right-6">
                                 <button onClick={()=>setLang(lang==='hi'?'en':'hi')} className="px-4 py-1.5 bg-blue-50 dark:bg-slate-700 rounded-full text-xs font-black text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-slate-600 shadow-sm">
                                     <i className="fa-solid fa-language"></i> {lang==='hi' ? 'EN' : 'HI'}
                                 </button>
                             </div> 
-
                             <i className="fa-solid fa-hands-holding-circle text-7xl text-blue-600 dark:text-blue-400 mb-6 drop-shadow-md mt-4"></i>
                             <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-2 fancy-text">{getGreeting()}!</h2>
                             <p className="text-[17px] font-bold text-blue-800 dark:text-blue-300 mb-6 leading-relaxed">{t.welcomeTitle}</p>
-                            
-                            <p className="text-[15px] text-slate-600 dark:text-slate-300 mb-8 font-medium leading-relaxed px-2">
-                                {t.welcomeBody}
-                            </p>
-                            
+                            <p className="text-[15px] text-slate-600 dark:text-slate-300 mb-8 font-medium leading-relaxed px-2">{t.welcomeBody}</p>
                             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-800 p-4 rounded-2xl border border-blue-100 dark:border-slate-600 mb-8 shadow-inner">
                                 <p className="font-black italic text-blue-700 dark:text-blue-400 text-sm"><i className="fa-solid fa-quote-left mr-2 opacity-50"></i> {t.slogan} <i className="fa-solid fa-quote-right ml-2 opacity-50"></i></p>
                             </div> 
-
                             <button onClick={() => setShowWelcome(false)} className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-black py-5 rounded-2xl shadow-xl text-xl uppercase tracking-widest transition-all hover:scale-[1.02]">
                                 {t.proceedBtn} <i className="fa-solid fa-arrow-right ml-2"></i>
                             </button>
@@ -267,7 +286,6 @@
                     </div>
                 )} 
 
-                {/* BIG BLINKING MIKE & MARQUEE (BILINGUAL) */}
                 <div className="no-print marquee flex justify-center items-center w-full">
                     <div className="marquee-content flex items-center">
                         <i className="fa-solid fa-bullhorn text-5xl text-red-700 dark:text-red-900 mx-5 blink-text drop-shadow-lg"></i>
@@ -302,7 +320,6 @@
                                 <p className="text-slate-700 dark:text-slate-200 font-black mt-5 italic text-[14px] bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm py-3 px-5 rounded-full inline-block border border-white/50 dark:border-slate-700 shadow-sm"><i className="fa-solid fa-quote-left text-blue-500 mr-2 text-lg"></i>{t.slogan}<i className="fa-solid fa-quote-right text-blue-500 ml-2 text-lg"></i></p>
                             </div>  
                             
-                            {/* BILINGUAL ICONS */}
                             <div className="no-print grid grid-cols-4 gap-3 my-6">
                                 <button onClick={() => openForm(t.icon1)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-orange-400 hover:-translate-y-1 transition-all !border-[1px]">
                                     <div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-50 text-orange-500 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-desktop"></i></div>
@@ -347,15 +364,15 @@
                             </div>
 
                             <div className="no-print grid grid-cols-2 gap-4 my-2">
-                                <button onClick={() => openForm('WhatsApp (HELP)')} className="bg-gradient-to-b from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-black py-5 rounded-2xl shadow-[0_10px_20px_rgba(34,197,94,0.3)] flex items-center justify-center text-md transition-all border border-green-300 uppercase tracking-widest">
+                                {/* DIRECT WHATSAPP LINK - FIX APPLIED HERE */}
+                                <a href="https://wa.me/917229874128?text=नमस्ते%20DPSG%20टीम,%20मुझे%20सहायता%20चाहिए।" target="_blank" rel="noopener noreferrer" className="bg-gradient-to-b from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-black py-5 rounded-2xl shadow-[0_10px_20px_rgba(34,197,94,0.3)] flex items-center justify-center text-md transition-all border border-green-300 uppercase tracking-widest no-underline">
                                     <i className="fa-brands fa-whatsapp text-3xl mr-3 drop-shadow-md"></i> HELP
-                                </button>
+                                </a>
                                 <button onClick={() => openForm('LOCATION')} className="bg-gradient-to-b from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white font-black py-5 rounded-2xl shadow-[0_10px_20px_rgba(239,68,68,0.3)] flex items-center justify-center text-md transition-all border border-red-400 uppercase tracking-widest">
                                     <i className="fa-solid fa-location-dot text-2xl mr-3 drop-shadow-md"></i> LOCATION
                                 </button>
                             </div>
 
-                            {/* MAIN RECEIPT WITH GLASSMORPHISM */}
                             <div id="receipt" className="glass-card p-8 sm:p-12 text-left relative mt-8">  
                                 <div className="text-center border-b-4 border-slate-200 dark:border-slate-700 border-dashed pb-8 mb-10">
                                     <h3 className="font-black text-3xl text-blue-900 dark:text-blue-400 italic uppercase tracking-tight drop-shadow-sm">{t.receipt}</h3>
@@ -363,14 +380,11 @@
                                 </div>  
                                 
                                 <div className="grid grid-cols-2 gap-y-12 gap-x-4 text-sm border-b-2 border-slate-200 dark:border-slate-700 pb-12">  
-                                    
-                                    {/* HUGE BLUE CENTERED MEMBERSHIP ID */}
                                     <div className="col-span-2 text-center bg-blue-50/70 dark:bg-blue-900/30 backdrop-blur-sm border-2 border-blue-400 dark:border-blue-600 rounded-[2rem] p-8 shadow-[0_0_25px_rgba(59,130,246,0.3)] transform transition hover:scale-[1.01]">
                                         <p className="text-[15px] sm:text-[17px] font-black text-blue-800 dark:text-blue-300 tracking-[0.2em] uppercase mb-4 fancy-text flex justify-center items-center"><i className="fa-solid fa-fingerprint mr-3 text-2xl"></i> {t.idLabelFull}</p>
                                         <p className="text-4xl sm:text-5xl font-black text-blue-600 dark:text-blue-400 drop-shadow-md tracking-wider fancy-text">{clean(member[1])}</p>
                                     </div>
 
-                                    {/* LARGER, STYLISH LABELS EVERYWHERE */}
                                     <div className="col-span-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm p-6 rounded-2xl border border-white/50 dark:border-slate-700">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div><p className="text-[14px] sm:text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-[0.1em] uppercase mb-2 fancy-text"><i className="fa-solid fa-user text-blue-500 mr-2"></i>{t.cName}</p><p className="font-black uppercase text-2xl text-indigo-900 dark:text-indigo-300 drop-shadow-sm">{clean(member[8])}</p></div>  
@@ -459,3 +473,5 @@
     </script>
 </body>  
 </html>
+
+
