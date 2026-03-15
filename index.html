@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">  
     <script>tailwind.config = { darkMode: 'class' }</script>
     
-    <!-- 🚨 सुरक्षा लॉक: राइट क्लिक और इंस्पेक्ट बंद (डेटा चोरी रोकने के लिए) 🚨 -->
     <script>
         document.addEventListener('contextmenu', event => event.preventDefault());
         document.onkeydown = function(e) {
@@ -244,6 +243,7 @@
                         // Make sure mapping is passed safely as an array
                         mapPrize(res.member, res.mapping || []);
                         setStatus("view");
+                        setShowWelcome(false);
                     } else {
                         setStatus("search");
                         setShowWelcome(false);
@@ -473,5 +473,3 @@
     </script>
 </body>  
 </html>
-
-
