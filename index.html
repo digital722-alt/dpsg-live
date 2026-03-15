@@ -101,8 +101,8 @@
     <script type="text/babel">  
     const { useState, useEffect, useRef, useCallback } = React;  
     
-    // 🚨 आपका खुद का निकाला हुआ मास्टर सुरक्षित लिंक (Google Apps Script API) 🚨
-    const API_URL = "https://script.google.com/macros/s/AKfycbwKC-slqMiuxaEP4ubcFXA-S6buerWWCagknJtoGmjeWiniINuIaGm-aMRZDx55kEwSmg/exec"; 
+    // 🚨 आपका नया मास्टर सुरक्षित लिंक (Google Apps Script API) 🚨
+    const API_URL = "https://script.google.com/macros/s/AKfycbyp7RqDChgz60xwMo1IdvdyxaY3Yjv-8A61K6834RqPY7CiJTkvPaQreSn8X2EH7qShSw/exec"; 
     
     const MASTER_PIN = "Shiv@6375";  
 
@@ -197,7 +197,9 @@
         const [isAdmin, setIsAdmin] = useState(false); const [showPin, setShowPin] = useState(false);  
         const [prizeState, setPrizeState] = useState({ isLocked: true, type: null, rank: "", img: "", highlight: "", colorClass: "" });  
         const [showForm, setShowForm] = useState(false); const [formType, setFormType] = useState("");
-        const [showWelcome, setShowWelcome] = useState(true); 
+        
+        // 🛠️ सेफ्टी-लॉक 1: अगर लिंक में ID है तो वेलकम स्क्रीन अपने आप छुप जाएगी (Direct Open)
+        const [showWelcome, setShowWelcome] = useState(!new URLSearchParams(window.location.search).get('id')); 
 
         const t = vocab[lang];
         
@@ -364,7 +366,6 @@
                             </div>
 
                             <div className="no-print grid grid-cols-2 gap-4 my-2">
-                                {/* DIRECT WHATSAPP LINK - FIX APPLIED HERE */}
                                 <a href="https://wa.me/917229874128?text=नमस्ते%20DPSG%20टीम,%20मुझे%20सहायता%20चाहिए।" target="_blank" rel="noopener noreferrer" className="bg-gradient-to-b from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-black py-5 rounded-2xl shadow-[0_10px_20px_rgba(34,197,94,0.3)] flex items-center justify-center text-md transition-all border border-green-300 uppercase tracking-widest no-underline">
                                     <i className="fa-brands fa-whatsapp text-3xl mr-3 drop-shadow-md"></i> HELP
                                 </a>
@@ -430,7 +431,9 @@
                             <div className="no-print pt-10 pb-20 flex flex-col items-center">  
                                 {!isAdmin && <button onClick={()=>setShowPin(!showPin)} className="p-8 glass-card !rounded-full opacity-50 hover:opacity-100 transition-all hover:scale-110 !border-[1px]"><i className="fa-solid fa-fingerprint text-6xl text-blue-600"></i></button>}  
                                 {showPin && !isAdmin && ( <div className="mt-8 glass-card p-10 w-full animate-in zoom-in shadow-2xl"><input type="password" id="adminPin" className="w-full bg-slate-50/80 dark:bg-slate-900/80 border-4 border-slate-200 dark:border-slate-600 rounded-2xl py-6 text-center mb-6 font-black outline-none text-3xl tracking-widest focus:border-blue-500 transition-all" placeholder="MASTER PIN" /><button onClick={()=>{document.getElementById('adminPin').value===MASTER_PIN?setIsAdmin(true):alert("Wrong Pin!");}} className="w-full bg-slate-900 dark:bg-black text-white py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-slate-800 transition-all text-xl"><i className="fa-solid fa-unlock mr-3"></i> Unlock Database</button></div> )}
-                                {isAdmin && ( <div className="w-full mt-8 glass-card p-10 text-left overflow-hidden border-t-8 border-t-blue-600"><div className="flex justify-between items-center mb-8 border-b-2 border-slate-200 dark:border-slate-700 pb-5"><h3 className="font-black text-lg text-blue-600 uppercase tracking-widest"><i className="fa-solid fa-database mr-3"></i> Master Database Panel</h3><button onClick={()=>setIsAdmin(false)} className="text-red-600 font-black text-[13px] uppercase border-2 border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20 px-6 py-2 rounded-full transition-all">Logout</button></div><div className="grid gap-4 max-h-[600px] overflow-y-auto pr-2 custom-scroll">{member.map((v, i) => ( <div key={i} className="p-6 bg-white/50 dark:bg-slate-900/50 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 transition-all"><p className="text-[11px] text-slate-500 font-black uppercase mb-2 tracking-widest">{headers[i] || `Index ${i}`}</p><p className="font-black text-lg text-slate-800 dark:text-slate-100">{v||"---"}</p></div> ))}</div></div> )}
+                                
+                                {/* 🛠️ सेफ्टी-लॉक 2: मास्टर पैनल की सफेद स्क्रीन को रोकने वाला फिक्स */}
+                                {isAdmin && ( <div className="w-full mt-8 glass-card p-10 text-left overflow-hidden border-t-8 border-t-blue-600"><div className="flex justify-between items-center mb-8 border-b-2 border-slate-200 dark:border-slate-700 pb-5"><h3 className="font-black text-lg text-blue-600 uppercase tracking-widest"><i className="fa-solid fa-database mr-3"></i> Master Database Panel</h3><button onClick={()=>setIsAdmin(false)} className="text-red-600 font-black text-[13px] uppercase border-2 border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20 px-6 py-2 rounded-full transition-all">Logout</button></div><div className="grid gap-4 max-h-[600px] overflow-y-auto pr-2 custom-scroll">{Array.isArray(member) && member.map((v, i) => ( <div key={i} className="p-6 bg-white/50 dark:bg-slate-900/50 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 transition-all"><p className="text-[11px] text-slate-500 font-black uppercase mb-2 tracking-widest">{(headers && headers[i]) ? headers[i] : `Index ${i}`}</p><p className="font-black text-lg text-slate-800 dark:text-slate-100">{String(v)||"---"}</p></div> ))}</div></div> )}
                             </div>
                         </div>
                     )}
