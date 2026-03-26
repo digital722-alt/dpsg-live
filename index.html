@@ -95,7 +95,7 @@
             prizes: {
                 WINNER: (rank) => `"मंजिल उन्हीं को मिलती है जिनके सपनों में जान होती है,\nआज आपकी मेहनत और किस्मत दोनों मेहरबान होती है!"\n\nहार्दिक बधाई! आप डिजिटल प्रॉब्लम सॉल्यूशन ग्रुप (DPSG) के गौरवशाली विजेता बने हैं और आपने ${rank} प्राप्त की है। यह इनाम संस्था की ओर से आपके विश्वास का सम्मान है। हमें गर्व है कि आप हमारे डिजिटल परिवार का हिस्सा हैं। उज्जवल भविष्य की कामनाओं के साथ, धन्यवाद!`,
                 CASH: () => `"इनाम छोटा हो या बड़ा, अपनों का साथ सबसे प्यारा है,\nजीत की ये शुरुआत है, अभी तो सारा आसमान तुम्हारा है!"\n\nमुस्कुराइए! DPSG संस्था की ओर से आपको यह विशेष कैशबैक भेंट किया जा रहा है। यह आपके और हमारे अटूट रिश्ते की एक छोटी सी पहचान है। भविष्य में भी हम आपकी समस्याओं के बेहतरीन समाधान के लिए तत्पर रहेंगे। हमारे साथ जुड़ने के लिए हृदय से धन्यवाद!`,
-                GIFT: () => `"खूबसूरत सा ये तोहफा बस एक छोटा सा बहाना है,\nहमे तो आपके साथ मिलकर खुशियों का जशन मनाना है!"\n\nबधाई हो! DPSG परिवार की ओर से यह उपहार आपके डिजिटल सफर को और भी खास बनाने के लिए है। आपकी संतुष्टि ही हमारी असली सफलता है। हम आपके सुखद भविष्य की कामना करते हैं। हमारे साथ बने रहने के लिए बहुत-बहुत धन्यवाद!`,
+                GIFT: () => `"खूबसूरत सा ये तोहफा बस ছোটा सा बहाना है,\nहमे तो आपके साथ मिलकर खुशियों का जशन मनाना है!"\n\nबधाई हो! DPSG परिवार की ओर से यह उपहार आपके डिजिटल सफर को और भी खास बनाने के लिए है। आपकी संतुष्टि ही हमारी असली सफलता है। हम आपके सुखद भविष्य की कामना करते हैं। हमारे साथ बने रहने के लिए बहुत-बहुत धन्यवाद!`,
                 LOSS: () => `"गिरते हैं शहसवार ही मैदान-ए-जंग में,\nवो क्या गिरेंगे जो घुटनों के बल चलते हैं!"\n\nनिराश न हों, यह केवल एक शुरुआत है। DPSG संस्था आपके निरंतर सहयोग की सराहना करती है। अगली बार आपकी किस्मत ज़रूर चमकेगी। हमारे साथ बने रहने और हम पर भरोसा जताने के लिए आपका धन्यवाद!`
             }
         },
@@ -169,10 +169,6 @@
         const [showForm, setShowForm] = useState(false); const [formType, setFormType] = useState("");
         const [isSpeaking, setIsSpeaking] = useState(false);
         const [showWelcome, setShowWelcome] = useState(!new URLSearchParams(window.location.search).get('id')); 
-        
-        // 🟢 नया: VIP लिस्ट पॉप-अप और ग्लोबल टाइम-लॉक 
-        const [showListModal, setShowListModal] = useState(null); 
-        const [isGlobalLocked, setIsGlobalLocked] = useState(true);
 
         const t = vocab[lang];
         
@@ -180,7 +176,7 @@
 
         const openForm = (type) => { setFormType(type); setShowForm(true); }; 
 
-        // 🟢 स्मार्ट व्हाट्सएप ऑटोमैटिक मैसेज सिस्टम
+        // 🟢 व्हाट्सएप ऑटोमैटिक मैसेज सिस्टम (सिंगल रिजल्ट के लिए)
         const sendWhatsApp = (id, rank, prize) => {
             let msg = "";
             if (rank && prize) {
@@ -207,8 +203,6 @@
             let drawDate = null;
             if (dDateStr) { let parts = dDateStr.split(/[-/]/); if (parts.length === 3) drawDate = new Date(parts[2], parts[1]-1, parts[0]); else drawDate = new Date(dDateStr); }
             const today = new Date(); today.setHours(0,0,0,0); if(drawDate) drawDate.setHours(0,0,0,0);
-            
-            if(drawDate) { setIsGlobalLocked(drawDate > today); }
             
             if (!lock || !dDateStr || drawDate > today) { setPrizeState({ isLocked: true, type: "PENDING" }); return; }
             const match = maps.find(m => m.Membership_ID && m.Membership_ID.toLowerCase().trim() === mID);  
@@ -291,41 +285,27 @@
                                 <p className="text-slate-700 dark:text-slate-200 font-black mt-5 italic text-[14px] bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm py-3 px-5 rounded-full inline-block border border-white/50 dark:border-slate-700 shadow-sm"><i className="fa-solid fa-quote-left text-blue-500 mr-2 text-lg"></i>{t.slogan}<i className="fa-solid fa-quote-right text-blue-500 ml-2 text-lg"></i></p>
                             </div>  
                             
-                            {/* 🚨 आपके 4 डब्बे वापस अपनी पुरानी स्थिति (फॉर्म खुलने वाले) में आ गए हैं 🚨 */}
+                            {/* 🚨 आपके ऊपर वाले 4 डब्बे (इनमें नई लिंक लगा दी गई है) 🚨 */}
                             <div className="no-print grid grid-cols-4 gap-3 my-6">
-                                <button onClick={() => openForm(t.icon1)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-orange-400 hover:-translate-y-1 transition-all !border-[1px]">
+                                <button onClick={() => window.open('https://mukesh7229874-maker.github.io/dpsg-services/', '_blank')} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-orange-400 hover:-translate-y-1 transition-all !border-[1px]">
                                     <div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-50 text-orange-500 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-desktop"></i></div>
                                     <span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon1}</span>
                                 </button>
-                                <button onClick={() => openForm(t.icon2)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-blue-400 hover:-translate-y-1 transition-all !border-[1px]">
+                                <button onClick={() => window.open('https://mukesh7229874-maker.github.io/dpsg-services/', '_blank')} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-blue-400 hover:-translate-y-1 transition-all !border-[1px]">
                                     <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-hard-drive"></i></div>
                                     <span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon2}</span>
                                 </button>
-                                <button onClick={() => openForm(t.icon3)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-purple-400 hover:-translate-y-1 transition-all !border-[1px]">
+                                <button onClick={() => window.open('https://mukesh7229874-maker.github.io/dpsg-services/', '_blank')} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-purple-400 hover:-translate-y-1 transition-all !border-[1px]">
                                     <div className="w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-mobile-screen-button"></i></div>
                                     <span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon3}</span>
                                 </button>
-                                <button onClick={() => openForm(t.icon4)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-green-400 hover:-translate-y-1 transition-all !border-[1px]">
+                                <button onClick={() => window.open('https://mukesh7229874-maker.github.io/dpsg-services/', '_blank')} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-green-400 hover:-translate-y-1 transition-all !border-[1px]">
                                     <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-green-50 text-green-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-building-columns"></i></div>
                                     <span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon4}</span>
                                 </button>
                             </div> 
 
-                            {/* VIP रिवॉर्ड डैशबोर्ड */}
-                            <div className="no-print bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-6 rounded-[2rem] border-2 border-blue-200 dark:border-slate-700 my-8 shadow-inner relative overflow-hidden">
-                                <h3 className="text-center font-black text-blue-800 dark:text-blue-300 mb-6 uppercase tracking-widest border-b-2 border-dashed border-blue-200 dark:border-slate-600 pb-3">DPSG VIP Result Portal</h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 relative z-10">
-                                    <button onClick={() => isGlobalLocked ? alert(t.warning) : setShowListModal('master')} className={`py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg transition-all border-2 flex flex-col items-center justify-center ${isGlobalLocked ? 'bg-slate-200 border-slate-300 text-slate-500 cursor-not-allowed dark:bg-slate-700 dark:border-slate-600' : 'bg-gradient-to-b from-blue-500 to-blue-700 text-white border-blue-400 hover:scale-105'}`}>
-                                        <i className={`fa-solid ${isGlobalLocked ? 'fa-lock' : 'fa-users'} text-2xl mb-2`}></i> Master Directory
-                                    </button>
-                                    <button onClick={() => isGlobalLocked ? alert(t.warning) : setShowListModal('winners')} className={`py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg transition-all border-2 flex flex-col items-center justify-center ${isGlobalLocked ? 'bg-slate-200 border-slate-300 text-slate-500 cursor-not-allowed dark:bg-slate-700 dark:border-slate-600' : 'bg-gradient-to-b from-yellow-400 to-yellow-600 text-white border-yellow-300 hover:scale-105'}`}>
-                                        <i className={`fa-solid ${isGlobalLocked ? 'fa-lock' : 'fa-trophy'} text-2xl mb-2`}></i> Hall of Fame
-                                    </button>
-                                    <button onClick={() => { if(isGlobalLocked){alert(t.warning);}else{window.location.href="?id=";} }} className={`py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg transition-all border-2 flex flex-col items-center justify-center ${isGlobalLocked ? 'bg-slate-200 border-slate-300 text-slate-500 cursor-not-allowed dark:bg-slate-700 dark:border-slate-600' : 'bg-gradient-to-b from-green-500 to-green-700 text-white border-green-400 hover:scale-105'}`}>
-                                        <i className={`fa-solid ${isGlobalLocked ? 'fa-lock' : 'fa-magnifying-glass'} text-2xl mb-2`}></i> Verify Reward
-                                    </button>
-                                </div>
-                            </div>
+                            {/* (नीचे वाले 3 VIP बटन हटा दिए गए हैं) */}
 
                             <div className="no-print glass-card p-8 relative overflow-hidden">
                                 <p className="text-red-500 font-black text-[13px] mb-6 text-center blink-text uppercase tracking-widest flex justify-center items-center"><i className="fa-solid fa-triangle-exclamation mr-2 text-xl"></i> {t.warning}</p>
@@ -345,6 +325,7 @@
                                                 <div className="bg-gradient-to-r from-blue-800 via-indigo-600 to-blue-800 text-white px-10 py-3 rounded-full font-black text-xl mb-8 uppercase shadow-[0_10px_20px_rgba(79,70,229,0.4)] tracking-widest border-2 border-indigo-300 fancy-text">{prizeState.highlight}</div>  
                                                 <img src={prizeState.img} className="w-full max-h-[400px] object-contain mb-8 drop-shadow-2xl rounded-2xl" alt="Prize" />  
                                                 <p className="text-[16px] font-black leading-relaxed whitespace-pre-line px-2 text-gradient-prize fancy-text">{t.prizes[prizeState.type] ? t.prizes[prizeState.type](prizeState.rank) : ""}</p>
+                                                {/* 🟢 खुद का रिजल्ट चेक करने पर सीधा क्लेम बटन */}
                                                 <button onClick={() => sendWhatsApp(clean(member[1]), prizeState.rank, prizeState.highlight)} className="mt-6 w-full bg-green-500 hover:bg-green-600 text-white py-4 rounded-xl font-black uppercase flex items-center justify-center shadow-lg text-lg"><i className="fa-brands fa-whatsapp mr-3 text-2xl"></i> Claim on WhatsApp</button>
                                             </div>
                                         </ScratchCard>  
@@ -457,6 +438,7 @@
                         </div>
                     )}
 
+                    {/* लोकेशन वाले बटन के लिए फॉर्म का कोड वापस रख दिया गया है */}
                     {showForm && (
                         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-4">
                             <div className="glass-card p-8 sm:p-12 w-full max-w-lg relative animate-in zoom-in duration-300 border-4 border-blue-100 dark:border-slate-700">
@@ -483,50 +465,6 @@
                                     </div>
                                     <button type="submit" className="w-full bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white font-black py-6 rounded-2xl shadow-xl hover:shadow-2xl mt-6 text-xl uppercase tracking-widest transition-all"><i className="fa-solid fa-rocket mr-3"></i> रिक्वेस्ट भेजें</button>
                                 </form>
-                            </div>
-                        </div>
-                    )}
-
-                    {showListModal && (
-                        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/95 backdrop-blur-md p-4 animate-in fade-in">
-                            <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl border-2 border-blue-400">
-                                <div className="p-6 bg-blue-600 flex justify-between items-center text-white">
-                                    <h2 className="text-xl sm:text-2xl font-black uppercase tracking-widest">{showListModal === 'master' ? 'Master Directory (1000 Members)' : 'Hall of Fame (51 Winners)'}</h2>
-                                    <button onClick={() => setShowListModal(null)} className="text-3xl hover:scale-110 transition-transform"><i className="fa-solid fa-circle-xmark"></i></button>
-                                </div>
-                                <div className="p-4 overflow-y-auto bg-slate-50 dark:bg-slate-900">
-                                    <table className="w-full text-left border-collapse">
-                                        <thead>
-                                            <tr className="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 uppercase text-xs sm:text-sm">
-                                                <th className="p-3 border-b-2">S.N.</th>
-                                                <th className="p-3 border-b-2">Member ID</th>
-                                                {showListModal === 'winners' && <th className="p-3 border-b-2">Rank</th>}
-                                                <th className="p-3 border-b-2">Prize Status</th>
-                                                <th className="p-3 border-b-2 text-center">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr className="border-b dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
-                                                <td className="p-3 font-bold text-slate-700 dark:text-slate-300">01</td>
-                                                <td className="p-3 font-mono font-bold text-blue-600 dark:text-blue-400">DPSG-26-001</td>
-                                                {showListModal === 'winners' && <td className="p-3 font-black text-yellow-600">#1</td>}
-                                                <td className="p-3 font-bold text-green-600">Smart TV</td>
-                                                <td className="p-3 text-center">
-                                                    <button onClick={() => sendWhatsApp('DPSG-26-001', '1', 'Smart TV')} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl text-xs font-black uppercase w-full shadow-md"><i className="fa-brands fa-whatsapp mr-1 text-lg"></i> Claim</button>
-                                                </td>
-                                            </tr>
-                                            <tr className="border-b dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
-                                                <td className="p-3 font-bold text-slate-700 dark:text-slate-300">02</td>
-                                                <td className="p-3 font-mono font-bold text-blue-600 dark:text-blue-400">DPSG-26-002</td>
-                                                {showListModal === 'winners' && <td className="p-3 font-black text-slate-500">-</td>}
-                                                <td className="p-3 font-bold text-slate-500 dark:text-slate-400">Assured Gift</td>
-                                                <td className="p-3 text-center">
-                                                    <button onClick={() => sendWhatsApp('DPSG-26-002', null, null)} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl text-xs font-black uppercase w-full shadow-md"><i className="fa-brands fa-whatsapp mr-1 text-lg"></i> Claim</button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
                             </div>
                         </div>
                     )}
