@@ -72,7 +72,7 @@
     
     const API_URL = "https://script.google.com/macros/s/AKfycbyp7RqDChgz60xwMo1IdvdyxaY3Yjv-8A61K6834RqPY7CiJTkvPaQreSn8X2EH7qShSw/exec"; 
     
-    // 🚨 हैक-प्रूफ एनक्रिप्टेड पासवर्ड (Shiv@6375 को Base64 में बदला गया है) 🚨
+    // 🚨 हैक-प्रूफ एनक्रिप्टेड पासवर्ड (Shiv@6375) 🚨
     const SECURE_HASH_PIN = "U2hpdkA2Mzc1";  
 
     const vocab = {  
@@ -180,7 +180,7 @@
 
         const openForm = (type) => { setFormType(type); setShowForm(true); }; 
 
-        // 🟢 नया: स्मार्ट व्हाट्सएप ऑटोमैटिक मैसेज सिस्टम
+        // 🟢 स्मार्ट व्हाट्सएप ऑटोमैटिक मैसेज सिस्टम
         const sendWhatsApp = (id, rank, prize) => {
             let msg = "";
             if (rank && prize) {
@@ -208,7 +208,6 @@
             if (dDateStr) { let parts = dDateStr.split(/[-/]/); if (parts.length === 3) drawDate = new Date(parts[2], parts[1]-1, parts[0]); else drawDate = new Date(dDateStr); }
             const today = new Date(); today.setHours(0,0,0,0); if(drawDate) drawDate.setHours(0,0,0,0);
             
-            // 🟢 यहाँ आपके ओरिजिनल कोड से 'ग्लोबल लॉक' की स्थिति चेक हो रही है
             if(drawDate) { setIsGlobalLocked(drawDate > today); }
             
             if (!lock || !dDateStr || drawDate > today) { setPrizeState({ isLocked: true, type: "PENDING" }); return; }
@@ -292,27 +291,27 @@
                                 <p className="text-slate-700 dark:text-slate-200 font-black mt-5 italic text-[14px] bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm py-3 px-5 rounded-full inline-block border border-white/50 dark:border-slate-700 shadow-sm"><i className="fa-solid fa-quote-left text-blue-500 mr-2 text-lg"></i>{t.slogan}<i className="fa-solid fa-quote-right text-blue-500 ml-2 text-lg"></i></p>
                             </div>  
                             
-                            {/* 🚨 आपके 4 डब्बे (फॉर्म की जगह इनमें लिंक जोड़ दी गई है, डिज़ाइन वही है) 🚨 */}
+                            {/* 🚨 आपके 4 डब्बे वापस अपनी पुरानी स्थिति (फॉर्म खुलने वाले) में आ गए हैं 🚨 */}
                             <div className="no-print grid grid-cols-4 gap-3 my-6">
-                                <button onClick={() => window.open('https://mukesh7229874-maker.github.io/dpsg-services/', '_blank')} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-orange-400 hover:-translate-y-1 transition-all !border-[1px]">
+                                <button onClick={() => openForm(t.icon1)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-orange-400 hover:-translate-y-1 transition-all !border-[1px]">
                                     <div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-50 text-orange-500 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-desktop"></i></div>
                                     <span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon1}</span>
                                 </button>
-                                <button onClick={() => window.open('https://mukesh7229874-maker.github.io/dpsg-services/', '_blank')} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-blue-400 hover:-translate-y-1 transition-all !border-[1px]">
+                                <button onClick={() => openForm(t.icon2)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-blue-400 hover:-translate-y-1 transition-all !border-[1px]">
                                     <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-hard-drive"></i></div>
                                     <span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon2}</span>
                                 </button>
-                                <button onClick={() => window.open('https://mukesh7229874-maker.github.io/dpsg-services/', '_blank')} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-purple-400 hover:-translate-y-1 transition-all !border-[1px]">
+                                <button onClick={() => openForm(t.icon3)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-purple-400 hover:-translate-y-1 transition-all !border-[1px]">
                                     <div className="w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-mobile-screen-button"></i></div>
                                     <span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon3}</span>
                                 </button>
-                                <button onClick={() => window.open('https://mukesh7229874-maker.github.io/dpsg-services/', '_blank')} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-green-400 hover:-translate-y-1 transition-all !border-[1px]">
+                                <button onClick={() => openForm(t.icon4)} className="group flex flex-col items-center justify-center glass-card !rounded-3xl py-4 px-2 hover:border-green-400 hover:-translate-y-1 transition-all !border-[1px]">
                                     <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-green-50 text-green-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner group-hover:scale-110 transition-transform"><i className="fa-solid fa-building-columns"></i></div>
                                     <span className="text-[11px] sm:text-[12px] font-black text-slate-800 dark:text-slate-200 uppercase text-center leading-tight">{t.icon4}</span>
                                 </button>
                             </div> 
 
-                            {/* 🟢 नया: VIP रिवॉर्ड डैशबोर्ड (3 बटन) जो आपके लॉक के साथ काम करता है */}
+                            {/* VIP रिवॉर्ड डैशबोर्ड */}
                             <div className="no-print bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-6 rounded-[2rem] border-2 border-blue-200 dark:border-slate-700 my-8 shadow-inner relative overflow-hidden">
                                 <h3 className="text-center font-black text-blue-800 dark:text-blue-300 mb-6 uppercase tracking-widest border-b-2 border-dashed border-blue-200 dark:border-slate-600 pb-3">DPSG VIP Result Portal</h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 relative z-10">
@@ -346,7 +345,6 @@
                                                 <div className="bg-gradient-to-r from-blue-800 via-indigo-600 to-blue-800 text-white px-10 py-3 rounded-full font-black text-xl mb-8 uppercase shadow-[0_10px_20px_rgba(79,70,229,0.4)] tracking-widest border-2 border-indigo-300 fancy-text">{prizeState.highlight}</div>  
                                                 <img src={prizeState.img} className="w-full max-h-[400px] object-contain mb-8 drop-shadow-2xl rounded-2xl" alt="Prize" />  
                                                 <p className="text-[16px] font-black leading-relaxed whitespace-pre-line px-2 text-gradient-prize fancy-text">{t.prizes[prizeState.type] ? t.prizes[prizeState.type](prizeState.rank) : ""}</p>
-                                                {/* 🟢 नया: खुद का रिजल्ट चेक करने पर सीधा क्लेम बटन */}
                                                 <button onClick={() => sendWhatsApp(clean(member[1]), prizeState.rank, prizeState.highlight)} className="mt-6 w-full bg-green-500 hover:bg-green-600 text-white py-4 rounded-xl font-black uppercase flex items-center justify-center shadow-lg text-lg"><i className="fa-brands fa-whatsapp mr-3 text-2xl"></i> Claim on WhatsApp</button>
                                             </div>
                                         </ScratchCard>  
@@ -354,7 +352,6 @@
                                 </div>
                             </div>
 
-                            {/* 🚨 आपके पुराने लाल-हरे बटन जो गायब हो गए थे, वापस लगा दिए गए हैं 🚨 */}
                             <div className="no-print grid grid-cols-2 gap-4 my-2">
                                 <a href="https://wa.me/917229874128?text=नमस्ते%20DPSG%20टीम,%20मुझे%20सहायता%20चाहिए।" target="_blank" rel="noopener noreferrer" className="bg-gradient-to-b from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-black py-5 rounded-2xl shadow-[0_10px_20px_rgba(34,197,94,0.3)] flex items-center justify-center text-md transition-all border border-green-300 uppercase tracking-widest no-underline">
                                     <i className="fa-brands fa-whatsapp text-3xl mr-3 drop-shadow-md"></i> HELP
@@ -364,7 +361,6 @@
                                 </button>
                             </div>
 
-                            {/* 🚨 आपकी पूरी रसीद, नियम और शर्तें जो गायब हो गई थीं, बिल्कुल वैसी ही वापस आ गई हैं 🚨 */}
                             <div id="receipt" className="glass-card p-8 sm:p-12 text-left relative mt-8">  
                                 <div className="text-center border-b-4 border-slate-200 dark:border-slate-700 border-dashed pb-8 mb-10">
                                     <h3 className="font-black text-3xl text-blue-900 dark:text-blue-400 italic uppercase tracking-tight drop-shadow-sm">{t.receipt}</h3>
@@ -454,7 +450,6 @@
                             <div className="no-print pt-10 pb-20 flex flex-col items-center">  
                                 {!isAdmin && <button onClick={()=>setShowPin(!showPin)} className="p-8 glass-card !rounded-full opacity-50 hover:opacity-100 transition-all hover:scale-110 !border-[1px]"><i className="fa-solid fa-fingerprint text-6xl text-blue-600"></i></button>}  
                                 {showPin && !isAdmin && ( <div className="mt-8 glass-card p-10 w-full animate-in zoom-in shadow-2xl"><input type="password" id="adminPin" className="w-full bg-slate-50/80 dark:bg-slate-900/80 border-4 border-slate-200 dark:border-slate-600 rounded-2xl py-6 text-center mb-6 font-black outline-none text-3xl tracking-widest focus:border-blue-500 transition-all" placeholder="MASTER PIN" />
-                                {/* 🚨 हैक-प्रूफ पासवर्ड वेरिफिकेशन (atob डिकोडिंग के साथ) 🚨 */}
                                 <button onClick={()=>{ btoa(document.getElementById('adminPin').value) === SECURE_HASH_PIN ? setIsAdmin(true) : alert("Wrong Pin!"); }} className="w-full bg-slate-900 dark:bg-black text-white py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-slate-800 transition-all text-xl"><i className="fa-solid fa-unlock mr-3"></i> Unlock Database</button></div> )}
                                 
                                 {isAdmin && ( <div className="w-full mt-8 glass-card p-10 text-left overflow-hidden border-t-8 border-t-blue-600"><div className="flex justify-between items-center mb-8 border-b-2 border-slate-200 dark:border-slate-700 pb-5"><h3 className="font-black text-lg text-blue-600 uppercase tracking-widest"><i className="fa-solid fa-database mr-3"></i> Master Database Panel</h3><button onClick={()=>setIsAdmin(false)} className="text-red-600 font-black text-[13px] uppercase border-2 border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20 px-6 py-2 rounded-full transition-all">Logout</button></div><div className="grid gap-4 max-h-[600px] overflow-y-auto pr-2 custom-scroll">{Array.isArray(member) && member.map((v, i) => ( <div key={i} className="p-6 bg-white/50 dark:bg-slate-900/50 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 transition-all"><p className="text-[11px] text-slate-500 font-black uppercase mb-2 tracking-widest">{(headers && headers[i]) ? headers[i] : `Index ${i}`}</p><p className="font-black text-lg text-slate-800 dark:text-slate-100">{String(v)||"---"}</p></div> ))}</div></div> )}
@@ -462,7 +457,6 @@
                         </div>
                     )}
 
-                    {/* 🚨 आपका पुराना रिक्वेस्ट फॉर्म भी अब बिल्कुल सुरक्षित है 🚨 */}
                     {showForm && (
                         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-4">
                             <div className="glass-card p-8 sm:p-12 w-full max-w-lg relative animate-in zoom-in duration-300 border-4 border-blue-100 dark:border-slate-700">
@@ -493,7 +487,6 @@
                         </div>
                     )}
 
-                    {/* 🟢 नया: लिस्ट दिखाने वाली जादुई विंडो (Modals) */}
                     {showListModal && (
                         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/95 backdrop-blur-md p-4 animate-in fade-in">
                             <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl border-2 border-blue-400">
