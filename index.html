@@ -71,9 +71,9 @@
     const { useState, useEffect, useRef, useCallback } = React;  
     
     // 🚨 आपकी नई और सुरक्षित API लिंक
-    const API_URL = "https://script.google.com/macros/s/AKfycbz21bwZZ0AG5sv-u39tjfgtO0BGfJB8SSwmdMkIC-FKBSwWyT0sXtUnumh0lAXEazFtgg/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbw5Ufv1q5pZFzlS654--SV8OZpISfof-VXVm_nZrXHS9Wjv9_9TqzxE2hZVLHIZZCor4g/exec"; 
 
-    // 🚨 हैक-प्रूफ: यहाँ अब कोई पासवर्ड नहीं है! पासवर्ड अब सिर्फ आपके Google सर्वर में है। 🚨
+    // 🚨 हैक-प्रूफ: यहाँ अब कोई पासवर्ड नहीं है! 🚨
 
     const vocab = {  
         hi: {  
@@ -172,7 +172,7 @@
         const [formType, setFormType] = useState("");
         const [isSpeaking, setIsSpeaking] = useState(false);
         
-        // 🚨 यह है आपका वेलकम पॉप-अप जो अब हर किसी को दिखेगा 🚨
+        // 🚨 यह है आपका वेलकम पॉप-अप जो सर्च पेज पर दिखेगा 🚨
         const [showWelcome, setShowWelcome] = useState(!new URLSearchParams(window.location.search).get('id')); 
         
         // VIP लिस्ट और एडमिन डेटाबेस के लिए स्टेट्स
@@ -191,14 +191,19 @@
         // 🚨 नया: नाम के साथ प्रोफेशनल व्हाट्सएप मैसेज 🚨
         const sendWhatsApp = (id, rank, prize, pName) => {
             let msg = "";
-            let customerName = pName || (member ? member[8] : "DPSG Member"); // ग्राहक का नाम
+            let customerName = pName || (member ? member[8] : "DPSG Member"); 
             
-            if (rank && prize) {
-                msg = `नमस्ते DPSG टीम, मेरा नाम ${customerName} है। विजेता लिस्ट में मेरी रैंक #${rank} है। मेरी आईडी ${id} है और मेरा इनाम '${prize}' है। कृपया आगे की प्रक्रिया बताएं।`;
-            } else if (prize && prize !== "PENDING") {
-                msg = `नमस्ते DPSG टीम, मेरा नाम ${customerName} है। मेरी ID ${id} है। मेरा इनाम '${prize}' खुला है। कृपया प्रक्रिया बताएं।`;
-            } else {
-                msg = `नमस्ते DPSG टीम, मैंने मास्टर डायरेक्टरी में अपना नाम चेक किया है। मेरा नाम ${customerName} और ID ${id} है। कृपया मेरे 'निश्चित उपहार' की जानकारी दें।`;
+            // अगर रैंक और इनाम दोनों हैं (Hall of Fame के लिए)
+            if (prize && prize !== "PENDING" && prize.includes(" - ")) {
+                msg = `खम्मा घणी DPSG टीम! मेरा नाम ${customerName} है। विजेता लिस्ट में मेरी ID ${id} है और मेरा इनाम '${prize}' खुला है। कृपया आगे की प्रक्रिया बताएं। धन्यवाद!`;
+            } 
+            // अगर सिर्फ़ इनाम है (Cashback, Board आदि)
+            else if (prize && prize !== "PENDING") {
+                msg = `खम्मा घणी DPSG टीम! मेरा नाम ${customerName} है। मेरी ID ${id} है और मेरा इनाम '${prize}' खुला है। कृपया प्रक्रिया बताएं। धन्यवाद!`;
+            } 
+            // अगर पेंडिंग है या कोई इनाम नहीं मिला
+            else {
+                msg = `खम्मा घणी DPSG टीम! मैंने मास्टर डायरेक्टरी में अपना नाम चेक किया है। मेरा नाम ${customerName} और ID ${id} है। कृपया मुझे जानकारी दें। धन्यवाद!`;
             }
             window.open(`https://wa.me/917229874128?text=${encodeURIComponent(msg)}`, '_blank');
         };
@@ -245,6 +250,8 @@
             const mID = (row[1] || "").toString().toLowerCase().trim();  
             const dDateStr = (row[36] || "").toString().trim(); 
             const lock = (row[37] || "").toString().toUpperCase().trim(); 
+            const actualPrize = (row[4] || "").toString().trim(); // Column E
+
             let drawDate = null;
             if (dDateStr) { let parts = dDateStr.split(/[-/]/); if (parts.length === 3) drawDate = new Date(parts[2], parts[1]-1, parts[0]); else drawDate = new Date(dDateStr); }
             const today = new Date(); today.setHours(0,0,0,0); if(drawDate) drawDate.setHours(0,0,0,0);
@@ -254,9 +261,9 @@
             if (!lock || !dDateStr || drawDate > today || lock === "PENDING") { setPrizeState({ isLocked: true, type: "PENDING" }); return; }
             
             const match = maps.find(m => m.Membership_ID && m.Membership_ID.toLowerCase().trim() === mID);  
-            if (lock === "DPSG_WINNER" && match) { setPrizeState({ isLocked: false, type: "WINNER", rank: match.Match_Name, img: toDirectLink(match.Image_Link), highlight: match.Inam_Name || "DPSG WINNER", colorClass: "winner-glow" }); } 
-            else if (lock === "DPSG_CASH") { setPrizeState({ isLocked: false, type: "CASH", img: "https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000", highlight: "₹100 Cash Back", colorClass: "cash-glow" }); } 
-            else if (lock === "DPSG_GIFT") { setPrizeState({ isLocked: false, type: "GIFT", img: "https://drive.google.com/thumbnail?id=1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z&sz=w1000", highlight: "5 rs Pen", colorClass: "gift-glow" }); } 
+            if (lock === "DPSG_WINNER" && match) { setPrizeState({ isLocked: false, type: "WINNER", rank: match.Match_Name, img: toDirectLink(match.Image_Link), highlight: match.Inam_Name || actualPrize || "DPSG WINNER", colorClass: "winner-glow" }); } 
+            else if (lock === "DPSG_CASH") { setPrizeState({ isLocked: false, type: "CASH", img: "https://drive.google.com/thumbnail?id=1WOrBZpuRF9Q-Pc753LA11XoAaGjCv7zD&sz=w1000", highlight: actualPrize || "₹100 Cash Back", colorClass: "cash-glow" }); } 
+            else if (lock === "DPSG_GIFT") { setPrizeState({ isLocked: false, type: "GIFT", img: "https://drive.google.com/thumbnail?id=1baCVXWH7XYD5T8QxOfGKnkt9CKDHSx2Z&sz=w1000", highlight: actualPrize || "Assured Gift", colorClass: "gift-glow" }); } 
             else { setPrizeState({ isLocked: false, type: "LOSS", img: "https://drive.google.com/thumbnail?id=1j7v5a90h8ABi2r6piQIZR_4Qil4buiqh&sz=w1000", highlight: "Better Luck Next Time", colorClass: "bg-slate-100 border-4 border-slate-300 dark:bg-slate-800 dark:border-slate-600 shadow-lg" }); }
         }, []); 
 
@@ -275,7 +282,7 @@
             <div className={`min-h-screen pb-10 ${theme === 'dark' ? 'dark' : ''}`}> 
                 
                 {/* 🚨 यह वेलकम पॉप-अप अब सर्च पेज पर हमेशा दिखेगा 🚨 */}
-                {showWelcome && (
+                {showWelcome && status === "search" && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 fade-in-scale">
                         <div className="bg-white dark:bg-slate-800 p-10 sm:p-14 rounded-[3rem] w-full max-w-xl text-center shadow-[0_0_50px_rgba(59,130,246,0.5)] border-4 border-blue-400 dark:border-blue-600 relative overflow-hidden">
                             <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600"></div>
@@ -319,7 +326,7 @@
 
                     {status === "loading" && <div className="h-64 flex items-center justify-center font-black text-3xl text-blue-600 animate-pulse tracking-widest">DPSG LOADING...</div>}
 
-                    {status === "search" && !showWelcome ? (  
+                    {status === "search" ? (  
                         <div className="glass-card p-12 text-center relative animate-in zoom-in">  
                             <i className="fa-solid fa-id-card text-7xl text-blue-600 mb-6 drop-shadow-lg"></i>  
                             <h2 className="text-2xl font-black mb-8 uppercase text-slate-800 dark:text-slate-100">{t.searchTitle}</h2>  
@@ -334,7 +341,7 @@
                         </div>  
                     ) : null}
 
-                    {status === "view" && !showWelcome ? (  
+                    {status === "view" ? (  
                         <div className="space-y-8 animate-in slide-in-from-bottom-6 duration-700">  
                             <div className="text-center glass-card p-8">  
                                 <h1 className="text-3xl sm:text-4xl font-black italic uppercase text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-600 dark:from-blue-400 dark:to-indigo-300 leading-tight drop-shadow-sm">{t.brand}</h1>  
